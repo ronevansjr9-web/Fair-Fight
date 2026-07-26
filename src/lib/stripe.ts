@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
-const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "price_pro_case";
+const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "price_1TwAck86HQsHVK1c3G8RT8Sk";
 const BASE_URL = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : process.env.PUBLIC_SITE_URL || "http://localhost:3000";
