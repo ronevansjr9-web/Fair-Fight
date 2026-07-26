@@ -92,4 +92,349 @@ Keep it short — this is a free preview of what Fair Fight Pro can do. Never sa
       try {
         const auth = await getAuth();
         if (auth.userId) {
-          await logAIAnalysisGenerated(auth.userId, 'homepage-dem
+          await logAIAnalysisGenerated(auth.userId, 'homepage-demo');
+        }
+      } catch {
+        // Audit logging shouldn't block the response
+      }
+
+      return { success: true, sections, raw: response };
+    } catch (error) {
+      console.error("AI analysis error:", error);
+      return {
+        success: false,
+        error: "Analysis failed. Please try again later.",
+      };
+    }
+  });
+
+/* ────────────────────────────────────────────
+   Server function — get user pro status
+   ──────────────────────────────────────────── */
+const getUserProStatus = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const auth = await getAuth();
+    if (!auth.userId) return { pro: false };
+    const status = await getSubscriptionStatus(auth.userId);
+    return { pro: status.active };
+  } catch {
+    return { pro: false };
+  }
+});
+
+/* ────────────────────────────────────────────
+   Server function — start pro checkout
+   ──────────────────────────────────────────── */
+const startProCheckout = createServerFn({ method: "POST" }).handler(async () => {
+  const auth = await getAuth();
+  if (!auth.userId) return { error: "Please sign in first." };
+
+  const email = auth.user?.primaryEmailAddress?.emailAddress || "";
+  const result = await createCheckoutSession(auth.userId, email);
+
+  if ("error" in result) return { error: result.error };
+  return { url: result.url };
+});
+
+/* ────────────────────────────────────────────
+   Home Component
+   ──────────────────────────────────────────── */
+function Home() {
+  const navigate = useNavigate();
+  const auth = useAuth();
+  const [situation, setSituation] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<{
+    situation: string;
+    concepts: string;
+    nextSteps: string;
+    questions: string;
+  } | null>(null);
+  const [error, setError] = useState("");
+  const [proStatus, setProStatus] = useState(false);
+
+  useEffect(() => {
+    getUserProStatus().then((r) => setProStatus(r.pro));
+  }, []);
+
+  const handleAnalyze = async () => {
+    if (!situation.trim()) return;
+    setIsAnalyzing(true);
+    setError("");
+    setAnalysis(null);
+
+    const result = await analyzeCase({ situation });
+    if (result.success && result.sections) {
+      setAnalysis(result.sections);
+    } else if (result.error) {
+      setError(result.error);
+    }
+    setIsAnalyzing(false);
+  };
+
+  const handleUpgrade = async () => {
+    const result = await startProCheckout();
+    if ("error" in result) {
+      setError(result.error);
+    } else if (result.url) {
+      window.location.href = result.url;
+    }
+  };
+
+  return (
+    <main className="min-h-screen">
+      {/* Hero Section */}
+      <section className="bg-navy px-4 py-20 sm:py-28">
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-navy-light px-4 py-1.5 text-sm text-gold-light">
+            <span className="h-2 w-2 rounded-full bg-gold animate-pulse" />
+            Free Legal Education — No Paywall on Research
+          </div>
+          <h1 className="mb-6 text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
+            Understand the Law.
+            <br />
+            <span className="text-gold">Fight Your Fair Fight.</span>
+          </h1>
+          <p className="mx-auto mb-8 max-w-2xl text-lg text-white/70 sm:text-xl">
+            The TurboTax of legal education — AI-powered plain-English explanations
+            of statutes, case law, and legal procedures. Free legal research, always.
+          </p>
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            {auth.isSignedIn ? (
+              <button
+                onClick={() => navigate({ to: "/dashboard" })}
+                className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-lg transition-all hover:shadow-xl hover:shadow-gold/20"
+              >
+                Go to Dashboard
+              </button>
+            ) : (
+              <SignUpButton mode="modal">
+                <button className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-lg transition-all hover:shadow-xl hover:shadow-gold/20">
+                  Get Started Free
+                </button>
+              </SignUpButton>
+            )}
+            <a
+              href="/learn"
+              className="rounded-full border border-white/20 px-8 py-3.5 font-semibold text-white transition-all hover:bg-white/10"
+            >
+              Browse Legal Guides
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="px-4 py-20">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="mb-12 text-center text-3xl font-bold text-navy sm:text-4xl">
+            Everything you need to understand your legal situation
+          </h2>
+          <div className="grid gap-8 md:grid-cols-3">
+            {[
+              {
+                title: "AI Case Analysis",
+                desc: "Describe your situation in plain English. Get plain-English explanations of relevant statutes and case law.",
+                icon: "🧠",
+              },
+              {
+                title: "Legal Research",
+                desc: "Free access to case law, statutes, and court rules. 56+ plain-English guides on court procedures and legal topics.",
+                icon: "📚",
+              },
+              {
+                title: "Evidence Manager",
+                desc: "Upload, organize, and tag evidence. Build timelines. Never lose track of a document or deadline.",
+                icon: "📎",
+              },
+              {
+                title: "Document Generator",
+                desc: "Generate motions, briefs, and legal documents with AI assistance. Educational templates with plain-English explanations.",
+                icon: "📝",
+              },
+              {
+                title: "Court Calendar",
+                desc: "Track court dates, filing deadlines, and statutes of limitations. Never miss a deadline.",
+                icon: "📅",
+              },
+              {
+                title: "Legal Argument Builder",
+                desc: "AI-powered argument templates with jurisdiction-specific case law. For Pro users.",
+                icon: "⚖️",
+              },
+            ].map((feature) => (
+              <div
+                key={feature.title}
+                className="card-hover rounded-2xl border border-gray-100 bg-white p-8 shadow-sm"
+              >
+                <div className="mb-4 text-3xl">{feature.icon}</div>
+                <h3 className="mb-2 text-xl font-bold text-navy">{feature.title}</h3>
+                <p className="text-gray-600">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Demo AI Analysis Section */}
+      <section className="bg-gray-50 px-4 py-20">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="mb-4 text-center text-3xl font-bold text-navy sm:text-4xl">
+            Try the AI Case Analyzer
+          </h2>
+          <p className="mb-8 text-center text-gray-600">
+            Describe your legal situation and get a free educational analysis.
+            No sign-up required for your first 3 analyses.
+          </p>
+          <div className="rounded-2xl bg-white p-8 shadow-sm">
+            <textarea
+              value={situation}
+              onChange={(e) => setSituation(e.target.value)}
+              placeholder="Describe your legal situation in plain English... (e.g., 'My landlord is refusing to return my security deposit even though I gave proper notice. I have photos showing the apartment was left clean.')"
+              rows={4}
+              className="mb-4 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 placeholder-gray-400 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+            />
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-400">
+                Free for your first 3 analyses. No account needed.
+              </p>
+              <button
+                onClick={handleAnalyze}
+                disabled={isAnalyzing || !situation.trim()}
+                className="gold-gradient rounded-full px-6 py-2.5 font-semibold text-navy transition-all hover:shadow-lg disabled:opacity-50"
+              >
+                {isAnalyzing ? "Analyzing..." : "Analyze My Situation"}
+              </button>
+            </div>
+
+            {error && (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            {analysis && (
+              <div className="mt-6 space-y-4 rounded-xl border border-gray-100 bg-white p-6">
+                {analysis.situation && (
+                  <div>
+                    <h4 className="mb-1 font-semibold text-navy">Your Situation</h4>
+                    <p className="text-sm text-gray-600">{analysis.situation}</p>
+                  </div>
+                )}
+                {analysis.concepts && (
+                  <div>
+                    <h4 className="mb-1 font-semibold text-navy">Relevant Legal Concepts</h4>
+                    <p className="text-sm text-gray-600">{analysis.concepts}</p>
+                  </div>
+                )}
+                {analysis.nextSteps && (
+                  <div>
+                    <h4 className="mb-1 font-semibold text-navy">What to Do Next</h4>
+                    <p className="text-sm text-gray-600">{analysis.nextSteps}</p>
+                  </div>
+                )}
+                {analysis.questions && (
+                  <div>
+                    <h4 className="mb-1 font-semibold text-navy">Questions for Your Attorney</h4>
+                    <p className="text-sm text-gray-600">{analysis.questions}</p>
+                  </div>
+                )}
+                {!proStatus && (
+                  <div className="rounded-lg border border-gold/20 bg-navy p-4 text-center">
+                    <p className="mb-2 text-sm text-white/80">
+                      This was a free preview. Upgrade to Pro for unlimited AI analyses per case.
+                    </p>
+                    <button
+                      onClick={handleUpgrade}
+                      className="gold-gradient rounded-full px-6 py-2 text-sm font-semibold text-navy"
+                    >
+                      Upgrade to Pro — $99
+                    </button>
+                  </div>
+                )}
+                <p className="text-xs text-gray-400">
+                  ⚖️ For educational purposes only. Not legal advice. Consult a licensed attorney.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-navy px-4 py-20">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">
+            Ready to understand your legal situation?
+          </h2>
+          <p className="mb-8 text-lg text-white/70">
+            Fair Fight gives you plain-English legal education, AI-powered case analysis,
+            and tools to stay organized. All legal research is free — forever.
+          </p>
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            {auth.isSignedIn ? (
+              <button
+                onClick={() => navigate({ to: "/dashboard" })}
+                className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-lg"
+              >
+                Go to Dashboard
+              </button>
+            ) : (
+              <SignUpButton mode="modal">
+                <button className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-lg">
+                  Get Started Free
+                </button>
+              </SignUpButton>
+            )}
+            <a
+              href="/learn"
+              className="rounded-full border border-white/20 px-8 py-3.5 font-semibold text-white transition-all hover:bg-white/10"
+            >
+              Browse Free Guides
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-200 bg-white px-4 py-12">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-8 sm:grid-cols-4">
+            <div>
+              <h4 className="mb-3 font-bold text-navy">Fair Fight</h4>
+              <p className="text-sm text-gray-500">AI-powered legal education platform.</p>
+            </div>
+            <div>
+              <h4 className="mb-3 font-semibold text-navy">Features</h4>
+              <ul className="space-y-2 text-sm text-gray-500">
+                <li><a href="/chat" className="hover:text-gold">AI Legal Chat</a></li>
+                <li><a href="/research" className="hover:text-gold">Legal Research</a></li>
+                <li><a href="/documents" className="hover:text-gold">Documents</a></li>
+                <li><a href="/evidence" className="hover:text-gold">Evidence</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="mb-3 font-semibold text-navy">Resources</h4>
+              <ul className="space-y-2 text-sm text-gray-500">
+                <li><a href="/learn" className="hover:text-gold">Legal Guides</a></li>
+                <li><a href="/calendar" className="hover:text-gold">Court Calendar</a></li>
+                <li><a href="/timeline" className="hover:text-gold">Timeline</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="mb-3 font-semibold text-navy">Legal</h4>
+              <ul className="space-y-2 text-sm text-gray-500">
+                <li><a href="/privacy" className="hover:text-gold">Privacy Policy</a></li>
+                <li><a href="/data-request" className="hover:text-gold">Data Request</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-8 border-t border-gray-100 pt-6 text-center text-xs text-gray-400">
+            <p>⚖️ Fair Fight is not a law firm and does not provide legal advice. For educational purposes only.</p>
+            <p className="mt-1">&copy; {new Date().getFullYear()} Fair Fight. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </main>
+  );
+}

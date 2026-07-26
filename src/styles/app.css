@@ -64,3 +64,44 @@
   @apply shadow-lg -translate-y-1;
   box-shadow: 0 10px 40px rgba(10, 35, 66, 0.12);
 }
+
+/* Navigation styles */
+.nav-link {
+  @apply text-sm font-medium text-white/70 transition-colors hover:text-gold;
+}
+
+.nav-link-active {
+  @apply text-gold;
+}
+
+/* Prose overrides for legal content */
+.prose h2 {
+  @apply text-xl font-bold text-navy mt-6 mb-3;
+}
+
+.prose h3 {
+  @apply text-lg font-semibold text-navy mt-4 mb-2;
+}
+
+.prose ul {
+  @apply list-disc pl-6 space-y-1;
+}
+
+.prose strong {
+  @apply text-navy;
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
