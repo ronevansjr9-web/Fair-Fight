@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@theme {
+  --color-navy: #0A2342;
+  --color-navy-light: #0F3460;
+  --color-navy-dark: #06162B;
+  --color-gold: #C9A227;
+  --color-gold-light: #DFB840;
+  --color-gold-dark: #A8851E;
+}
+
+@layer base {
+  html,
+  body {
+    @apply bg-white text-gray-800 antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  /* Reserve space for the persistent educational disclaimer bar */
+  body {
+    padding-bottom: 2.25rem;
+  }
+}
+
+/* Subtle fade-in animation for sections */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+.animation-delay-100 { animation-delay: 100ms; }
+.animation-delay-200 { animation-delay: 200ms; }
+.animation-delay-300 { animation-delay: 300ms; }
+.animation-delay-400 { animation-delay: 400ms; }
+.animation-delay-500 { animation-delay: 500ms; }
+
+/* Subtle gold gradient for CTA buttons */
+.gold-gradient {
+  background: linear-gradient(135deg, #C9A227 0%, #DFB840 50%, #C9A227 100%);
+}
+
+.gold-gradient:hover {
+  background: linear-gradient(135deg, #DFB840 0%, #E8C850 50%, #DFB840 100%);
+}
+
+/* Card hover effect */
+.card-hover {
+  @apply transition-all duration-300;
+}
+
+.card-hover:hover {
+  @apply shadow-lg -translate-y-1;
+  box-shadow: 0 10px 40px rgba(10, 35, 66, 0.12);
+}
