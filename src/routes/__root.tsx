@@ -192,13 +192,35 @@ function RootDocument({ children }: { children: ReactNode }) {
         <ClerkProvider publishableKey={PUBLISHABLE_KEY}>{children}</ClerkProvider>
         <Scripts />
 
-        {/* Persistent educational disclaimer — visible on every page */}
-        <div className="fixed bottom-0 left-0 right-0 z-[100] flex items-center justify-center border-t border-gold/30 bg-navy px-4 py-1.5 text-center">
-          <p className="text-xs font-medium text-white/80 sm:text-sm">
-            <span className="mr-1.5" role="img" aria-label="Scales of justice">⚖️</span>
+        {/* Persistent educational disclaimer — rendered server-side, outside all client components.
+            Uses inline styles so it is never stripped by Tailwind purge during SSR. */}
+        <div
+          id="legal-disclaimer"
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 100,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderTop: "1px solid rgba(201, 162, 39, 0.3)",
+            backgroundColor: "#0A2342",
+            padding: "0.375rem 1rem",
+            textAlign: "center",
+          }}
+        >
+          <p style={{ fontSize: "0.75rem", fontWeight: 500, color: "rgba(255,255,255,0.8)", margin: 0 }}>
+            <span aria-hidden="true" style={{ marginRight: "0.375rem" }}>⚖️</span>
             For educational purposes only. Fair Fight is not a law firm and does not provide legal advice. Always consult with a qualified attorney.
           </p>
         </div>
+        <noscript>
+          <div style={{ padding: "8px", textAlign: "center", backgroundColor: "#0A2342", color: "white", fontSize: "12px" }}>
+            ⚖️ For educational purposes only. Fair Fight is not a law firm and does not provide legal advice. Always consult with a qualified attorney.
+          </div>
+        </noscript>
       </body>
     </html>
   );
