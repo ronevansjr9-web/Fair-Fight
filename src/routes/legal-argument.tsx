@@ -194,7 +194,7 @@ function LegalArgumentPage() {
 
             {result && (
               <div className="mt-8 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
-                <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, "<br/>") }} />
+                <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeInput(result).replace(/\n/g, "<br/>") }} />
                 <div className="mt-6 rounded-lg border border-yellow-800 bg-yellow-900/20 p-4 text-sm text-yellow-300">
                   ⚖️ <strong>FOR EDUCATIONAL PURPOSES ONLY — NOT LEGAL ADVICE.</strong> Review with a licensed attorney before filing. The AI may cite cases that require verification. Never file a document without attorney review.
                 </div>

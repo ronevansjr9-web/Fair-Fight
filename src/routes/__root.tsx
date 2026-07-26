@@ -53,7 +53,6 @@ export const Route = createRootRoute({
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "canonical", href: "https://fairfight.ai" },
-      { rel: "manifest", href: "/manifest.json" },
     ],
     scripts: [
       {
@@ -157,10 +156,6 @@ export const Route = createRootRoute({
           ],
           "totalTime": "PT15M"
         }),
-      },
-      {
-        type: "module",
-        children: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`,
       },
     ],
     // Security headers applied at the HTTP level
