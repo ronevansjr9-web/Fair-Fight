@@ -174,6 +174,16 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  return (
+    <RootDocument>
+      <AuthTracker />
+      <SiteHeader />
+      <Outlet />
+    </RootDocument>
+  );
+}
+
+function AuthTracker() {
   const auth = useAuth();
   const prevSignedIn = useRef(auth.isSignedIn);
 
@@ -185,12 +195,7 @@ function RootComponent() {
     prevSignedIn.current = auth.isSignedIn;
   }, [auth.isSignedIn]);
 
-  return (
-    <RootDocument>
-      <SiteHeader />
-      <Outlet />
-    </RootDocument>
-  );
+  return null;
 }
 
 function SiteHeader() {
