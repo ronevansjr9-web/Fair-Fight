@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { createServerFn } from "@tanstack/react-start";
-import { getAuth } from "@clerk/tanstack-start/server";
 import { createCheckoutSession, getSubscriptionStatus } from "~/lib/stripe";
 
-const checkProAccess = createServerFn({ method: "GET" }).handler(async () => {
-  const auth = await getAuth();
+const checkProAccess = createServerFn({ method: "GET" }).handler(async (_data, ctx) => {
+  const { getAuth } = await import("@clerk/tanstack-start/server");
+  const auth = await getAuth(ctx);
   if (!auth.userId) return { hasAccess: false, isAuthenticated: false };
 
   try {
@@ -24,8 +24,9 @@ const startCheckout = createServerFn({ method: "POST" })
     const d = data as Record<string, unknown>;
     return { caseId: (d.caseId as string) || undefined };
   })
-  .handler(async ({ data }) => {
-    const auth = await getAuth();
+  .handler(async ({ data }, ctx) => {
+    const { getAuth } = await import("@clerk/tanstack-start/server");
+    const auth = await getAuth(ctx);
     if (!auth.userId) return { error: "Please sign in first" };
 
     const result = await createCheckoutSession(

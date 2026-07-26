@@ -14,8 +14,8 @@ export const Route = createFileRoute("/admin")({
   }),
 });
 
-const getAdminStats = createServerFn({ method: "GET" }).handler(async () => {
-  const auth = await getAuth();
+const getAdminStats = createServerFn({ method: "GET" }).handler(async (_data, ctx) => {
+  const auth = await getAuth(ctx);
   if (!auth.userId) return { authorized: false };
 
   try {
