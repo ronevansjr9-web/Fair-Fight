@@ -6,7 +6,7 @@ export const SECURITY_HEADERS: Record<string, string> = {
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
     "frame-src 'self' https://*.clerk.accounts.dev https://js.stripe.com https://hooks.stripe.com",
-    "connect-src 'self' https://*.clerk.accounts.dev https://api.stripe.com https://generativelanguage.googleapis.com",
+    "connect-src 'self' https://*.clerk.accounts.dev https://api.stripe.com https://generativelanguage.googleapis.com https://vitals.vercel-analytics.com",
     "media-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
