@@ -3,7 +3,7 @@ import { getAuth } from "@clerk/tanstack-start/server";
 import { sql } from "~/db";
 import { logDataDeleted } from "~/lib/audit";
 
-export async function POST({ request }: { request: Request) {
+export async function POST({ request }: { request: Request }) {
   const auth = await getAuth();
   if (!auth.userId) {
     return json({ error: "Unauthorized" }, { status: 401 });
