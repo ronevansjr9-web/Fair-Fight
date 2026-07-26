@@ -108,12 +108,13 @@ function DashboardPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="mb-8 grid gap-4 sm:grid-cols-4">
+          <div className="mb-8 grid gap-4 sm:grid-cols-5">
             {[
               { label: "AI Legal Chat", to: "/chat", icon: "💬" },
               { label: "Legal Research", to: "/research", icon: "📚" },
               { label: "Evidence", to: "/evidence", icon: "📎" },
               { label: "Calendar", to: "/calendar", icon: "📅" },
+              { label: "Profile", to: "/profile", icon: "👤" },
             ].map((action) => (
               <Link
                 key={action.to}

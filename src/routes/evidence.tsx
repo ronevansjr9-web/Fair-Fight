@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createServerFn } from "@tanstack/react-start";
+import { getAuth } from "@clerk/tanstack-start/server";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
+import { listFiles, deleteFile } from "~/lib/storage";
 
 export const Route = createFileRoute("/evidence")({
   component: EvidencePage,
@@ -21,12 +24,53 @@ interface EvidenceItem {
   description: string;
 }
 
+interface UploadedFile {
+  id: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+  caseId: string | null;
+}
+
+const getUploadedFiles = createServerFn({ method: "GET" }).handler(async () => {
+  const auth = await getAuth();
+  if (!auth.userId) return { files: [] };
+  const files = await listFiles(auth.userId);
+  return { files };
+});
+
+const removeFile = createServerFn({ method: "POST" })
+  .validator((data: unknown) => {
+    const d = data as Record<string, unknown>;
+    if (typeof d.fileId !== "string") throw new Error("fileId required");
+    return { fileId: d.fileId as string };
+  })
+  .handler(async ({ data }) => {
+    const auth = await getAuth();
+    if (!auth.userId) return { success: false, error: "Unauthorized" };
+    const ok = await deleteFile(data.fileId, auth.userId);
+    return { success: ok };
+  });
+
 function EvidencePage() {
   const [items, setItems] = useState<EvidenceItem[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [newItem, setNewItem] = useState({ name: "", type: "document", description: "", tags: "" });
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [uploadSuccess, setUploadSuccess] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleAdd = () => {
+  useEffect(() => {
+    getUploadedFiles().then((r) => {
+      if (r.files) setUploadedFiles(r.files);
+    });
+  }, []);
+
+  const handleAddMetadata = () => {
     if (!newItem.name.trim()) return;
     setItems((prev) => [
       ...prev,
@@ -43,8 +87,78 @@ function EvidencePage() {
     setShowAdd(false);
   };
 
-  const handleRemove = (id: string) => {
+  const handleRemoveMetadata = (id: string) => {
     setItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setUploadError("");
+      setUploadSuccess("");
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+
+    setUploading(true);
+    setUploadError("");
+    setUploadSuccess("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setUploadSuccess(`"${selectedFile.name}" uploaded successfully!`);
+        setSelectedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+
+        // Refresh the file list
+        const refreshed = await getUploadedFiles();
+        if (refreshed.files) setUploadedFiles(refreshed.files);
+      } else {
+        setUploadError(result.error || "Upload failed");
+      }
+    } catch (err) {
+      setUploadError("Upload failed. Please try again.");
+      console.error("Upload error:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveFile = async (fileId: string) => {
+    const result = await removeFile({ fileId });
+    if (result.success) {
+      setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId));
+    }
+  };
+
+  const formatSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const mimeTypeLabel = (mimeType: string): string => {
+    if (mimeType.startsWith("image/")) return "Image";
+    if (mimeType.includes("pdf")) return "PDF";
+    if (mimeType.includes("word") || mimeType.includes("document")) return "Document";
+    if (mimeType.includes("sheet") || mimeType.includes("excel")) return "Spreadsheet";
+    if (mimeType.startsWith("audio/")) return "Audio";
+    if (mimeType.startsWith("video/")) return "Video";
+    if (mimeType.startsWith("text/")) return "Text";
+    return "File";
   };
 
   return (
@@ -67,9 +181,93 @@ function EvidencePage() {
             </button>
           </div>
 
+          {/* Upload File Section */}
+          <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-bold text-navy">Upload a File</h2>
+            <p className="mb-4 text-sm text-gray-500">
+              Upload documents, photos, PDFs, audio, or video files (max 5 MB).
+              Files are stored securely and associated with your account.
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <label className="mb-1 block text-sm font-semibold text-navy">Select File</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileSelect}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-navy file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:bg-navy-light"
+                />
+              </div>
+              <button
+                onClick={handleUpload}
+                disabled={!selectedFile || uploading}
+                className="gold-gradient rounded-full px-6 py-2.5 text-sm font-semibold text-navy transition-all hover:shadow-md disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : "Upload File"}
+              </button>
+            </div>
+            {selectedFile && (
+              <p className="mt-2 text-sm text-gray-500">
+                Selected: {selectedFile.name} ({formatSize(selectedFile.size)})
+              </p>
+            )}
+            {uploadError && (
+              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {uploadError}
+              </div>
+            )}
+            {uploadSuccess && (
+              <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+                {uploadSuccess}
+              </div>
+            )}
+          </div>
+
+          {/* Uploaded Files List */}
+          {uploadedFiles.length > 0 && (
+            <div className="mb-8">
+              <h2 className="mb-4 text-lg font-bold text-navy">Uploaded Files ({uploadedFiles.length})</h2>
+              <div className="space-y-3">
+                {uploadedFiles.map((file) => (
+                  <div key={file.id} className="flex items-center justify-between rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-lg">
+                        {file.mimeType.startsWith("image/") ? "🖼️" :
+                         file.mimeType.includes("pdf") ? "📄" :
+                         file.mimeType.includes("audio") ? "🎵" :
+                         file.mimeType.includes("video") ? "🎬" : "📎"}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-navy">{file.filename}</h3>
+                        <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-400">
+                          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-600">{mimeTypeLabel(file.mimeType)}</span>
+                          <span>{formatSize(file.sizeBytes)}</span>
+                          <span>{new Date(file.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveFile(file.id)}
+                      className="ml-4 rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add Metadata Item */}
           {showAdd && (
             <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-bold text-navy">New Evidence Item</h2>
+              <h2 className="mb-4 text-lg font-bold text-navy">Add Evidence Description</h2>
+              <p className="mb-4 text-sm text-gray-500">
+                Add metadata about evidence items — links, references, or notes about physical items.
+                To upload actual files, use the Upload section above.
+              </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1 block text-sm font-semibold text-navy">Name</label>
@@ -121,7 +319,7 @@ function EvidencePage() {
                 </div>
               </div>
               <div className="mt-4 flex gap-3">
-                <button onClick={handleAdd} className="gold-gradient rounded-full px-6 py-2.5 text-sm font-semibold text-navy">
+                <button onClick={handleAddMetadata} className="gold-gradient rounded-full px-6 py-2.5 text-sm font-semibold text-navy">
                   Add Item
                 </button>
                 <button onClick={() => setShowAdd(false)} className="rounded-full bg-gray-100 px-6 py-2.5 text-sm font-semibold text-gray-600">
@@ -131,11 +329,12 @@ function EvidencePage() {
             </div>
           )}
 
-          {items.length === 0 ? (
+          {/* Metadata Items List */}
+          {items.length === 0 && uploadedFiles.length === 0 ? (
             <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
               <div className="mx-auto mb-4 text-5xl">📎</div>
               <p className="mb-2 text-lg font-semibold text-gray-500">No evidence items yet</p>
-              <p className="mb-4 text-sm text-gray-400">Add evidence to start organizing your case</p>
+              <p className="mb-4 text-sm text-gray-400">Upload files or add evidence descriptions to start organizing your case</p>
               <button
                 onClick={() => setShowAdd(true)}
                 className="gold-gradient rounded-full px-6 py-2.5 font-semibold text-navy"
@@ -143,8 +342,9 @@ function EvidencePage() {
                 Add Your First Evidence Item
               </button>
             </div>
-          ) : (
+          ) : items.length > 0 ? (
             <div className="space-y-3">
+              <h2 className="mb-2 text-lg font-bold text-navy">Evidence Notes ({items.length})</h2>
               {items.map((item) => (
                 <div key={item.id} className="flex items-start justify-between rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                   <div>
@@ -163,7 +363,7 @@ function EvidencePage() {
                     {item.description && <p className="mt-1 text-sm text-gray-500">{item.description}</p>}
                   </div>
                   <button
-                    onClick={() => handleRemove(item.id)}
+                    onClick={() => handleRemoveMetadata(item.id)}
                     className="ml-4 rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-500"
                   >
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -173,7 +373,7 @@ function EvidencePage() {
                 </div>
               ))}
             </div>
-          )}
+          ) : null}
         </div>
       </main>
     </AuthenticatedGuard>

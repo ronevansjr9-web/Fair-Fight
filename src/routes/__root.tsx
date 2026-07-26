@@ -2,10 +2,11 @@ import {
   HeadContent,
   Outlet,
   Scripts,
+  Link,
   createRootRoute,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { ClerkProvider } from "@clerk/tanstack-start";
+import { ClerkProvider, UserButton, SignInButton, SignUpButton, useAuth } from "@clerk/tanstack-start";
 import { SECURITY_HEADERS } from "~/lib/security-headers";
 
 import appCss from "~/styles/app.css?url";
@@ -177,8 +178,70 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <RootDocument>
+      <SiteHeader />
       <Outlet />
     </RootDocument>
+  );
+}
+
+function SiteHeader() {
+  const auth = useAuth();
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-navy shadow-lg">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-8">
+          <Link to="/" className="flex items-center gap-2 text-xl font-extrabold text-white">
+            <span className="text-gold">⚖️</span>
+            Fair Fight
+          </Link>
+          <nav className="hidden items-center gap-6 md:flex">
+            <Link to="/learn" className="nav-link">Guides</Link>
+            {auth.isSignedIn && (
+              <>
+                <Link to="/dashboard" className="nav-link">Dashboard</Link>
+                <Link to="/chat" className="nav-link">Chat</Link>
+                <Link to="/evidence" className="nav-link">Evidence</Link>
+                <Link to="/calendar" className="nav-link">Calendar</Link>
+              </>
+            )}
+          </nav>
+        </div>
+        <div className="flex items-center gap-3">
+          {auth.isSignedIn ? (
+            <>
+              <Link
+                to="/profile"
+                className="hidden rounded-full border border-white/20 px-4 py-1.5 text-sm font-medium text-white/80 transition-all hover:bg-white/10 sm:inline-block"
+              >
+                Profile
+              </Link>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "h-9 w-9 ring-2 ring-gold/30",
+                  },
+                }}
+              />
+            </>
+          ) : (
+            <>
+              <SignInButton mode="modal">
+                <button className="rounded-full border border-white/20 px-4 py-1.5 text-sm font-medium text-white/80 transition-all hover:bg-white/10">
+                  Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="gold-gradient rounded-full px-4 py-1.5 text-sm font-semibold text-navy">
+                  Get Started
+                </button>
+              </SignUpButton>
+            </>
+          )}
+        </div>
+      </div>
+    </header>
   );
 }
 
