@@ -36,6 +36,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Estate Planning": "bg-emerald-100 text-emerald-800",
   "Immigration Law": "bg-amber-100 text-amber-800",
   "Consumer Law": "bg-lime-100 text-lime-800",
+  "Business Law": "bg-sky-100 text-sky-800",
 };
 
 const ARTICLES: Article[] = [
@@ -881,163 +882,217 @@ const ARTICLES: Article[] = [
     relatedGuides: ["what-is-discovery", "how-to-write-legal-brief", "how-to-file-a-motion"],
   },
 
+
+  {
+    id: "how-to-get-green-card",
+    title: "How to Get a Green Card: Marriage, Employment, and Family Paths",
+    category: "Immigration Law",
+    readTime: "10 min",
+    paragraphs: [
+      "A green card (lawful permanent residence) allows a non-citizen to live and work permanently in the United States. There are multiple pathways to obtaining one, and the right path depends on your individual circumstances — family relationships, employment opportunities, humanitarian needs, or other special categories. Understanding which category you qualify under is the critical first step, as each has different requirements, processing times, and documentation standards.",
+      "Family-based green cards are the most common pathway. U.S. citizens can petition for: spouses, unmarried children under 21 (immediate relatives — no annual cap), unmarried sons and daughters over 21 (Family First Preference), married sons and daughters (Family Third Preference), and siblings (Family Fourth Preference). Lawful permanent residents can petition for spouses and unmarried children (Family Second Preference). The key distinction: immediate relatives of U.S. citizens always have visas available; preference categories have annual numerical limits and can face waiting periods of years — sometimes decades for certain categories and countries. The Visa Bulletin, published monthly by the State Department, tells you when your priority date is current.",
+      "Employment-based green cards fall into five preference categories: EB-1 (priority workers — extraordinary ability, outstanding professors/researchers, multinational executives), EB-2 (advanced degree professionals and exceptional ability), EB-3 (skilled workers, professionals, and other workers), EB-4 (special immigrants like religious workers), and EB-5 (immigrant investors who invest $800,000-$1,050,000 and create 10 U.S. jobs). Most employment categories require a U.S. employer to sponsor you and obtain a labor certification (PERM) from the Department of Labor, proving no qualified U.S. workers are available. EB-1 extraordinary ability and EB-2 National Interest Waiver allow self-petitioning without employer sponsorship.",
+      "The adjustment of status vs. consular processing decision is crucial. If you're already in the U.S. and entered lawfully, you may be eligible to adjust status (Form I-485) at a USCIS office — this allows you to remain in the U.S. while the application is processed and may include work and travel authorization. If you're outside the U.S. or ineligible for adjustment, you must go through consular processing at a U.S. embassy or consulate abroad. Adjustment is generally preferred because it keeps families together and provides employment authorization during the wait. However, certain grounds of inadmissibility — criminal history, immigration violations, health issues, public charge concerns — can complicate or bar both paths unless a waiver is available.",
+      "Practical considerations: (1) Immigration medical exam (Form I-693) by a USCIS-designated civil surgeon is required; get it done close to filing because results expire after two years for I-485 filings. (2) The affidavit of support (Form I-864) is required for most family-based and some employment-based applicants — the sponsoring petitioner must prove income at or above 125% of the Federal Poverty Guidelines. (3) Green card interviews are now waived for many employment-based cases but remain standard for family-based cases. Prepare thoroughly: review your entire application before the interview, bring originals of all documents, and answer questions truthfully. (4) Conditional permanent residence (2-year green card) applies to marriage-based cases where the marriage is less than 2 years old — you must file Form I-751 to remove conditions 90 days before expiration. (5) Never pay notarios or immigration consultants who promise results — only licensed attorneys or DOJ-accredited representatives should handle your immigration case.",
+    ],
+    takeaways: [
+      "Green card pathways include family, employment, humanitarian (asylum/refugee), diversity lottery, and special programs",
+      "Immediate relatives of U.S. citizens have no visa cap; preference categories face years-long waits for certain countries",
+      "Employment green cards typically require employer sponsorship and PERM labor certification, with EB-1 and NIW as exceptions",
+      "Adjustment of status (I-485) allows U.S.-based processing with work/travel authorization; consular processing is the overseas alternative",
+      "Conditional green cards (2-year) require removal of conditions; never use notarios — only licensed attorneys or accredited reps",
+    ],
+    relatedGuides: ["immigration-court-basics", "asylum-law-guide", "how-to-read-contract"],
+  },
+  {
+    id: "medical-malpractice-guide",
+    title: "Understanding Medical Malpractice: When to Sue a Doctor",
+    category: "Personal Injury",
+    readTime: "9 min",
+    paragraphs: [
+      "Medical malpractice occurs when a healthcare provider deviates from the accepted standard of care and causes injury to a patient. It's important to understand that a bad medical outcome is not, by itself, malpractice. Medicine involves inherent risks, and doctors are not guarantors of good results. Malpractice requires proving that the provider acted negligently — that they failed to do what a reasonably competent provider would have done under similar circumstances, and that this failure directly caused harm.",
+      "The four elements of a medical malpractice claim — mirroring general negligence law — are: (1) Duty: the provider owed a duty of care to the patient (established by the doctor-patient relationship). (2) Breach: the provider breached that duty by failing to meet the standard of care — what a reasonably prudent provider in the same specialty would have done under similar circumstances. This almost always requires testimony from a medical expert. (3) Causation: the breach directly caused the patient's injury. This is often the most contested element — the defense will argue the injury was caused by the underlying condition, not the provider's actions. (4) Damages: the patient suffered compensable harm — additional medical bills, lost wages, pain and suffering, disability, or wrongful death.",
+      "Common types of medical malpractice include: misdiagnosis or delayed diagnosis (the most common claim — failing to diagnose cancer, heart attack, stroke, or infection in time for effective treatment); surgical errors (operating on the wrong body part, leaving instruments inside the patient, damaging adjacent organs); medication errors (prescribing the wrong drug, incorrect dosage, failing to check for drug interactions); birth injuries (cerebral palsy, Erb's palsy, and other injuries from improper delivery techniques); anesthesia errors; and failure to obtain informed consent (performing a procedure without adequately explaining the risks and alternatives). Hospital-acquired infections may constitute malpractice if proper sterilization and infection control protocols weren't followed.",
+      "Medical malpractice cases have significant procedural hurdles not found in ordinary negligence cases. Most states require: (1) a pre-suit notice to the healthcare provider before filing suit; (2) a certificate of merit or affidavit from a qualified medical expert stating that the case has merit — filed at or near the time of the complaint; (3) submission of the case to a medical review panel (in some states) before proceeding to trial; and (4) compliance with strict statutes of limitations — typically 1-3 years from the date of injury or discovery, but with special rules for minors, incapacitated patients, and cases involving fraudulently concealed errors. Some states also cap non-economic damages (pain and suffering) at $250,000-$750,000, though these caps have been challenged and struck down as unconstitutional in several states.",
+      "If you suspect medical malpractice: (1) Request your complete medical records immediately — you have a legal right to them under HIPAA, though providers can charge reasonable copying fees. Review them for inconsistencies and note any missing records. (2) Keep a detailed journal of your symptoms, treatments, and how the injury has affected your daily life. (3) Do not contact the provider or hospital to 'discuss what went wrong' — anything you say can be used against you. (4) Consult a medical malpractice attorney promptly — these cases are expensive to litigate (expert witnesses alone can cost $50,000+) and most attorneys take them on contingency, advancing costs. (5) Be aware that most malpractice cases settle before trial; trials are risky and expensive for both sides. An attorney can help you evaluate whether a settlement offer is fair.",
+    ],
+    takeaways: [
+      "A bad outcome is not automatically malpractice — you must prove the provider breached the standard of care",
+      "Four elements: duty, breach (almost always requires an expert), causation (most contested), and damages",
+      "Misdiagnosis and delayed diagnosis are the most common malpractice claims — catching disease late is devastating",
+      "Most states have special hurdles: pre-suit notice, certificate of merit, and damage caps on pain and suffering",
+      "Request medical records immediately, don't contact the provider directly, and consult a malpractice attorney promptly",
+    ],
+    relatedGuides: ["statute-of-limitations-guide", "after-car-accident-guide", "defamation-libel-slander"],
+  },
+  {
+    id: "how-to-start-an-llc",
+    title: "How to Start an LLC: A Legal Guide for Small Business Owners",
+    category: "Business Law",
+    readTime: "8 min",
+    paragraphs: [
+      "A Limited Liability Company (LLC) is one of the most popular business structures in the United States because it combines the liability protection of a corporation with the tax flexibility of a partnership. Forming an LLC creates a legal entity separate from its owners (called members), meaning your personal assets — house, car, savings — are generally protected from business debts and lawsuits. Every state has its own LLC statute, but the core concepts are consistent across jurisdictions.",
+      "The formation process: (1) Choose a business name that complies with your state's requirements — it must include 'LLC' or 'Limited Liability Company,' must not be deceptively similar to an existing registered business, and in some states, must not use restricted words (like 'Bank' or 'Insurance') without special approval. Check name availability on your Secretary of State's website. (2) Appoint a registered agent — a person or company with a physical address in the state who can receive legal documents (service of process) on behalf of the LLC. You can serve as your own registered agent or hire a commercial service ($50-$300/year). (3) File Articles of Organization (called Certificate of Formation in some states) with the Secretary of State, pay the filing fee ($50-$800, varying by state), and include: the LLC's name, registered agent information, management structure, and sometimes member names and business purpose.",
+      "The Operating Agreement is the most important internal document for an LLC — yet many new business owners skip it. This is a mistake. The Operating Agreement spells out: ownership percentages, how profits and losses are allocated, member voting rights and management authority, procedures for adding or removing members, buyout provisions (what happens if a member dies, divorces, or wants to leave), and dissolution procedures. Without an Operating Agreement, your LLC is governed by your state's default LLC statute — which may not reflect what you and your co-members actually want. Single-member LLCs should also have one to reinforce liability protection by demonstrating the business is truly separate from the owner.",
+      "LLC tax treatment is flexible and powerful. By default, a single-member LLC is a 'disregarded entity' — you report business income and expenses on Schedule C of your personal tax return. A multi-member LLC is taxed as a partnership (Form 1065) with K-1s issued to each member. Either can elect to be taxed as an S-corporation (Form 2553) or C-corporation (Form 8832). S-corp election can save self-employment tax: you pay yourself a reasonable salary (subject to payroll taxes) and take remaining profits as distributions (not subject to self-employment tax). This election only makes financial sense when the business has net income above a threshold (typically $40,000-$60,000+) after your reasonable salary — consult a tax professional before electing.",
+      "Post-formation compliance: (1) Obtain an EIN (Employer Identification Number) from the IRS — free, online, immediate. (2) Open a separate business bank account — commingling personal and business funds can destroy your liability protection (called 'piercing the corporate veil'). (3) Check if your business needs state or local business licenses, professional licenses, or permits. (4) File a Beneficial Ownership Information (BOI) report with FinCEN within 90 days of formation (for LLCs formed in 2024 or later) under the Corporate Transparency Act. (5) Most states require annual or biennial reports and fees ($10-$500) to keep the LLC in good standing. (6) If you plan to do business in other states, you may need to register as a foreign LLC in those states.",
+    ],
+    takeaways: [
+      "LLC combines corporate-style liability protection with partnership-style tax flexibility",
+      "Filing steps: name check → registered agent → Articles of Organization → filing fee → Operating Agreement",
+      "An Operating Agreement is essential — it governs ownership, management, and what happens when members leave",
+      "LLC can be taxed as sole prop, partnership, S-corp, or C-corp — S-corp election can save self-employment tax",
+      "Post-formation: get EIN, separate bank account, business licenses, FinCEN BOI report, and annual state filings",
+    ],
+    relatedGuides: ["how-to-read-contract", "small-claims-court-guide", "power-of-attorney-guide"],
+  },
+  {
+    id: "sexual-harassment-rights",
+    title: "What Is Sexual Harassment? Your Workplace Rights Explained",
+    category: "Employment Law",
+    readTime: "7 min",
+    paragraphs: [
+      "Sexual harassment is a form of sex discrimination that violates Title VII of the Civil Rights Act of 1964 and parallel state laws. The Equal Employment Opportunity Commission (EEOC) defines sexual harassment as unwelcome sexual advances, requests for sexual favors, and other verbal or physical conduct of a sexual nature when: (1) submission to the conduct is made a term or condition of employment (quid pro quo), or (2) the conduct creates an intimidating, hostile, or offensive work environment. Both forms are illegal, and employers are obligated to prevent and address them.",
+      "Quid pro quo harassment ('this for that') occurs when a supervisor or person with authority conditions employment benefits — hiring, promotion, raise, favorable assignments, continued employment — on the employee's submission to sexual conduct. A single incident of quid pro quo harassment is sufficient to create liability, and the employer is strictly liable if the harasser is a supervisor and the harassment results in a tangible employment action. Hostile work environment harassment occurs when unwelcome sexual conduct is severe or pervasive enough to alter the conditions of employment and create an abusive working environment. This can include: offensive touching, sexually explicit comments or jokes, displaying pornography, repeatedly asking for dates, making lewd gestures, or sending sexually suggestive emails. The key legal standard: would a reasonable person find the environment hostile, and did the victim subjectively perceive it as hostile?",
+      "Sexual harassment is not limited to male supervisors harassing female subordinates. The harasser and victim can be of any gender, and the harasser can be a supervisor, coworker, or even a non-employee (client, customer, delivery person). Same-sex harassment is covered under Title VII, as established by Oncale v. Sundowner Offshore Services, Inc., 523 U.S. 75 (1998). Harassment doesn't require economic injury — psychological harm and interference with work performance are sufficient. Isolated incidents, simple teasing, offhand comments, and petty slights generally don't rise to the level of illegal harassment, but a pattern of such conduct over time may.",
+      "If you're experiencing sexual harassment, take these steps to protect yourself: (1) Tell the harasser to stop — clearly and firmly, preferably in writing (email is good — it's dated and documented). While not legally required, this establishes that the conduct is unwelcome. (2) Report the harassment internally following your employer's policy — check your employee handbook. Report to HR, a manager, or whoever is designated. Put the report in writing and keep a copy. If the harasser is your supervisor and there's no one above them to report to, go directly to HR or use an anonymous hotline if available. (3) Document everything: dates, times, locations, what was said or done, how it made you feel, witnesses, and copies of any offensive messages, emails, or images. Keep a contemporaneous journal — this is powerful evidence. (4) If the employer fails to take prompt, effective action to stop the harassment, file a charge with the EEOC or your state's fair employment agency. The deadline is typically 180-300 days from the last incident of harassment.",
+      "Retaliation for reporting sexual harassment is separately illegal — and it's the most common charge filed with the EEOC. If your employer fires, demotes, transfers, reduces your hours, gives negative evaluations, or otherwise punishes you for complaining about harassment, that's retaliation. Under Burlington Northern & Santa Fe Railway Co. v. White, 548 U.S. 53 (2006), retaliation is any action that would deter a reasonable employee from making a complaint — not just tangible employment actions. If the employer's investigation is a sham — designed to protect the harasser rather than meaningfully investigate — consult an employment attorney. Many states have additional protections beyond federal law, including lower thresholds for employer liability and longer filing deadlines. Don't wait — the time limits are strict, and evidence becomes harder to gather over time.",
+    ],
+    takeaways: [
+      "Two types: quid pro quo ('this for that') and hostile work environment — both are illegal under Title VII",
+      "Harassers can be any gender; victims can be any gender; same-sex harassment is covered (Oncale v. Sundowner)",
+      "Report internally in writing first — this establishes employer notice and triggers their duty to investigate",
+      "Document everything: dates, times, exactly what happened, witnesses, and copies of all offensive material",
+      "Retaliation for reporting is separately illegal; file with the EEOC within 180-300 days of the last incident",
+    ],
+    relatedGuides: ["wrongful-termination", "workplace-harassment-laws", "how-to-write-demand-letter"],
+  },
+  {
+    id: "how-to-respond-to-lawsuit",
+    title: "How to Respond to a Lawsuit: Answer, Motion, or Settlement",
+    category: "Court Procedures",
+    readTime: "9 min",
+    paragraphs: [
+      "Being served with a lawsuit is stressful and disorienting, but what you do in the first 20-30 days determines the entire trajectory of your case. When you receive a summons and complaint, you have a limited window — typically 21 days in federal court (Rule 12(a)) or 20-30 days in state court — to respond. If you do nothing, the plaintiff can obtain a default judgment against you: the court grants everything the plaintiff asked for, without ever hearing your side. The first and most important rule: respond. Period.",
+      "You have three basic options when responding to a complaint: (1) File an answer — a document where you admit, deny, or state that you lack sufficient information to admit or deny each numbered paragraph in the complaint. You must respond to every paragraph; any allegation you fail to deny is deemed admitted. Your answer should also raise affirmative defenses — legal reasons why the plaintiff should not win even if their facts are true: statute of limitations has expired, the plaintiff lacks standing, the court lacks jurisdiction, comparative negligence, payment or settlement, or failure to state a claim. (2) File a motion under Rule 12(b) (federal) or equivalent state rule — a request to dismiss some or all claims before answering. Common grounds: lack of jurisdiction, improper venue, insufficient service of process, or failure to state a claim (Rule 12(b)(6)). (3) Immediately contact the plaintiff or their attorney and attempt to settle. This doesn't extend your response deadline, so you need to handle both tracks simultaneously.",
+      "The strategic calculus: filing a motion to dismiss makes sense when the complaint has a clear legal defect — like the statute of limitations has clearly run, or the complaint fails to allege necessary elements. But motions to dismiss are often denied because courts must accept the complaint's factual allegations as true at this stage. Filing an answer preserves your right to contest the facts and buys time for discovery. Many defendants do both: file a partial answer while moving to dismiss specific claims. Note that filing a motion to dismiss typically extends your time to answer: if the motion is denied, you usually have 14 days to file your answer. Check your local rules.",
+      "Before drafting your response, conduct a careful analysis: (1) What is the exact deadline? Count from the date of service, not the date the complaint was filed. Weekends and holidays count, but if the deadline falls on a weekend or holiday, it extends to the next business day. Mark the deadline immediately and aim to file 2-3 days early. (2) What court is this in and what rules apply? Federal Rules of Civil Procedure or your state's rules? Local court rules may impose additional requirements — check them. (3) Do you have defenses? Evaluate the statute of limitations, jurisdictional issues, failure to state a claim, and any factual disputes. (4) Is there insurance coverage? If the lawsuit relates to a car accident, slip-and-fall at your property, or professional services, your insurance company may have a duty to defend you and hire an attorney. Notify your insurer immediately — failure to do so can waive coverage.",
+      "Practical guidance for self-represented defendants: (1) Find the court's self-help center — most courts have forms and instructions for filing an answer. (2) Your answer doesn't need to be a masterpiece of legal writing, but it must be filed on time, typed or legibly handwritten, and include the case caption (court name, case number, parties), your response to each paragraph, your affirmative defenses, and a certificate of service (proof you mailed a copy to the plaintiff). (3) Send your answer to the plaintiff's attorney (or the plaintiff directly if they're self-represented) by mail the same day you file it with the court. (4) If you're considering settlement, put any agreement in writing and file a stipulation of dismissal with the court — don't just take the plaintiff's word that the case is 'dropped.' (5) If the case is for a significant amount, involves complex legal issues, or you feel overwhelmed, consult an attorney even if it's just for a limited-scope consultation to review your answer before you file it.",
+    ],
+    takeaways: [
+      "You have 20-30 days to respond after service — doing nothing results in a default judgment against you",
+      "Three options: file an answer (admit/deny each paragraph + affirmative defenses), motion to dismiss, or settle",
+      "A motion to dismiss extends your answer deadline if denied; it's appropriate when the complaint has clear legal defects",
+      "Notify your insurance company immediately — they may have a duty to defend and hire an attorney for you",
+      "Use court self-help centers for forms; file on time; always send a copy to the other side; get settlements in writing",
+    ],
+    relatedGuides: ["how-to-file-a-motion", "motion-to-dismiss-explained", "what-is-a-complaint"],
+  },
+  {
+    id: "understanding-alimony",
+    title: "Understanding Alimony: How Spousal Support Is Calculated",
+    category: "Family Law",
+    readTime: "8 min",
+    paragraphs: [
+      "Alimony — also called spousal support or spousal maintenance — is financial support paid by one ex-spouse to the other after divorce. Unlike child support, which follows relatively predictable formulas in most states, alimony is highly discretionary. Judges consider a wide range of statutory factors, and the outcome varies significantly based on the facts of each marriage. Understanding how alimony works helps both paying and receiving spouses set realistic expectations and negotiate effectively.",
+      "The threshold question in most states is whether alimony is warranted at all. The primary factors include: (1) the length of the marriage — longer marriages (often 10+ years) create a stronger claim for alimony; (2) the income disparity between spouses and each spouse's earning capacity; (3) the standard of living established during the marriage; (4) the age, health, and education of each spouse; (5) whether one spouse sacrificed career opportunities to support the family (staying home with children, relocating for the other spouse's career, working to put the other through school); and (6) the presence of marital fault in some states — adultery, abuse, or abandonment can affect alimony in states that still consider fault. Not all states use all factors, and the weight given to each varies.",
+      "There are several types of alimony: (1) Temporary alimony (pendente lite) — paid during the divorce proceeding to maintain the status quo. (2) Rehabilitative alimony — the most common type; short-to-medium-term support designed to help the receiving spouse become self-supporting through education, job training, or re-entry into the workforce. (3) Permanent alimony — long-term or indefinite support, typically reserved for long marriages where one spouse is unlikely to become self-supporting due to age, disability, or long absence from the workforce. Many states now disfavor permanent alimony and prefer rehabilitative. (4) Reimbursement alimony — compensating a spouse who supported the other through school or career building. (5) Lump-sum alimony — a one-time payment in lieu of periodic payments, often used to achieve a clean break in property settlements.",
+      "Calculating alimony is more art than science in most jurisdictions. While child support uses formulaic guidelines in every state, only a handful of states have adopted presumptive alimony formulas. The American Academy of Matrimonial Lawyers (AAML) formula — not binding but influential — suggests: 30% of the higher earner's gross income minus 20% of the lower earner's gross income, with the result capped at 40% of combined gross incomes. Some states use guideline ranges based on marriage length and income difference. But in most states, the judge has broad discretion to weigh the statutory factors and arrive at a 'fair and reasonable' amount. Duration is often tied to marriage length: many states use a rule of thumb like half the length of the marriage for rehabilitative alimony, though this varies widely.",
+      "Key considerations: (1) Alimony is tax-neutral for divorces finalized after December 31, 2018 — under the Tax Cuts and Jobs Act, the paying spouse cannot deduct alimony, and the receiving spouse does not report it as income. For pre-2019 divorces, the old rules apply unless modified. (2) Alimony typically terminates upon: the death of either party, remarriage of the receiving spouse, or cohabitation (in many states — defined as a marriage-like relationship). Some states allow modification based on a 'substantial change in circumstances,' such as job loss, disability, or substantial increase in the receiving spouse's income. (3) If you're negotiating alimony, consider trading other assets (more retirement funds, the house) for reduced or eliminated alimony — a clean break benefits both sides. (4) Always put alimony agreements in writing within the divorce decree or separation agreement. Oral promises are unenforceable. (5) If you believe you'll need alimony or will be asked to pay it, consult a family law attorney early — the financial stakes justify the cost.",
+    ],
+    takeaways: [
+      "Alimony is discretionary — judges weigh marriage length, income disparity, standard of living, and sacrificed career opportunities",
+      "Rehabilitative alimony (temporary, for education/training) is the most common; permanent alimony is disfavored and rare",
+      "Most states don't use formulas — judges have broad discretion, making outcomes unpredictable without legal guidance",
+      "Post-2018 divorces: alimony is tax-neutral — paying spouse can't deduct, receiving spouse doesn't report as income",
+      "Alimony terminates at death, remarriage, or cohabitation; modification requires substantial change in circumstances",
+    ],
+    relatedGuides: ["divorce-process-overview", "child-custody-guide", "understanding-child-support"],
+  },
+  {
+    id: "fight-restraining-order",
+    title: "How to Fight a Restraining Order: Your Legal Rights",
+    category: "Family Law",
+    readTime: "8 min",
+    paragraphs: [
+      "Being served with a restraining order is serious. It can affect your right to see your children, enter your own home, possess firearms, and maintain employment (many employers run background checks that will reveal a restraining order). A restraining order can also be used against you in custody proceedings as evidence that you're a danger to the other parent — even if the allegations are false. Fighting a restraining order requires understanding the process, preparing a strong defense, and presenting your case effectively at the hearing.",
+      "The most important immediate step: comply with the temporary restraining order (TRO) completely and immediately — even if you believe it's based on lies. Violating a TRO can result in criminal charges (contempt or violation of a protective order), separate from the underlying civil case. Do not contact the petitioner, do not go near their home, workplace, or children's school, and do not try to explain your side through friends or family (third-party contact is often also prohibited). If the TRO requires you to move out of your home, surrender firearms, or follow a parenting schedule — do it. Your compliance demonstrates to the judge that you respect court orders, even ones you disagree with.",
+      "Prepare for the full hearing — typically scheduled 14-21 days after the TRO is issued. This is your one chance to present your side. Gather evidence: (1) Text messages, emails, voicemails, and social media posts from the petitioner that contradict their allegations — especially messages that show friendly, normal communication during the time period they claim you were threatening or harassing them. (2) Witness statements from people who were present during alleged incidents or who can speak to your character and the relationship. (3) Photographs and videos that contradict the petitioner's claims. (4) Phone records, location data (Google Timeline, etc.), receipts, and other documents placing you somewhere else during alleged incidents. (5) Evidence of the petitioner's motive to fabricate — are they using the restraining order to gain advantage in a custody battle or divorce? (6) Your own declaration or testimony explaining your side. Organize everything chronologically with clear labels.",
+      "At the hearing, the burden of proof is on the petitioner — they must prove by a preponderance of the evidence (more likely than not) that harassment, abuse, or threats occurred. Your attorney (or you, if self-represented) will have the opportunity to cross-examine the petitioner and their witnesses. Key strategies: (1) Highlight inconsistencies in the petitioner's story — if they told different versions to police, in their petition, and in their testimony, point that out. (2) Introduce evidence of friendly communication during the alleged period — messages saying 'thanks for being such a great co-parent' or 'can you pick up the kids Friday?' undermine claims of fear. (3) Establish motive to fabricate — are there pending custody, divorce, or property disputes? (4) Present your own witnesses and evidence. (5) Stay calm, respectful, and factual — do not argue with the petitioner, raise your voice, or appear threatening. Your demeanor is evidence.",
+      "If the restraining order is granted despite your defense, you have options: (1) Appeal — deadlines are short (typically 10-30 days) and appeals are limited to legal errors, not disagreements with factual findings. (2) Motion to modify or dissolve — if circumstances change (the parties reconcile, the petitioner no longer fears you, or new evidence comes to light), you can ask the court to modify or dissolve the order. (3) Comply meticulously with the final order for its full duration (typically 1-5 years). Violations can result in jail time, fines, and extension of the order. (4) If the restraining order was based on false allegations, consult an attorney about potential claims for abuse of process or malicious prosecution — though these are difficult to prove. Most importantly, use the legal process, not self-help. Any attempt to contact the petitioner in violation of the order will compound your problems.",
+    ],
+    takeaways: [
+      "Comply with the TRO completely and immediately — violations can bring criminal charges separate from the civil case",
+      "The full hearing (14-21 days after TRO) is your chance to defend — gather texts, emails, witnesses, photos, and location evidence",
+      "Burden of proof is on the petitioner; key strategies include showing inconsistencies, friendly communication, and motive to fabricate",
+      "Your demeanor is evidence — stay calm, respectful, and factual; do not argue or appear threatening",
+      "If the order is granted: appeal (limited to legal errors), seek modification if circumstances change, or comply fully for the duration",
+    ],
+    relatedGuides: ["restraining-order-guide", "child-custody-guide", "how-to-write-demand-letter"],
+  },
+  {
+    id: "what-is-a-trust",
+    title: "What Is a Trust? Revocable vs. Irrevocable Trusts Explained",
+    category: "Estate Planning",
+    readTime: "9 min",
+    paragraphs: [
+      "A trust is a legal arrangement in which one person (the trustee) holds and manages property for the benefit of another (the beneficiary), following the instructions set by the person who created the trust (the grantor or settlor). Trusts serve three primary purposes: avoiding probate (the public, court-supervised process of distributing assets after death), controlling how and when beneficiaries receive assets, and — in the case of irrevocable trusts — providing tax benefits and asset protection. Trusts are not just for the wealthy; they are flexible tools that can benefit estates of almost any size.",
+      "The fundamental distinction in trust law is between revocable and irrevocable trusts. A revocable living trust (also called a revocable inter vivos trust) is created during the grantor's lifetime and can be modified, amended, or revoked at any time while the grantor is competent. The grantor typically serves as their own trustee and beneficiary during their lifetime — this means the trust is transparent for tax purposes; all income is reported on the grantor's personal return. The primary benefit of a revocable trust is probate avoidance: assets titled in the trust pass directly to the successor trustee and beneficiaries upon the grantor's death without court involvement, saving time, reducing costs, and maintaining privacy (probate records are public; trust administration is private).",
+      "An irrevocable trust cannot be modified or revoked once created (with limited exceptions, such as by court order or with consent of all beneficiaries). In exchange for giving up control, the grantor receives significant benefits: (1) Asset protection — assets in an irrevocable trust are generally protected from the grantor's creditors (though timing matters; transfers to avoid existing creditors can be reversed as fraudulent conveyances). (2) Estate tax reduction — assets in an irrevocable trust are not included in the grantor's taxable estate (for federal estate tax purposes, the exemption is $13.61 million per person in 2024). (3) Medicaid planning — assets transferred to an irrevocable trust more than five years before applying for Medicaid are not counted for eligibility purposes (the five-year 'look-back' period). (4) Special needs planning — a special needs trust preserves a disabled beneficiary's eligibility for government benefits like SSI and Medicaid. (5) Charitable giving — charitable remainder trusts and charitable lead trusts provide income and estate tax benefits.",
+      "Funding the trust — transferring assets into the trust's name — is the most commonly overlooked step. Creating a trust document is not enough; you must retitle assets. This means: deed real estate from your name to the trust's name, change bank and brokerage account titles, update beneficiary designations (for retirement accounts, the trust may or may not be the appropriate beneficiary — consult an attorney), and assign personal property. Assets not transferred to the trust during your lifetime may still pass through probate. For a revocable trust, a 'pour-over will' catches any assets left outside the trust and directs them into it at death — but those assets still go through probate first. Funding is an ongoing obligation — every time you buy new property or open a new account, consider whether it should be titled to the trust.",
+      "Trusts can be complex instruments, and drafting errors can have costly consequences. Common pitfalls include: failing to fund the trust (the most common mistake), using boilerplate forms without understanding state-specific requirements, naming an inappropriate trustee (someone who lacks financial acumen, lives far away, or has conflicts with beneficiaries), failing to coordinate beneficiary designations on retirement accounts and life insurance with the trust terms, and not updating the trust after major life events (marriage, divorce, births, deaths, moving to a new state). While online trust-creation services exist, meaningful legal advice adds value: an attorney can tailor the trust to your specific situation, ensure compliance with your state's law, and help you think through scenarios you might not anticipate. The cost of a trust ($1,500-$5,000) is small compared to the cost of probate (typically 3-7% of the estate) or the cost of a failed estate plan.",
+    ],
+    takeaways: [
+      "A trust is a legal arrangement: grantor creates it, trustee manages it, beneficiary receives the benefits",
+      "Revocable trusts avoid probate and maintain privacy but provide no tax or creditor protection",
+      "Irrevocable trusts provide asset protection, tax benefits, and Medicaid planning — but you give up control",
+      "Funding the trust (retitling assets) is essential — an unfunded trust doesn't avoid probate",
+      "The cost of a properly drafted trust ($1,500-$5,000) is small compared to probate costs (3-7% of the estate)",
+    ],
+    relatedGuides: ["what-is-probate", "power-of-attorney-guide", "living-will-advance-directives"],
+  },
+  {
+    id: "complaint-against-judge",
+    title: "How to File a Complaint Against a Judge: Judicial Misconduct",
+    category: "Court Procedures",
+    readTime: "7 min",
+    paragraphs: [
+      "Judges exercise enormous power over the lives of litigants, but they are not above the law. Every state and the federal judiciary have mechanisms for filing complaints against judges who engage in misconduct. It's important to understand what constitutes judicial misconduct, which forum handles complaints, and — critically — what a complaint can and cannot accomplish. A judicial conduct complaint is about a judge's behavior, not about reversing a ruling you disagree with.",
+      "Judicial misconduct generally falls into several categories: (1) Bias or prejudice — a judge who demonstrates favoritism based on race, gender, religion, or other protected characteristics, or who has a conflict of interest (financial stake in the case, personal relationship with a party). (2) Improper communication — ex parte communications (discussing the case with one party outside the presence of the other) outside of permitted circumstances. (3) Abuse of authority — berating litigants, using the contempt power punitively, or retaliating against someone who filed a complaint. (4) Delay and neglect — failing to rule on motions for months or years, routinely canceling court without notice, or failing to perform judicial duties. (5) Criminal conduct — accepting bribes, fixing cases, or using the judicial office for personal gain. (6) Inappropriate courtroom behavior — falling asleep during proceedings, appearing intoxicated, making sexually inappropriate comments. Importantly, a judge's legal rulings — even if clearly wrong — are not judicial misconduct. The remedy for legal error is appeal, not a conduct complaint.",
+      "For federal judges (district, circuit, bankruptcy, magistrate), complaints are governed by the Judicial Conduct and Disability Act, 28 U.S.C. §§ 351-364. The process: file a written complaint with the clerk of the court of appeals for the circuit where the judge sits. The complaint must identify the judge, describe the alleged misconduct in detail with dates and supporting evidence, and state that it's filed under the Judicial Conduct and Disability Act. The chief circuit judge reviews the complaint and may: dismiss it (if it relates to the merits of a ruling, is frivolous, or lacks evidence of misconduct), refer it to a special committee for investigation, or — in serious cases — refer it to the Judicial Conference for possible impeachment recommendation. Most complaints are dismissed at the initial review stage. The process is confidential, and complainants have limited rights to appeal dismissals.",
+      "For state judges, every state has a judicial conduct commission or board (names vary — Judicial Qualifications Commission, Commission on Judicial Performance, Board of Judicial Conduct, etc.). The process generally involves: filing a written complaint describing the misconduct with supporting evidence, an initial screening to determine if the complaint falls within the commission's jurisdiction, an investigation if warranted, and possible disciplinary action ranging from private admonishment to public censure, suspension, or removal from the bench. State processes vary significantly: some commissions actively investigate complaints, others only act on the most serious misconduct, and some publish annual reports with summaries of disciplinary actions. Find your state's commission through the state court system's website or the National Center for State Courts.",
+      "Practical considerations: (1) Be realistic about outcomes. Filing a complaint will not change your case's outcome — the judicial conduct process operates entirely separately from your underlying litigation. If you believe the judge's rulings were legally wrong, your remedy is appeal, not a conduct complaint. (2) Timing: complaints are most credible when filed promptly after the misconduct occurs, not years later after you've lost your case. (3) Evidence matters: a complaint supported by transcripts, audio recordings, witness statements, and specific dates is far more likely to be investigated than a general complaint about rudeness. (4) Do not threaten to file a complaint to influence a judge's rulings — this can backfire badly. (5) If you believe the judge's misconduct violated your constitutional rights and harmed your case, consult an attorney about potential legal remedies, including seeking recusal (disqualification), requesting a new trial based on judicial bias, or — in rare cases — seeking appellate review of conduct issues captured on the record. Filing a judicial conduct complaint is a serious step that should not be taken lightly or for strategic advantage in litigation.",
+    ],
+    takeaways: [
+      "Judicial misconduct is about behavior (bias, abuse, neglect) — not about rulings you disagree with; appeal is the remedy for legal error",
+      "Federal: file with the circuit court of appeals clerk under the Judicial Conduct and Disability Act; state: file with the state judicial conduct commission",
+      "Most complaints are dismissed at initial review; the process is separate from your case and won't affect its outcome",
+      "Evidence matters: specific dates, transcripts, audio recordings, witness statements dramatically increase credibility",
+      "Do not threaten to file a complaint to influence rulings; consult an attorney about recusal, new trial, or appeal instead",
+    ],
+    relatedGuides: ["how-to-file-a-motion", "civil-rights-section-1983", "how-to-write-legal-brief"],
+  },
+  {
+    id: "right-to-protest",
+    title: "Your Right to Protest: First Amendment Protections and Limits",
+    category: "Constitutional Law",
+    readTime: "7 min",
+    paragraphs: [
+      "The right to protest is protected by the First Amendment's guarantees of freedom of speech, assembly, and petitioning the government for redress of grievances. The Supreme Court has long recognized that peaceful protest occupies a special place in American democracy — from the civil rights marches of the 1960s to modern demonstrations, the right to gather in public spaces and express dissent is constitutionally protected. But this right is not absolute. The government may impose reasonable restrictions on the time, place, and manner of protests, and certain conduct falls outside First Amendment protection entirely.",
+      "The government's authority to regulate protests depends on the forum. Traditional public forums — streets, sidewalks, and parks — receive the highest protection. The government can impose time, place, and manner restrictions in traditional public forums only if the restrictions: (1) are content-neutral (not based on the message being expressed), (2) are narrowly tailored to serve a significant government interest (like public safety or traffic flow), and (3) leave open ample alternative channels for communication. Permit requirements are the most common type of regulation — many cities require permits for large gatherings, marches that block traffic, or the use of amplified sound. The Supreme Court has upheld reasonable permit requirements but has also struck down those that give officials too much discretion to deny permits based on the content of the speech (Forsyth County v. Nationalist Movement, 505 U.S. 123 (1992)).",
+      "Content-based restrictions on protest are presumptively unconstitutional and face strict scrutiny — the government must prove the restriction is necessary to serve a compelling government interest and is narrowly tailored to achieve that interest. Under this standard, the government generally cannot: ban protests because the message is unpopular or controversial, require protesters to disclose their identities as a condition of demonstrating (McIntyre v. Ohio Elections Commission, 514 U.S. 334 (1995)), or treat speakers differently based on viewpoint. However, certain categories of speech are unprotected even during protests: true threats, incitement to imminent lawless action (Brandenburg v. Ohio, 395 U.S. 444 (1969)), and 'fighting words' directed at specific individuals. Hate speech, while reprehensible, is generally protected unless it falls into one of these unprotected categories.",
+      "Encounters with law enforcement during protests raise specific rights. Police may impose crowd control measures, dispersal orders, and curfews — but these must be justified by public safety concerns, not the content of the protest. A dispersal order must give protesters a reasonable opportunity to comply and a clear exit path. Mass arrests without probable cause as to each individual violate the Fourth Amendment. If you're stopped or arrested during a protest, your rights include: the right to remain silent, the right to ask if you're free to leave (if you are, you can leave), the right to record police in public (protected under the First Amendment in most circuits — see Glik v. Cunniffe, 655 F.3d 78 (1st Cir. 2011), and similar cases), and the right to refuse consent to a search. You do not have the right to physically resist even an unlawful arrest.",
+      "Practical guidance for protesters: (1) Know whether a permit is required — many cities require permits for events involving street closures, amplified sound, or structures (like stages); spontaneous protests in response to breaking news are generally exempt from permit requirements. Check your city's website. (2) Bring identification, emergency contacts written on your arm (in case your phone is lost or seized), water, and any necessary medication. (3) Understand that certain locations have reduced protest rights: military bases, airports beyond public areas, the interior of government buildings (offices, courthouses), and private property (malls, stores). The government can restrict protests in these 'non-public forums' more broadly as long as restrictions are reasonable and viewpoint-neutral. (4) If you believe your rights were violated — excessive force, arrest without probable cause, or content-based discrimination — document everything: officers' badge numbers, photos, video, witness contacts. File complaints with the police department's internal affairs division and consider consulting a civil rights attorney. (5) Have a legal support plan: know the phone number of a civil rights attorney or legal hotline, and share it with everyone in your group.",
+    ],
+    takeaways: [
+      "The right to protest is constitutionally protected but not absolute — government can restrict time, place, and manner",
+      "Traditional public forums (streets, sidewalks, parks) have the strongest protection; permit requirements must be content-neutral",
+      "Content-based restrictions face strict scrutiny — government cannot ban protests because the message is unpopular",
+      "During police encounters: you can record in public, remain silent, and refuse searches — but don't physically resist",
+      "Know permit rules, avoid non-public forums (government buildings, private property), and have a legal support plan",
+    ],
+    relatedGuides: ["first-amendment-speech", "civil-rights-section-1983", "rights-during-police-stop"],
+  },
+
 ];
 const ALL_CATEGORIES = Object.keys(CATEGORY_COLORS);
-
-function Learn() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const filteredArticles = ARTICLES.filter((a) => {
-    const matchesCategory = selectedCategory === "All" || a.category === selectedCategory;
-    const matchesSearch = !searchQuery || 
-      a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.category.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  if (selectedArticle) {
-    return (
-      <main className="min-h-screen bg-gray-50">
-        <div className="mx-auto max-w-4xl px-4 py-12">
-          <button
-            onClick={() => setSelectedArticle(null)}
-            className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-navy hover:text-gold"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Guides
-          </button>
-          <article className="rounded-2xl bg-white p-8 shadow-sm">
-            <div className="mb-4 flex items-center gap-3">
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${CATEGORY_COLORS[selectedArticle.category] || "bg-gray-100 text-gray-800"}`}>
-                {selectedArticle.category}
-              </span>
-              <span className="text-sm text-gray-400">{selectedArticle.readTime} read</span>
-            </div>
-            <h1 className="mb-6 text-3xl font-extrabold text-navy sm:text-4xl">{selectedArticle.title}</h1>
-            <div className="prose prose-gray max-w-none space-y-4">
-              {selectedArticle.paragraphs.map((p, i) => (
-                <p key={i} className="leading-relaxed text-gray-700">{p}</p>
-              ))}
-            </div>
-            <div className="mt-8 rounded-xl border border-gold/20 bg-navy/5 p-6">
-              <h2 className="mb-4 text-xl font-bold text-navy">Key Takeaways</h2>
-              <ul className="space-y-2">
-                {selectedArticle.takeaways.map((t, i) => (
-                  <li key={i} className="flex items-start gap-2 text-gray-700">
-                    <span className="mt-0.5 text-gold">✓</span>
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="mt-6">
-              <h3 className="mb-3 font-semibold text-navy">Related Guides</h3>
-              <div className="flex flex-wrap gap-2">
-                {selectedArticle.relatedGuides.map((guide) => (
-                  <span key={guide} className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
-                    📄 {ARTICLES.find(a => a.id === guide)?.title || guide}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="mt-8 rounded-lg border border-yellow-100 bg-yellow-50 p-4 text-sm text-yellow-800">
-              ⚖️ <strong>Educational Purpose:</strong> This guide is for legal education only. It does not constitute legal advice. Laws vary by jurisdiction and change over time. Always consult a licensed attorney for advice about your specific situation.
-            </div>
-          </article>
-        </div>
-      </main>
-    );
-  }
-
-  return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Hero */}
-      <section className="bg-navy px-4 py-16">
-        <div className="mx-auto max-w-4xl text-center">
-          <h1 className="mb-4 text-4xl font-extrabold text-white sm:text-5xl">
-            Free Legal Education Guides
-          </h1>
-          <p className="mb-8 text-lg text-white/70">
-            Plain-English explanations of the law. No paywall — ever. Legal research and education for everyone.
-          </p>
-          <div className="mx-auto max-w-md">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search guides... (e.g., 'motion to dismiss', 'statute of limitations')"
-              className="w-full rounded-full border border-white/20 bg-white/10 px-6 py-3 text-white placeholder-white/50 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Categories */}
-      <div className="border-b border-gray-200 bg-white">
-        <div className="mx-auto max-w-6xl overflow-x-auto px-4 py-3">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSelectedCategory("All")}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-                selectedCategory === "All"
-                  ? "bg-navy text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              All ({ARTICLES.length})
-            </button>
-            {ALL_CATEGORIES.map((cat) => {
-              const count = ARTICLES.filter((a) => a.category === cat).length;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-                    selectedCategory === cat
-                      ? "bg-navy text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  {cat} ({count})
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Articles Grid */}
-      <section className="px-4 py-12">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredArticles.map((article) => (
-              <button
-                key={article.id}
-                onClick={() => setSelectedArticle(article)}
-                className="card-hover rounded-2xl border border-gray-100 bg-white p-6 text-left shadow-sm"
-              >
-                <div className="mb-3 flex items-center gap-2">
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${CATEGORY_COLORS[article.category] || "bg-gray-100 text-gray-800"}`}>
-                    {article.category}
-                  </span>
-                  <span className="text-xs text-gray-400">{article.readTime}</span>
-                </div>
-                <h3 className="mb-2 text-lg font-bold text-navy line-clamp-2">{article.title}</h3>
-                <p className="text-sm text-gray-500 line-clamp-2">{article.paragraphs[0]}</p>
-              </button>
-            ))}
-          </div>
-          {filteredArticles.length === 0 && (
-            <div className="py-12 text-center text-gray-400">
-              No guides match your search. Try different keywords.
-            </div>
-          )}
-        </div>
-      </section>
-    </main>
-  );
-}
