@@ -14,9 +14,12 @@ export const Route = createFileRoute("/admin")({
   }),
 });
 
+const ADMIN_IDS: string[] = (process.env.ADMIN_CLERK_IDS || "").split(",").map((s) => s.trim()).filter(Boolean);
+
 const getAdminStats = createServerFn({ method: "GET" }).handler(async (_data, ctx) => {
   const auth = await getAuth(ctx);
   if (!auth.userId) return { authorized: false };
+  if (!ADMIN_IDS.includes(auth.userId)) return { authorized: false };
 
   try {
     const userCount = await sql()`SELECT COUNT(*) as count FROM users`;

@@ -11,7 +11,7 @@ import { SECURITY_HEADERS } from "~/lib/security-headers";
 
 import appCss from "~/styles/app.css?url";
 
-const PUBLISHABLE_KEY = "pk_test_Y29taWMtc2VhaG9yc2UtODAuY2xlcmsuYWNjb3VudHMuZGV2JA";
+const PUBLISHABLE_KEY = process.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_Y29taWMtc2VhaG9yc2UtODAuY2xlcmsuYWNjb3VudHMuZGV2JA";
 
 export const Route = createRootRoute({
   head: () => ({

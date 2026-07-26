@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
-const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "price_1TwAck86HQsHVK1c3G8RT8Sk";
+const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "";
 const BASE_URL = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : process.env.PUBLIC_SITE_URL || "http://localhost:3000";
@@ -25,6 +25,10 @@ export async function createCheckoutSession(
   email: string,
   caseId?: string
 ): Promise<{ url: string } | { error: string }> {
+  if (!STRIPE_PRO_PRICE_ID) {
+    return { error: "STRIPE_PRO_PRICE_ID environment variable is not configured" };
+  }
+
   try {
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({

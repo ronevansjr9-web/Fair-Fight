@@ -107,7 +107,7 @@ function ChatPage() {
   return (
     <AuthenticatedGuard>
       <main className="flex h-[calc(100vh-120px)] flex-col bg-navy">
-        <div className="border-b border-white/10 bg-white px-4 py-4">
+        <div className="border-b border-white/10 bg-white/5 px-4 py-4">
           <div className="mx-auto max-w-4xl">
             <h1 className="text-xl font-bold text-white">AI Legal Education Chat</h1>
             <p className="text-sm text-white/60">Ask questions about legal concepts — plain English answers. Not legal advice.</p>
@@ -124,8 +124,8 @@ function ChatPage() {
                 <div
                   className={`max-w-[80%] rounded-2xl px-5 py-3 ${
                     msg.role === "user"
-                      ? "bg-navy text-white"
-                      : "border border-white/10 bg-white text-white/80"
+                      ? "bg-gold/20 text-white"
+                      : "border border-white/10 bg-white/5 text-white/80"
                   }`}
                 >
                   <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
@@ -134,7 +134,7 @@ function ChatPage() {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white px-5 py-3">
+                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3">
                   <div className="flex gap-1">
                     <span className="h-2 w-2 animate-bounce rounded-full bg-gold" style={{ animationDelay: "0ms" }} />
                     <span className="h-2 w-2 animate-bounce rounded-full bg-gold" style={{ animationDelay: "150ms" }} />
@@ -147,7 +147,7 @@ function ChatPage() {
           </div>
         </div>
 
-        <div className="border-t border-white/10 bg-white px-4 py-4">
+        <div className="border-t border-white/10 bg-white/5 px-4 py-4">
           <div className="mx-auto max-w-3xl">
             <div className="flex gap-3">
               <textarea
