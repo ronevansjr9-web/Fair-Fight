@@ -84,7 +84,7 @@ function PrivacyPage() {
               <li><strong>Opt-out:</strong> You can opt out of marketing communications</li>
             </ul>
             <p className="mt-2">
-              To exercise these rights, visit our <a href="/data-request" className="text-gold hover:underline">Data Request page</a> or contact us at privacy@fairfight.ai.
+              To exercise these rights, visit our <a href="/data-request" className="text-gold hover:underline">Data Request page</a> or contact us at privacy@fairfight.ctonew.app.
             </p>
           </section>
 
@@ -98,7 +98,7 @@ function PrivacyPage() {
           <section>
             <h2 className="mb-3 text-xl font-bold text-white">9. Contact</h2>
             <p>
-              If you have questions about this Privacy Policy, please contact us at privacy@fairfight.ai or through our Data Request page.
+              If you have questions about this Privacy Policy, please contact us at privacy@fairfight.ctonew.app or through our Data Request page.
             </p>
           </section>
         </div>

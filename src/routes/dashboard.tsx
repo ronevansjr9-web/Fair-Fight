@@ -4,9 +4,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { getAuth } from "@clerk/tanstack-start/server";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { ReferralCard } from "~/components/ReferralCard";
+import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { sql } from "~/db";
 
 export const Route = createFileRoute("/dashboard")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    checkout: (search.checkout as string) || undefined,
+  }),
   component: DashboardPage,
   head: () => ({
     meta: [
@@ -58,6 +62,7 @@ const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 function DashboardPage() {
+  const search = Route.useSearch();
   const [data, setData] = useState<{
     cases: { id: string; title: string; caseType: string; status: string; jurisdiction: string; createdAt: string; updatedAt: string }[];
     stats: { total: number; active: number; resolved: number };
@@ -70,6 +75,13 @@ function DashboardPage() {
       setLoading(false);
     });
   }, []);
+
+  // Track checkout completion when returning from Stripe
+  useEffect(() => {
+    if (search.checkout === "success") {
+      trackEvent(AnalyticsEvents.CHECKOUT_COMPLETED);
+    }
+  }, [search.checkout]);
 
   return (
     <AuthenticatedGuard>

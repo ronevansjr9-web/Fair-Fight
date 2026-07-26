@@ -1,14 +1,43 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/learn")({
-  component: Learn,
-  head: () => ({
-    meta: [
-      { title: "Free Legal Education Guides — Plain-English Law Explained | Fair Fight" },
-      { name: "description", content: "Free plain-English legal guides on court procedures, motions, discovery, statutes of limitations, criminal law, family law, housing law, debt collection, and more. No paywall — legal education for everyone." },
-    ],
+  validateSearch: (search: Record<string, unknown>) => ({
+    article: (search.article as string) || undefined,
   }),
+  head: ({ search }: { search: { article?: string } }) => {
+    if (search.article) {
+      const article = ARTICLES.find((a) => a.id === search.article);
+      if (article) {
+        const description = article.paragraphs[0].substring(0, 160);
+        const ogImage = "https://fairfight.ctonew.app/og-image.png";
+        return {
+          meta: [
+            { title: `${article.title} | Fair Fight` },
+            { name: "description", content: description },
+            { property: "og:title", content: `${article.title} | Fair Fight` },
+            { property: "og:description", content: description },
+            { property: "og:image", content: ogImage },
+            { property: "og:type", content: "article" },
+            { name: "twitter:card", content: "summary_large_image" },
+            { name: "twitter:title", content: `${article.title} | Fair Fight` },
+            { name: "twitter:description", content: description },
+            { name: "twitter:image", content: ogImage },
+          ],
+          links: [
+            { rel: "canonical", href: `https://fairfight.ctonew.app/learn?article=${article.id}` },
+          ],
+        };
+      }
+    }
+    return {
+      meta: [
+        { title: "Free Legal Education Guides — Plain-English Law Explained | Fair Fight" },
+        { name: "description", content: "Free plain-English legal guides on court procedures, motions, discovery, statutes of limitations, criminal law, family law, housing law, debt collection, and more. No paywall — legal education for everyone." },
+      ],
+    };
+  },
+  component: Learn,
 });
 
 interface Article {
@@ -1310,9 +1339,18 @@ const ARTICLES: Article[] = [
 const ALL_CATEGORIES = Object.keys(CATEGORY_COLORS);
 
 function Learn() {
+  const search = Route.useSearch();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const filtered = selectedCategory ? ARTICLES.filter((a) => a.category === selectedCategory) : ARTICLES;
+
+  // Auto-select article from URL search param on mount
+  useEffect(() => {
+    if (search.article) {
+      const article = ARTICLES.find((a) => a.id === search.article);
+      if (article) setSelectedArticle(article);
+    }
+  }, [search.article]);
 
   if (selectedArticle) {
     return (

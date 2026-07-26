@@ -6,7 +6,10 @@ import {
   createRootRoute,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import { ClerkProvider, UserButton, SignInButton, SignUpButton, useAuth } from "@clerk/tanstack-start";
+import { Analytics } from "@vercel/analytics/react";
+import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { SECURITY_HEADERS } from "~/lib/security-headers";
 
 import appCss from "~/styles/app.css?url";
@@ -35,8 +38,8 @@ export const Route = createRootRoute({
       },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Fair Fight" },
-      { property: "og:image", content: "https://fairfight.ai/og-image.png" },
-      { property: "og:url", content: "https://fairfight.ai" },
+      { property: "og:image", content: "https://fairfight.ctonew.app/og-image.png" },
+      { property: "og:url", content: "https://fairfight.ctonew.app" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Fair Fight — AI-Powered Legal Education | Free Legal Research & Case Analysis" },
       {
@@ -44,7 +47,7 @@ export const Route = createRootRoute({
         content:
           "The TurboTax of legal education — AI-powered plain-English explanations of statutes, case law, and legal procedures. Free motion guides, discovery help, small claims court prep, and statute of limitations info.",
       },
-      { name: "twitter:image", content: "https://fairfight.ai/og-image.png" },
+      { name: "twitter:image", content: "https://fairfight.ctonew.app/og-image.png" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Fair Fight" },
@@ -52,7 +55,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "canonical", href: "https://fairfight.ai" },
+      { rel: "canonical", href: "https://fairfight.ctonew.app" },
     ],
     scripts: [
       {
@@ -63,7 +66,7 @@ export const Route = createRootRoute({
           name: "Fair Fight",
           description:
             "Fair Fight helps you understand your legal situation with plain-English explanations, evidence organization, and AI-powered case preparation tools. Free legal research access — no paywall.",
-          url: "https://fairfight.ai",
+          url: "https://fairfight.ctonew.app",
           sameAs: [
             "https://twitter.com/fairfightai",
             "https://linkedin.com/company/fairfightai",
@@ -171,6 +174,17 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  const auth = useAuth();
+  const prevSignedIn = useRef(auth.isSignedIn);
+
+  // Track signup completion when user transitions from signed-out to signed-in
+  useEffect(() => {
+    if (auth.isSignedIn && !prevSignedIn.current) {
+      trackEvent(AnalyticsEvents.SIGNUP_COMPLETED);
+    }
+    prevSignedIn.current = auth.isSignedIn;
+  }, [auth.isSignedIn]);
+
   return (
     <RootDocument>
       <SiteHeader />
@@ -249,6 +263,14 @@ function RootDocument({ children }: { children: ReactNode }) {
       <body>
         <ClerkProvider publishableKey={PUBLISHABLE_KEY}>{children}</ClerkProvider>
         <Scripts />
+        <Analytics />
+
+        {/* UTM capture — persist UTM params to sessionStorage for attribution */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var p=new URLSearchParams(location.search);var utm={};["utm_source","utm_medium","utm_campaign","utm_term","utm_content","ref"].forEach(function(k){if(p.get(k))utm[k]=p.get(k)});if(Object.keys(utm).length)try{sessionStorage.setItem("ff_utm",JSON.stringify(utm))}catch(e){}})();`,
+          }}
+        />
 
         {/* Persistent educational disclaimer — rendered server-side, outside all client components.
             Uses inline styles so it is never stripped by Tailwind purge during SSR. */}

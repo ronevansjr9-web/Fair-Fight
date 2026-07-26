@@ -36,7 +36,7 @@ export function ReferralCard() {
 
   if (!referralData) return null;
 
-  const referralLink = `https://fairfight.ai/?ref=${referralData.code}`;
+  const referralLink = `https://fairfight.ctonew.app/?ref=${referralData.code}`;
 
   const handleCopy = async () => {
     try {

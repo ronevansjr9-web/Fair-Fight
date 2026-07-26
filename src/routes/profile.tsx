@@ -6,6 +6,7 @@ import { getAuth } from "@clerk/tanstack-start/server";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { getSubscriptionStatus, createCustomerPortalSession, createCheckoutSession } from "~/lib/stripe";
 import { getStorageUsed } from "~/lib/storage";
+import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
@@ -81,6 +82,7 @@ function ProfilePage() {
   };
 
   const handleUpgrade = async () => {
+    trackEvent(AnalyticsEvents.CHECKOUT_STARTED);
     const result = await startUpgrade();
     if ("error" in result) {
       setError(result.error || "Failed to start checkout");

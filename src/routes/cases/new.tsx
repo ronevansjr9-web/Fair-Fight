@@ -4,6 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getAuth } from "@clerk/tanstack-start/server";
 import { sanitizeInput } from "~/lib/sanitize";
 import { logCaseCreated } from "~/lib/audit";
+import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { sql } from "~/db";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 
@@ -73,6 +74,7 @@ function NewCasePage() {
     const result = await createCase({ title, caseType, jurisdiction, description });
 
     if (result.success) {
+      trackEvent(AnalyticsEvents.CASE_CREATED);
       navigate({ to: "/dashboard" });
     } else if (result.error) {
       setError(result.error);

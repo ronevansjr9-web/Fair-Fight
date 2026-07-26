@@ -6,6 +6,7 @@ import { askAIStreaming } from "~/lib/ai";
 import { sanitizeInput } from "~/lib/sanitize";
 import { checkRateLimit } from "~/lib/rate-limit";
 import { logAIAnalysisGenerated } from "~/lib/audit";
+import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 
 export const Route = createFileRoute("/chat")({
@@ -91,6 +92,7 @@ function ChatPage() {
 
     if (result.success && result.response) {
       setMessages((prev) => [...prev, { role: "assistant", content: result.response }]);
+      trackEvent(AnalyticsEvents.AI_ANALYSIS_RUN);
     } else if (result.error) {
       setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ ${result.error}` }]);
     }
