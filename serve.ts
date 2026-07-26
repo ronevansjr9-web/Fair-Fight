@@ -27,7 +27,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com https://*.stripe.com https://api.openai.com https://api.groq.com https://generativelanguage.googleapis.com",
+    "connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com https://*.stripe.com https://api.openai.com https://api.groq.com https://generativelanguage.googleapis.com https://vitals.vercel-analytics.com",
     "frame-src 'self' https://*.stripe.com https://challenges.cloudflare.com",
     "media-src 'self'",
     "object-src 'none'",
