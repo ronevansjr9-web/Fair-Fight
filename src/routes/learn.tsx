@@ -1308,3 +1308,72 @@ const ARTICLES: Article[] = [
 
 ];
 const ALL_CATEGORIES = Object.keys(CATEGORY_COLORS);
+
+function Learn() {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const filtered = selectedCategory ? ARTICLES.filter((a) => a.category === selectedCategory) : ARTICLES;
+
+  if (selectedArticle) {
+    return (
+      <main className="min-h-screen bg-navy">
+        <div className="mx-auto max-w-3xl px-4 py-12">
+          <button onClick={() => setSelectedArticle(null)} className="mb-6 inline-flex items-center gap-2 text-sm text-white/60 hover:text-gold">
+            &larr; Back to Guides
+          </button>
+          <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs text-white/50">{selectedArticle.category}</span>
+          <span className="ml-2 text-xs text-white/40">{selectedArticle.readTime} read</span>
+          <h1 className="mb-8 mt-4 text-4xl font-extrabold text-white sm:text-5xl">{selectedArticle.title}</h1>
+          <div className="space-y-5">
+            {selectedArticle.paragraphs.map((p, i) => (
+              <p key={i} className="text-lg leading-relaxed text-white/70">{p}</p>
+            ))}
+          </div>
+          {selectedArticle.takeaways.length > 0 && (
+            <div className="mt-10 rounded-2xl border border-gold/20 bg-white/5 p-6 backdrop-blur-sm">
+              <h2 className="mb-4 text-xl font-bold text-gold">Key Takeaways</h2>
+              <ul className="space-y-2">
+                {selectedArticle.takeaways.map((t, i) => (
+                  <li key={i} className="flex items-start gap-2 text-white/80"><span className="mt-1 text-gold">✦</span>{t}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <div className="mt-8 rounded-lg border border-white/10 bg-white/5 p-4 text-center">
+            <p className="text-xs text-white/40">For educational purposes only. Not legal advice. Consult a licensed attorney.</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-navy">
+      <section className="bg-navy-dark px-4 py-16 text-center">
+        <div className="mx-auto max-w-4xl">
+          <h1 className="mb-4 text-4xl font-extrabold text-white sm:text-5xl">Free Legal Education Guides</h1>
+          <p className="mx-auto max-w-2xl text-lg text-white/60">Plain-English explanations of legal concepts, court procedures, and your rights. {ARTICLES.length}+ guides — always free, no paywall.</p>
+        </div>
+      </section>
+      <section className="border-b border-white/10 px-4 py-6">
+        <div className="mx-auto max-w-6xl flex flex-wrap gap-2">
+          <button onClick={() => setSelectedCategory(null)} className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${!selectedCategory ? "bg-gold text-navy" : "border border-white/10 text-white/60 hover:border-white/30 hover:text-white"}`}>All</button>
+          {ALL_CATEGORIES.map((cat) => (
+            <button key={cat} onClick={() => setSelectedCategory(cat)} className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${selectedCategory === cat ? "bg-gold text-navy" : "border border-white/10 text-white/60 hover:border-white/30 hover:text-white"}`}>{cat}</button>
+          ))}
+        </div>
+      </section>
+      <section className="px-4 py-12">
+        <div className="mx-auto max-w-6xl grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((article) => (
+            <button key={article.id} onClick={() => setSelectedArticle(article)} className="card-hover rounded-2xl border border-white/10 bg-white/5 p-6 text-left backdrop-blur-sm">
+              <span className="mb-3 inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/50">{article.category}</span>
+              <h3 className="mb-2 text-lg font-bold text-white line-clamp-2">{article.title}</h3>
+              <p className="text-xs text-white/40">{article.readTime} read</p>
+            </button>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}

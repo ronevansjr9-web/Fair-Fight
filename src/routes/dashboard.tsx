@@ -73,12 +73,12 @@ function DashboardPage() {
 
   return (
     <AuthenticatedGuard>
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen bg-navy">
         <div className="mx-auto max-w-6xl px-4 py-8">
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-extrabold text-navy">Dashboard</h1>
-              <p className="mt-1 text-gray-500">Manage your cases, evidence, and legal education</p>
+              <h1 className="text-3xl font-extrabold text-white">Dashboard</h1>
+              <p className="mt-1 text-white/60">Manage your cases, evidence, and legal education</p>
             </div>
             <Link
               to="/cases/new"
@@ -93,17 +93,17 @@ function DashboardPage() {
 
           {/* Stats */}
           <div className="mb-8 grid gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
-              <p className="text-sm font-medium text-gray-500">Total Cases</p>
-              <p className="mt-1 text-4xl font-bold text-navy">{loading ? "..." : data.stats.total}</p>
+            <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
+              <p className="text-sm font-medium text-white/60">Total Cases</p>
+              <p className="mt-1 text-4xl font-bold text-white">{loading ? "..." : data.stats.total}</p>
             </div>
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
-              <p className="text-sm font-medium text-gray-500">Active Cases</p>
+            <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
+              <p className="text-sm font-medium text-white/60">Active Cases</p>
               <p className="mt-1 text-4xl font-bold text-green-600">{loading ? "..." : data.stats.active}</p>
             </div>
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
-              <p className="text-sm font-medium text-gray-500">Resolved</p>
-              <p className="mt-1 text-4xl font-bold text-gray-400">{loading ? "..." : data.stats.resolved}</p>
+            <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
+              <p className="text-sm font-medium text-white/60">Resolved</p>
+              <p className="mt-1 text-4xl font-bold text-white/40">{loading ? "..." : data.stats.resolved}</p>
             </div>
           </div>
 
@@ -119,10 +119,10 @@ function DashboardPage() {
               <Link
                 key={action.to}
                 to={action.to}
-                className="card-hover flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
+                className="card-hover flex items-center gap-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-4 shadow-sm"
               >
                 <span className="text-2xl">{action.icon}</span>
-                <span className="font-semibold text-navy">{action.label}</span>
+                <span className="font-semibold text-white">{action.label}</span>
               </Link>
             ))}
           </div>
@@ -134,8 +134,8 @@ function DashboardPage() {
 
           {/* Cases List */}
           <div className="rounded-2xl bg-white shadow-sm">
-            <div className="border-b border-gray-100 px-6 py-4">
-              <h2 className="text-xl font-bold text-navy">Your Cases</h2>
+            <div className="border-b border-white/10 px-6 py-4">
+              <h2 className="text-xl font-bold text-white">Your Cases</h2>
             </div>
             {loading ? (
               <div className="p-12 text-center">
@@ -144,8 +144,8 @@ function DashboardPage() {
             ) : data.cases.length === 0 ? (
               <div className="p-12 text-center">
                 <div className="mx-auto mb-4 text-4xl">📂</div>
-                <p className="mb-2 text-lg font-semibold text-gray-500">No cases yet</p>
-                <p className="mb-4 text-sm text-gray-400">Create your first case to get started</p>
+                <p className="mb-2 text-lg font-semibold text-white/60">No cases yet</p>
+                <p className="mb-4 text-sm text-white/40">Create your first case to get started</p>
                 <Link
                   to="/cases/new"
                   className="gold-gradient inline-flex items-center rounded-full px-6 py-2.5 font-semibold text-navy"
@@ -159,23 +159,23 @@ function DashboardPage() {
                   <Link
                     key={c.id}
                     to="/cases/new"
-                    className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-gray-50"
+                    className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-white/5"
                   >
                     <div>
-                      <h3 className="font-semibold text-navy">{c.title}</h3>
+                      <h3 className="font-semibold text-white">{c.title}</h3>
                       <div className="mt-1 flex items-center gap-2">
                         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                          c.status === "active" ? "bg-green-100 text-green-700" :
-                          c.status === "resolved" ? "bg-gray-100 text-gray-600" :
+                          c.status === "active" ? "bg-green-900/30 text-green-300" :
+                          c.status === "resolved" ? "bg-white/10 text-white/70" :
                           "bg-yellow-100 text-yellow-700"
                         }`}>
                           {c.status}
                         </span>
-                        <span className="text-xs text-gray-400">{c.caseType}</span>
-                        <span className="text-xs text-gray-400">{c.jurisdiction}</span>
+                        <span className="text-xs text-white/40">{c.caseType}</span>
+                        <span className="text-xs text-white/40">{c.jurisdiction}</span>
                       </div>
                     </div>
-                    <svg className="h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-5 w-5 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>

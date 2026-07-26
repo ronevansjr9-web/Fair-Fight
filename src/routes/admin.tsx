@@ -76,56 +76,56 @@ function AdminPage() {
     return (
       <main className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h1 className="mb-2 text-2xl font-bold text-navy">Access Denied</h1>
-          <p className="text-gray-500">You do not have admin access.</p>
+          <h1 className="mb-2 text-2xl font-bold text-white">Access Denied</h1>
+          <p className="text-white/60">You do not have admin access.</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-8">
+    <main className="min-h-screen bg-navy px-4 py-8">
       <div className="mx-auto max-w-6xl">
-        <h1 className="mb-8 text-3xl font-extrabold text-navy">Admin Dashboard</h1>
+        <h1 className="mb-8 text-3xl font-extrabold text-white">Admin Dashboard</h1>
 
         <div className="mb-8 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl bg-white p-8 shadow-sm">
-            <p className="text-sm text-gray-500">Total Users</p>
-            <p className="mt-1 text-5xl font-bold text-navy">{stats.users}</p>
+          <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
+            <p className="text-sm text-white/60">Total Users</p>
+            <p className="mt-1 text-5xl font-bold text-white">{stats.users}</p>
           </div>
-          <div className="rounded-2xl bg-white p-8 shadow-sm">
-            <p className="text-sm text-gray-500">Total Cases</p>
-            <p className="mt-1 text-5xl font-bold text-navy">{stats.cases}</p>
+          <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
+            <p className="text-sm text-white/60">Total Cases</p>
+            <p className="mt-1 text-5xl font-bold text-white">{stats.cases}</p>
           </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-bold text-navy">Recent Users</h2>
+          <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
+            <h2 className="mb-4 text-lg font-bold text-white">Recent Users</h2>
             {stats.recentUsers.length === 0 ? (
-              <p className="text-sm text-gray-400">No users yet</p>
+              <p className="text-sm text-white/40">No users yet</p>
             ) : (
               <div className="space-y-2">
                 {stats.recentUsers.map((u) => (
                   <div key={u.id} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700">{u.email}</span>
-                    <span className="text-gray-400">{new Date(u.createdAt).toLocaleDateString()}</span>
+                    <span className="text-white/80">{u.email}</span>
+                    <span className="text-white/40">{new Date(u.createdAt).toLocaleDateString()}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-bold text-navy">Recent AI Analyses</h2>
+          <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
+            <h2 className="mb-4 text-lg font-bold text-white">Recent AI Analyses</h2>
             {stats.recentAnalyses.length === 0 ? (
-              <p className="text-sm text-gray-400">No analyses yet</p>
+              <p className="text-sm text-white/40">No analyses yet</p>
             ) : (
               <div className="space-y-2">
                 {stats.recentAnalyses.map((a, i) => (
                   <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700">User: {a.userId.slice(0, 12)}...</span>
-                    <span className="text-gray-400">{new Date(a.createdAt).toLocaleString()}</span>
+                    <span className="text-white/80">User: {a.userId.slice(0, 12)}...</span>
+                    <span className="text-white/40">{new Date(a.createdAt).toLocaleString()}</span>
                   </div>
                 ))}
               </div>

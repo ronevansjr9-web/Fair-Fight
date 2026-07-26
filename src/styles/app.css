@@ -13,7 +13,7 @@
 @layer base {
   html,
   body {
-    @apply bg-white text-gray-800 antialiased;
+    @apply bg-navy text-white antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     scroll-behavior: smooth;
   }
@@ -22,6 +22,16 @@
   body {
     padding-bottom: 2.25rem;
   }
+}
+
+/* Glassmorphism card */
+.glass-card {
+  @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl;
+}
+
+/* Dark input field */
+.dark-input {
+  @apply bg-white/5 border border-white/10 text-white placeholder-white/30 focus:border-gold focus:ring-2 focus:ring-gold/20 rounded-xl;
 }
 
 /* Subtle fade-in animation for sections */
@@ -61,8 +71,8 @@
 }
 
 .card-hover:hover {
-  @apply shadow-lg -translate-y-1;
-  box-shadow: 0 10px 40px rgba(10, 35, 66, 0.12);
+  @apply -translate-y-1;
+  box-shadow: 0 10px 40px rgba(201, 162, 39, 0.1), 0 0 0 1px rgba(201, 162, 39, 0.2);
 }
 
 /* Navigation styles */
@@ -76,19 +86,19 @@
 
 /* Prose overrides for legal content */
 .prose h2 {
-  @apply text-xl font-bold text-navy mt-6 mb-3;
+  @apply text-xl font-bold text-white mt-6 mb-3;
 }
 
 .prose h3 {
-  @apply text-lg font-semibold text-navy mt-4 mb-2;
+  @apply text-lg font-semibold text-white/90 mt-4 mb-2;
 }
 
 .prose ul {
-  @apply list-disc pl-6 space-y-1;
+  @apply list-disc pl-6 space-y-1 text-white/80;
 }
 
 .prose strong {
-  @apply text-navy;
+  @apply text-gold;
 }
 
 /* Line clamp utilities */

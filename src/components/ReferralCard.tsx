@@ -28,8 +28,8 @@ export function ReferralCard() {
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
-        <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+      <div className="rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
+        <div className="h-4 w-32 animate-pulse rounded bg-white/10" />
       </div>
     );
   }
@@ -57,24 +57,24 @@ export function ReferralCard() {
   };
 
   return (
-    <div className="rounded-xl border border-gold/10 bg-white p-6 shadow-sm">
-      <h3 className="mb-4 text-lg font-semibold text-navy">
+    <div className="rounded-xl border border-gold/20 bg-white/5 backdrop-blur-sm p-6">
+      <h3 className="mb-4 text-lg font-semibold text-white">
         <span className="mr-2">🎁</span>
         Share Fair Fight, Earn Credits
       </h3>
 
-      <div className="mb-4 grid grid-cols-3 gap-4 rounded-lg bg-gray-50 p-4 text-center">
+      <div className="mb-4 grid grid-cols-3 gap-4 rounded-lg bg-white/5 p-4 text-center">
         <div>
-          <p className="text-2xl font-bold text-navy">{referralData.totalReferrals}</p>
-          <p className="text-xs text-gray-500">Total Referrals</p>
+          <p className="text-2xl font-bold text-white">{referralData.totalReferrals}</p>
+          <p className="text-xs text-white/60">Total Referrals</p>
         </div>
         <div>
-          <p className="text-2xl font-bold text-navy">{referralData.successfulReferrals}</p>
-          <p className="text-xs text-gray-500">Active</p>
+          <p className="text-2xl font-bold text-white">{referralData.successfulReferrals}</p>
+          <p className="text-xs text-white/60">Active</p>
         </div>
         <div>
           <p className="text-2xl font-bold text-gold">${referralData.creditsEarned}</p>
-          <p className="text-xs text-gray-500">Credits</p>
+          <p className="text-xs text-white/60">Credits</p>
         </div>
       </div>
 
@@ -83,7 +83,7 @@ export function ReferralCard() {
           type="text"
           readOnly
           value={referralLink}
-          className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600"
+          className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70"
         />
         <button
           onClick={handleCopy}
@@ -93,7 +93,7 @@ export function ReferralCard() {
         </button>
       </div>
 
-      <p className="mt-3 text-xs text-gray-500">
+      <p className="mt-3 text-xs text-white/60">
         Share your link. When someone signs up and goes Pro, you both get $10 in credits.
       </p>
     </div>

@@ -92,7 +92,7 @@ function ProfilePage() {
   if (!userLoaded) {
     return (
       <AuthenticatedGuard>
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="flex min-h-screen items-center justify-center bg-navy">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-gold border-t-transparent" />
         </div>
       </AuthenticatedGuard>
@@ -107,12 +107,12 @@ function ProfilePage() {
 
   return (
     <AuthenticatedGuard>
-      <main className="min-h-screen bg-gray-50 px-4 py-8">
+      <main className="min-h-screen bg-navy px-4 py-8">
         <div className="mx-auto max-w-3xl">
-          <h1 className="mb-8 text-3xl font-extrabold text-navy">Your Profile</h1>
+          <h1 className="mb-8 text-3xl font-extrabold text-white">Your Profile</h1>
 
           {/* Profile Card */}
-          <div className="mb-8 rounded-2xl bg-white p-8 shadow-sm">
+          <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
             <div className="flex items-start gap-6">
               {user?.imageUrl ? (
                 <img
@@ -126,18 +126,18 @@ function ProfilePage() {
                 </div>
               )}
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-navy">
+                <h2 className="text-2xl font-bold text-white">
                   {user?.fullName || user?.firstName || "User"}
                 </h2>
-                <p className="mt-1 text-gray-500">
+                <p className="mt-1 text-white/60">
                   {user?.primaryEmailAddress?.emailAddress || ""}
                 </p>
                 {user?.username && (
-                  <p className="text-sm text-gray-400">@{user.username}</p>
+                  <p className="text-sm text-white/40">@{user.username}</p>
                 )}
                 <div className="mt-3">
                   {loading ? (
-                    <div className="h-6 w-20 animate-pulse rounded-full bg-gray-200" />
+                    <div className="h-6 w-20 animate-pulse rounded-full bg-white/10" />
                   ) : profileData.pro ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/20 px-3 py-1 text-sm font-semibold text-gold-dark">
                       <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -146,7 +146,7 @@ function ProfilePage() {
                       Pro Member
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-600">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white/70">
                       Free Plan
                     </span>
                   )}
@@ -155,26 +155,26 @@ function ProfilePage() {
             </div>
 
             {/* Account Details */}
-            <div className="mt-8 grid gap-4 border-t border-gray-100 pt-6 sm:grid-cols-2">
+            <div className="mt-8 grid gap-4 border-t border-white/10 pt-6 sm:grid-cols-2">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-400">User ID</p>
-                <p className="mt-1 font-mono text-sm text-gray-700">{user?.id || "—"}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-white/40">User ID</p>
+                <p className="mt-1 font-mono text-sm text-white/80">{user?.id || "—"}</p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-400">Member Since</p>
-                <p className="mt-1 text-sm text-gray-700">
+                <p className="text-xs font-medium uppercase tracking-wider text-white/40">Member Since</p>
+                <p className="mt-1 text-sm text-white/80">
                   {user?.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "—"}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-400">Storage Used</p>
-                <p className="mt-1 text-sm text-gray-700">
+                <p className="text-xs font-medium uppercase tracking-wider text-white/40">Storage Used</p>
+                <p className="mt-1 text-sm text-white/80">
                   {loading ? "..." : formatStorage(profileData.storageUsed)}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-400">Last Sign In</p>
-                <p className="mt-1 text-sm text-gray-700">
+                <p className="text-xs font-medium uppercase tracking-wider text-white/40">Last Sign In</p>
+                <p className="mt-1 text-sm text-white/80">
                   {user?.lastSignInAt ? new Date(user.lastSignInAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "—"}
                 </p>
               </div>
@@ -182,14 +182,14 @@ function ProfilePage() {
           </div>
 
           {/* Membership & Billing */}
-          <div className="mb-8 rounded-2xl bg-white p-8 shadow-sm">
-            <h2 className="mb-1 text-xl font-bold text-navy">Membership & Billing</h2>
-            <p className="mb-6 text-sm text-gray-500">Manage your plan and billing information</p>
+          <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
+            <h2 className="mb-1 text-xl font-bold text-white">Membership & Billing</h2>
+            <p className="mb-6 text-sm text-white/60">Manage your plan and billing information</p>
 
             {loading ? (
               <div className="space-y-3">
-                <div className="h-10 animate-pulse rounded-lg bg-gray-100" />
-                <div className="h-10 animate-pulse rounded-lg bg-gray-100" />
+                <div className="h-10 animate-pulse rounded-lg bg-white/10" />
+                <div className="h-10 animate-pulse rounded-lg bg-white/10" />
               </div>
             ) : profileData.pro ? (
               <div>
@@ -198,31 +198,31 @@ function ProfilePage() {
                     ⭐
                   </div>
                   <div>
-                    <p className="font-semibold text-navy">Pro Plan — $99 per case</p>
-                    <p className="text-sm text-gray-500">Unlimited AI analyses, priority processing, timeline builder</p>
+                    <p className="font-semibold text-white">Pro Plan — $99 per case</p>
+                    <p className="text-sm text-white/60">Unlimited AI analyses, priority processing, timeline builder</p>
                   </div>
                 </div>
                 <button
                   onClick={handleBillingPortal}
-                  className="w-full rounded-xl border-2 border-navy bg-white px-6 py-3 font-semibold text-navy transition-all hover:bg-navy hover:text-white sm:w-auto"
+                  className="w-full rounded-xl border-2 border-navy bg-white px-6 py-3 font-semibold text-white transition-all hover:bg-navy hover:text-white sm:w-auto"
                 >
                   Manage Billing in Stripe Portal
                 </button>
                 {error && (
-                  <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  <div className="mt-3 rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-300">
                     {error}
                   </div>
                 )}
               </div>
             ) : (
               <div>
-                <div className="mb-4 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-xl">
+                <div className="mb-4 flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-xl">
                     📋
                   </div>
                   <div>
-                    <p className="font-semibold text-navy">Free Plan</p>
-                    <p className="text-sm text-gray-500">3 AI analyses, 5 file uploads, basic tools</p>
+                    <p className="font-semibold text-white">Free Plan</p>
+                    <p className="text-sm text-white/60">3 AI analyses, 5 file uploads, basic tools</p>
                   </div>
                 </div>
                 <button
@@ -231,11 +231,11 @@ function ProfilePage() {
                 >
                   Upgrade to Pro — $99/case
                 </button>
-                <p className="mt-3 text-xs text-gray-400">
+                <p className="mt-3 text-xs text-white/40">
                   One-time payment per case. Includes unlimited AI analyses, document generation, timeline builder, and priority processing.
                 </p>
                 {error && (
-                  <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  <div className="mt-3 rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-300">
                     {error}
                   </div>
                 )}
@@ -244,13 +244,13 @@ function ProfilePage() {
           </div>
 
           {/* Payment History */}
-          <div className="mb-8 rounded-2xl bg-white p-8 shadow-sm">
-            <h2 className="mb-1 text-xl font-bold text-navy">Payment History</h2>
-            <p className="mb-6 text-sm text-gray-500">Your recent transactions</p>
+          <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
+            <h2 className="mb-1 text-xl font-bold text-white">Payment History</h2>
+            <p className="mb-6 text-sm text-white/60">Your recent transactions</p>
 
             {profileData.pro ? (
-              <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 text-center">
-                <p className="text-sm text-gray-500">
+              <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-center">
+                <p className="text-sm text-white/60">
                   View your complete payment history in the{" "}
                   <button
                     onClick={handleBillingPortal}
@@ -261,9 +261,9 @@ function ProfilePage() {
                 </p>
               </div>
             ) : (
-              <div className="rounded-lg border border-gray-100 bg-gray-50 p-6 text-center">
+              <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-center">
                 <div className="mx-auto mb-3 text-3xl">🧾</div>
-                <p className="text-sm text-gray-500">No payments yet.</p>
+                <p className="text-sm text-white/60">No payments yet.</p>
                 <button
                   onClick={handleUpgrade}
                   className="mt-3 gold-gradient rounded-full px-6 py-2 text-sm font-semibold text-navy"
@@ -275,19 +275,19 @@ function ProfilePage() {
           </div>
 
           {/* Account Actions */}
-          <div className="rounded-2xl bg-white p-8 shadow-sm">
-            <h2 className="mb-1 text-xl font-bold text-navy">Account Actions</h2>
-            <p className="mb-6 text-sm text-gray-500">Manage your account and data</p>
+          <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
+            <h2 className="mb-1 text-xl font-bold text-white">Account Actions</h2>
+            <p className="mb-6 text-sm text-white/60">Manage your account and data</p>
             <div className="flex flex-wrap gap-4">
               <a
                 href="/data-request"
-                className="rounded-xl border border-gray-200 px-5 py-3 text-sm font-semibold text-navy transition-all hover:border-navy hover:bg-navy hover:text-white"
+                className="rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-white transition-all hover:border-navy hover:bg-navy hover:text-white"
               >
                 Export My Data
               </a>
               <a
                 href="/data-request"
-                className="rounded-xl border border-red-200 px-5 py-3 text-sm font-semibold text-red-600 transition-all hover:bg-red-50"
+                className="rounded-xl border border-red-800 px-5 py-3 text-sm font-semibold text-red-600 transition-all hover:bg-red-900/20"
               >
                 Delete My Data
               </a>

@@ -43,22 +43,22 @@ function CalendarPage() {
   const sortedEvents = [...events].sort((a, b) => a.date.localeCompare(b.date));
 
   const eventTypeColors: Record<string, string> = {
-    hearing: "bg-red-100 text-red-700 border-red-200",
+    hearing: "bg-red-100 text-red-300 border-red-800",
     deadline: "bg-orange-100 text-orange-700 border-orange-200",
     filing: "bg-blue-100 text-blue-700 border-blue-200",
-    meeting: "bg-green-100 text-green-700 border-green-200",
+    meeting: "bg-green-900/30 text-green-300 border-green-200",
     reminder: "bg-purple-100 text-purple-700 border-purple-200",
-    other: "bg-gray-100 text-gray-700 border-gray-200",
+    other: "bg-white/10 text-white/80 border-white/10",
   };
 
   return (
     <AuthenticatedGuard>
-      <main className="min-h-screen bg-gray-50 px-4 py-8">
+      <main className="min-h-screen bg-navy px-4 py-8">
         <div className="mx-auto max-w-4xl">
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-extrabold text-navy">Court Calendar</h1>
-              <p className="mt-1 text-gray-500">Track court dates, deadlines, and appointments</p>
+              <h1 className="text-3xl font-extrabold text-white">Court Calendar</h1>
+              <p className="mt-1 text-white/60">Track court dates, deadlines, and appointments</p>
             </div>
             <button
               onClick={() => setShowAdd(!showAdd)}
@@ -72,34 +72,34 @@ function CalendarPage() {
           </div>
 
           {showAdd && (
-            <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-bold text-navy">New Calendar Event</h2>
+            <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
+              <h2 className="mb-4 text-lg font-bold text-white">New Calendar Event</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-navy">Event Title</label>
+                  <label className="mb-1 block text-sm font-semibold text-white">Event Title</label>
                   <input
                     type="text"
                     value={newEvent.title}
                     onChange={(e) => setNewEvent((p) => ({ ...p, title: e.target.value }))}
                     placeholder='e.g., "Hearing on Motion to Dismiss"'
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-navy">Date</label>
+                  <label className="mb-1 block text-sm font-semibold text-white">Date</label>
                   <input
                     type="date"
                     value={newEvent.date}
                     onChange={(e) => setNewEvent((p) => ({ ...p, date: e.target.value }))}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-navy">Event Type</label>
+                  <label className="mb-1 block text-sm font-semibold text-white">Event Type</label>
                   <select
                     value={newEvent.type}
                     onChange={(e) => setNewEvent((p) => ({ ...p, type: e.target.value }))}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                   >
                     <option value="hearing">Court Hearing</option>
                     <option value="deadline">Filing Deadline</option>
@@ -110,13 +110,13 @@ function CalendarPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-navy">Notes</label>
+                  <label className="mb-1 block text-sm font-semibold text-white">Notes</label>
                   <input
                     type="text"
                     value={newEvent.notes}
                     onChange={(e) => setNewEvent((p) => ({ ...p, notes: e.target.value }))}
                     placeholder="Optional notes..."
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                   />
                 </div>
               </div>
@@ -124,7 +124,7 @@ function CalendarPage() {
                 <button onClick={handleAdd} className="gold-gradient rounded-full px-6 py-2.5 text-sm font-semibold text-navy">
                   Add Event
                 </button>
-                <button onClick={() => setShowAdd(false)} className="rounded-full bg-gray-100 px-6 py-2.5 text-sm font-semibold text-gray-600">
+                <button onClick={() => setShowAdd(false)} className="rounded-full bg-white/10 px-6 py-2.5 text-sm font-semibold text-white/70">
                   Cancel
                 </button>
               </div>
@@ -132,10 +132,10 @@ function CalendarPage() {
           )}
 
           {sortedEvents.length === 0 ? (
-            <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
+            <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-12 text-center shadow-sm">
               <div className="mx-auto mb-4 text-5xl">📅</div>
-              <p className="mb-2 text-lg font-semibold text-gray-500">No events yet</p>
-              <p className="mb-4 text-sm text-gray-400">Add court dates and deadlines to stay on track</p>
+              <p className="mb-2 text-lg font-semibold text-white/60">No events yet</p>
+              <p className="mb-4 text-sm text-white/40">Add court dates and deadlines to stay on track</p>
               <button onClick={() => setShowAdd(true)} className="gold-gradient rounded-full px-6 py-2.5 font-semibold text-navy">
                 Add Your First Event
               </button>

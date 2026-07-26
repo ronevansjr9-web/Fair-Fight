@@ -92,16 +92,16 @@ function DocumentsPage() {
 
   return (
     <AuthenticatedGuard>
-      <main className="min-h-screen bg-gray-50 px-4 py-12">
+      <main className="min-h-screen bg-navy px-4 py-12">
         <div className="mx-auto max-w-4xl">
-          <h1 className="mb-2 text-3xl font-extrabold text-navy sm:text-4xl">Document Generator</h1>
-          <p className="mb-8 text-lg text-gray-600">
+          <h1 className="mb-2 text-3xl font-extrabold text-white sm:text-4xl">Document Generator</h1>
+          <p className="mb-8 text-lg text-white/70">
             Generate educational legal document templates with AI guidance.
           </p>
 
-          <div className="rounded-2xl bg-white p-8 shadow-sm">
+          <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
             <div className="mb-6">
-              <label className="mb-2 block text-sm font-semibold text-navy">Document Type</label>
+              <label className="mb-2 block text-sm font-semibold text-white">Document Type</label>
               <div className="grid gap-3 sm:grid-cols-2">
                 {DOC_TYPES.map((doc) => (
                   <button
@@ -110,35 +110,35 @@ function DocumentsPage() {
                     className={`rounded-xl border p-4 text-left transition-all ${
                       selectedType === doc.id
                         ? "border-gold bg-navy text-white"
-                        : "border-gray-200 bg-gray-50 hover:border-gray-300"
+                        : "border-white/10 bg-white/5 hover:border-white/20"
                     }`}
                   >
-                    <h3 className={`font-semibold ${selectedType === doc.id ? "text-gold" : "text-navy"}`}>{doc.label}</h3>
-                    <p className={`mt-1 text-xs ${selectedType === doc.id ? "text-white/70" : "text-gray-500"}`}>{doc.desc}</p>
+                    <h3 className={`font-semibold ${selectedType === doc.id ? "text-gold" : "text-white"}`}>{doc.label}</h3>
+                    <p className={`mt-1 text-xs ${selectedType === doc.id ? "text-white/70" : "text-white/60"}`}>{doc.desc}</p>
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="mb-4">
-              <label className="mb-1 block text-sm font-semibold text-navy">Jurisdiction (optional)</label>
+              <label className="mb-1 block text-sm font-semibold text-white">Jurisdiction (optional)</label>
               <input
                 type="text"
                 value={jurisdiction}
                 onChange={(e) => setJurisdiction(e.target.value)}
                 placeholder='e.g., "California," "Federal," "New York"' 
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm text-white/90 placeholder-white/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
               />
             </div>
 
             <div className="mb-6">
-              <label className="mb-1 block text-sm font-semibold text-navy">Case Context (optional)</label>
+              <label className="mb-1 block text-sm font-semibold text-white">Case Context (optional)</label>
               <textarea
                 value={context}
                 onChange={(e) => setContext(e.target.value)}
                 rows={4}
                 placeholder="Briefly describe your case to get a more tailored template..."
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 placeholder-gray-400 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                className="w-full rounded-xl border border-white/10 bg-navy px-4 py-3 text-white/90 placeholder-white/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
               />
             </div>
 
@@ -151,24 +151,24 @@ function DocumentsPage() {
             </button>
 
             {error && (
-              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>
+              <div className="mt-4 rounded-xl border border-red-800 bg-red-900/20 p-4 text-sm text-red-300">{error}</div>
             )}
 
             {generated && (
-              <div className="mt-8 rounded-xl border border-gray-100 bg-white p-6">
+              <div className="mt-8 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-navy">Generated Template</h2>
+                  <h2 className="text-xl font-bold text-white">Generated Template</h2>
                   <button
                     onClick={() => navigator.clipboard.writeText(generated)}
-                    className="rounded-lg bg-gray-100 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-200"
+                    className="rounded-lg bg-white/10 px-4 py-2 text-xs font-semibold text-white/70 hover:bg-white/10"
                   >
                     Copy to Clipboard
                   </button>
                 </div>
-                <div className="prose max-w-none rounded-lg bg-gray-50 p-6">
-                  <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-700">{generated}</pre>
+                <div className="prose max-w-none rounded-lg bg-white/5 p-6">
+                  <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-white/80">{generated}</pre>
                 </div>
-                <div className="mt-4 rounded-lg border border-yellow-100 bg-yellow-50 p-3 text-xs text-yellow-800">
+                <div className="mt-4 rounded-lg border border-yellow-800 bg-yellow-900/20 p-3 text-xs text-yellow-300">
                   ⚖️ <strong>FOR EDUCATIONAL PURPOSES ONLY.</strong> This is a template showing proper document structure. Review with a licensed attorney before filing any document with a court.
                 </div>
               </div>

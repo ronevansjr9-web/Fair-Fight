@@ -107,22 +107,22 @@ function LegalArgumentPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-12">
+    <main className="min-h-screen bg-navy px-4 py-12">
       <div className="mx-auto max-w-4xl">
-        <h1 className="mb-2 text-3xl font-extrabold text-navy sm:text-4xl">Legal Argument Generator</h1>
-        <p className="mb-8 text-lg text-gray-600">
+        <h1 className="mb-2 text-3xl font-extrabold text-white sm:text-4xl">Legal Argument Generator</h1>
+        <p className="mb-8 text-lg text-white/70">
           AI-powered legal argument templates with jurisdiction-specific case law citations.
         </p>
 
         <ProGate feature="Legal Argument Generator">
-          <div className="rounded-2xl bg-white p-8 shadow-sm">
+          <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
             <div className="mb-6 grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm font-semibold text-navy">Jurisdiction</label>
+                <label className="mb-1 block text-sm font-semibold text-white">Jurisdiction</label>
                 <select
                   value={jurisdiction}
                   onChange={(e) => setJurisdiction(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                  className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm text-white/90 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                 >
                   {JURISDICTIONS.map((j) => (
                     <option key={j} value={j}>{j}</option>
@@ -130,11 +130,11 @@ function LegalArgumentPage() {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-semibold text-navy">Case Type</label>
+                <label className="mb-1 block text-sm font-semibold text-white">Case Type</label>
                 <select
                   value={caseType}
                   onChange={(e) => setCaseType(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                  className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm text-white/90 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                 >
                   <option>Civil</option>
                   <option>Criminal</option>
@@ -149,11 +149,11 @@ function LegalArgumentPage() {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-semibold text-navy">Position</label>
+                <label className="mb-1 block text-sm font-semibold text-white">Position</label>
                 <select
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                  className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm text-white/90 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                 >
                   <option value="neutral">Neutral / Educational</option>
                   <option value="plaintiff">Plaintiff / Petitioner</option>
@@ -162,22 +162,22 @@ function LegalArgumentPage() {
               </div>
             </div>
 
-            <label className="mb-1 block text-sm font-semibold text-navy">Describe Your Situation</label>
+            <label className="mb-1 block text-sm font-semibold text-white">Describe Your Situation</label>
             <textarea
               value={situation}
               onChange={(e) => setSituation(e.target.value)}
               rows={8}
               placeholder="Describe your legal situation in detail. Include all relevant facts, dates, parties, and the legal issue you're dealing with. The more detail, the better the result."
-              className="mb-4 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 placeholder-gray-400 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+              className="mb-4 w-full rounded-xl border border-white/10 bg-navy px-4 py-3 text-white/90 placeholder-white/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
             />
 
-            <label className="mb-1 block text-sm font-semibold text-navy">Additional Context (optional)</label>
+            <label className="mb-1 block text-sm font-semibold text-white">Additional Context (optional)</label>
             <textarea
               value={additionalContext}
               onChange={(e) => setAdditionalContext(e.target.value)}
               rows={3}
               placeholder="Any additional context: prior court rulings, specific statutes you're aware of, arguments the other side has made..."
-              className="mb-6 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 placeholder-gray-400 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+              className="mb-6 w-full rounded-xl border border-white/10 bg-navy px-4 py-3 text-white/90 placeholder-white/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
             />
 
             <button
@@ -189,13 +189,13 @@ function LegalArgumentPage() {
             </button>
 
             {error && (
-              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>
+              <div className="mt-4 rounded-xl border border-red-800 bg-red-900/20 p-4 text-sm text-red-300">{error}</div>
             )}
 
             {result && (
-              <div className="mt-8 rounded-xl border border-gray-100 bg-white p-6">
+              <div className="mt-8 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
                 <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: result.replace(/\n/g, "<br/>") }} />
-                <div className="mt-6 rounded-lg border border-yellow-100 bg-yellow-50 p-4 text-sm text-yellow-800">
+                <div className="mt-6 rounded-lg border border-yellow-800 bg-yellow-900/20 p-4 text-sm text-yellow-300">
                   ⚖️ <strong>FOR EDUCATIONAL PURPOSES ONLY — NOT LEGAL ADVICE.</strong> Review with a licensed attorney before filing. The AI may cite cases that require verification. Never file a document without attorney review.
                 </div>
               </div>

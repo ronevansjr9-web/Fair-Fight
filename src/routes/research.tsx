@@ -60,7 +60,7 @@ function ResearchPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-navy">
       <section className="bg-navy px-4 py-16">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="mb-4 text-4xl font-extrabold text-white sm:text-5xl">Free Legal Research</h1>
@@ -91,33 +91,33 @@ function ResearchPage() {
         <div className="mx-auto max-w-4xl">
           {results.length > 0 && (
             <div className="mb-12">
-              <h2 className="mb-4 text-xl font-bold text-navy">Research Results</h2>
+              <h2 className="mb-4 text-xl font-bold text-white">Research Results</h2>
               <div className="space-y-3">
                 {results.map((r, i) => (
-                  <div key={i} className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <h3 className="font-semibold text-navy">{r.title}</h3>
-                    <p className="text-sm text-gray-600">{r.description}</p>
+                  <div key={i} className="rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-4 shadow-sm">
+                    <h3 className="font-semibold text-white">{r.title}</h3>
+                    <p className="text-sm text-white/70">{r.description}</p>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 rounded-lg border border-yellow-100 bg-yellow-50 p-3 text-xs text-yellow-800">
+              <div className="mt-4 rounded-lg border border-yellow-800 bg-yellow-900/20 p-3 text-xs text-yellow-300">
                 ⚖️ Educational guidance on legal research resources. For comprehensive research, consult a law librarian or attorney.
               </div>
             </div>
           )}
 
-          <h2 className="mb-6 text-2xl font-bold text-navy">Legal Research Topics</h2>
+          <h2 className="mb-6 text-2xl font-bold text-white">Legal Research Topics</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {RESEARCH_TOPICS.map((topic) => (
               <Link
                 key={topic.title}
                 to="/learn"
-                className="card-hover rounded-xl border border-gray-100 bg-white p-5 shadow-sm"
+                className="card-hover rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-5 shadow-sm"
               >
                 <div className="mb-2 text-2xl">{topic.icon}</div>
-                <h3 className="font-bold text-navy">{topic.title}</h3>
-                <p className="mt-1 text-sm text-gray-500">{topic.desc}</p>
-                <span className="mt-2 inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{topic.category}</span>
+                <h3 className="font-bold text-white">{topic.title}</h3>
+                <p className="mt-1 text-sm text-white/60">{topic.desc}</p>
+                <span className="mt-2 inline-block rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/70">{topic.category}</span>
               </Link>
             ))}
           </div>

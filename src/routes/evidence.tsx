@@ -163,12 +163,12 @@ function EvidencePage() {
 
   return (
     <AuthenticatedGuard>
-      <main className="min-h-screen bg-gray-50 px-4 py-8">
+      <main className="min-h-screen bg-navy px-4 py-8">
         <div className="mx-auto max-w-4xl">
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-extrabold text-navy">Evidence Manager</h1>
-              <p className="mt-1 text-gray-500">Organize and track your case evidence</p>
+              <h1 className="text-3xl font-extrabold text-white">Evidence Manager</h1>
+              <p className="mt-1 text-white/60">Organize and track your case evidence</p>
             </div>
             <button
               onClick={() => setShowAdd(!showAdd)}
@@ -182,20 +182,20 @@ function EvidencePage() {
           </div>
 
           {/* Upload File Section */}
-          <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-bold text-navy">Upload a File</h2>
-            <p className="mb-4 text-sm text-gray-500">
+          <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
+            <h2 className="mb-4 text-lg font-bold text-white">Upload a File</h2>
+            <p className="mb-4 text-sm text-white/60">
               Upload documents, photos, PDFs, audio, or video files (max 5 MB).
               Files are stored securely and associated with your account.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <div className="flex-1">
-                <label className="mb-1 block text-sm font-semibold text-navy">Select File</label>
+                <label className="mb-1 block text-sm font-semibold text-white">Select File</label>
                 <input
                   ref={fileInputRef}
                   type="file"
                   onChange={handleFileSelect}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-navy file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:bg-navy-light"
+                  className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm text-white/80 file:mr-4 file:rounded-full file:border-0 file:bg-navy file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:bg-navy-light"
                 />
               </div>
               <button
@@ -207,17 +207,17 @@ function EvidencePage() {
               </button>
             </div>
             {selectedFile && (
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-white/60">
                 Selected: {selectedFile.name} ({formatSize(selectedFile.size)})
               </p>
             )}
             {uploadError && (
-              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <div className="mt-3 rounded-lg border border-red-800 bg-red-900/20 p-3 text-sm text-red-300">
                 {uploadError}
               </div>
             )}
             {uploadSuccess && (
-              <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+              <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-300">
                 {uploadSuccess}
               </div>
             )}
@@ -226,20 +226,20 @@ function EvidencePage() {
           {/* Uploaded Files List */}
           {uploadedFiles.length > 0 && (
             <div className="mb-8">
-              <h2 className="mb-4 text-lg font-bold text-navy">Uploaded Files ({uploadedFiles.length})</h2>
+              <h2 className="mb-4 text-lg font-bold text-white">Uploaded Files ({uploadedFiles.length})</h2>
               <div className="space-y-3">
                 {uploadedFiles.map((file) => (
-                  <div key={file.id} className="flex items-center justify-between rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                  <div key={file.id} className="flex items-center justify-between rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-4 shadow-sm">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-lg">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-lg">
                         {file.mimeType.startsWith("image/") ? "🖼️" :
                          file.mimeType.includes("pdf") ? "📄" :
                          file.mimeType.includes("audio") ? "🎵" :
                          file.mimeType.includes("video") ? "🎬" : "📎"}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-navy">{file.filename}</h3>
-                        <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-400">
+                        <h3 className="font-semibold text-white">{file.filename}</h3>
+                        <div className="mt-0.5 flex items-center gap-2 text-xs text-white/40">
                           <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-600">{mimeTypeLabel(file.mimeType)}</span>
                           <span>{formatSize(file.sizeBytes)}</span>
                           <span>{new Date(file.createdAt).toLocaleDateString()}</span>
@@ -248,7 +248,7 @@ function EvidencePage() {
                     </div>
                     <button
                       onClick={() => handleRemoveFile(file.id)}
-                      className="ml-4 rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                      className="ml-4 rounded-lg p-2 text-white/40 hover:bg-red-900/20 hover:text-red-500"
                     >
                       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -262,29 +262,29 @@ function EvidencePage() {
 
           {/* Add Metadata Item */}
           {showAdd && (
-            <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-bold text-navy">Add Evidence Description</h2>
-              <p className="mb-4 text-sm text-gray-500">
+            <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
+              <h2 className="mb-4 text-lg font-bold text-white">Add Evidence Description</h2>
+              <p className="mb-4 text-sm text-white/60">
                 Add metadata about evidence items — links, references, or notes about physical items.
                 To upload actual files, use the Upload section above.
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-navy">Name</label>
+                  <label className="mb-1 block text-sm font-semibold text-white">Name</label>
                   <input
                     type="text"
                     value={newItem.name}
                     onChange={(e) => setNewItem((p) => ({ ...p, name: e.target.value }))}
                     placeholder='e.g., "Lease Agreement," "Photo of Damage"'
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-navy">Type</label>
+                  <label className="mb-1 block text-sm font-semibold text-white">Type</label>
                   <select
                     value={newItem.type}
                     onChange={(e) => setNewItem((p) => ({ ...p, type: e.target.value }))}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                   >
                     <option value="document">Document</option>
                     <option value="photo">Photo</option>
@@ -298,23 +298,23 @@ function EvidencePage() {
                   </select>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="mb-1 block text-sm font-semibold text-navy">Description</label>
+                  <label className="mb-1 block text-sm font-semibold text-white">Description</label>
                   <textarea
                     value={newItem.description}
                     onChange={(e) => setNewItem((p) => ({ ...p, description: e.target.value }))}
                     rows={2}
                     placeholder="Brief description of this evidence and why it's relevant..."
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-3 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="mb-1 block text-sm font-semibold text-navy">Tags (comma-separated)</label>
+                  <label className="mb-1 block text-sm font-semibold text-white">Tags (comma-separated)</label>
                   <input
                     type="text"
                     value={newItem.tags}
                     onChange={(e) => setNewItem((p) => ({ ...p, tags: e.target.value }))}
                     placeholder='e.g., "exhibit, key evidence, plaintiff"'
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                   />
                 </div>
               </div>
@@ -322,7 +322,7 @@ function EvidencePage() {
                 <button onClick={handleAddMetadata} className="gold-gradient rounded-full px-6 py-2.5 text-sm font-semibold text-navy">
                   Add Item
                 </button>
-                <button onClick={() => setShowAdd(false)} className="rounded-full bg-gray-100 px-6 py-2.5 text-sm font-semibold text-gray-600">
+                <button onClick={() => setShowAdd(false)} className="rounded-full bg-white/10 px-6 py-2.5 text-sm font-semibold text-white/70">
                   Cancel
                 </button>
               </div>
@@ -331,10 +331,10 @@ function EvidencePage() {
 
           {/* Metadata Items List */}
           {items.length === 0 && uploadedFiles.length === 0 ? (
-            <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
+            <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-12 text-center shadow-sm">
               <div className="mx-auto mb-4 text-5xl">📎</div>
-              <p className="mb-2 text-lg font-semibold text-gray-500">No evidence items yet</p>
-              <p className="mb-4 text-sm text-gray-400">Upload files or add evidence descriptions to start organizing your case</p>
+              <p className="mb-2 text-lg font-semibold text-white/60">No evidence items yet</p>
+              <p className="mb-4 text-sm text-white/40">Upload files or add evidence descriptions to start organizing your case</p>
               <button
                 onClick={() => setShowAdd(true)}
                 className="gold-gradient rounded-full px-6 py-2.5 font-semibold text-navy"
@@ -344,27 +344,27 @@ function EvidencePage() {
             </div>
           ) : items.length > 0 ? (
             <div className="space-y-3">
-              <h2 className="mb-2 text-lg font-bold text-navy">Evidence Notes ({items.length})</h2>
+              <h2 className="mb-2 text-lg font-bold text-white">Evidence Notes ({items.length})</h2>
               {items.map((item) => (
-                <div key={item.id} className="flex items-start justify-between rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                <div key={item.id} className="flex items-start justify-between rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-4 shadow-sm">
                   <div>
-                    <h3 className="font-semibold text-navy">{item.name}</h3>
+                    <h3 className="font-semibold text-white">{item.name}</h3>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
                         {item.type}
                       </span>
                       {item.tags.map((tag) => (
-                        <span key={tag} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                        <span key={tag} className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/70">
                           {tag}
                         </span>
                       ))}
-                      <span className="text-xs text-gray-400">Added {item.dateAdded}</span>
+                      <span className="text-xs text-white/40">Added {item.dateAdded}</span>
                     </div>
-                    {item.description && <p className="mt-1 text-sm text-gray-500">{item.description}</p>}
+                    {item.description && <p className="mt-1 text-sm text-white/60">{item.description}</p>}
                   </div>
                   <button
                     onClick={() => handleRemoveMetadata(item.id)}
-                    className="ml-4 rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                    className="ml-4 rounded-lg p-2 text-white/40 hover:bg-red-900/20 hover:text-red-500"
                   >
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

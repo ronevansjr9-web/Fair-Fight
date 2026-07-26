@@ -128,18 +128,18 @@ function DataRequestPage() {
 
   return (
     <AuthenticatedGuard>
-      <main className="min-h-screen bg-gray-50 px-4 py-12">
+      <main className="min-h-screen bg-navy px-4 py-12">
         <div className="mx-auto max-w-3xl">
-          <h1 className="mb-2 text-3xl font-extrabold text-navy">Data Request</h1>
-          <p className="mb-8 text-gray-600">Export your data or request deletion of your account and associated data.</p>
+          <h1 className="mb-2 text-3xl font-extrabold text-white">Data Request</h1>
+          <p className="mb-8 text-white/70">Export your data or request deletion of your account and associated data.</p>
 
           <div className="space-y-6">
             {/* Export Section */}
-            <div className="rounded-2xl bg-white p-8 shadow-sm">
-              <h2 className="mb-4 text-xl font-bold text-navy">
+            <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
+              <h2 className="mb-4 text-xl font-bold text-white">
                 <span className="mr-2">📥</span>Export Your Data
               </h2>
-              <p className="mb-4 text-sm text-gray-600">
+              <p className="mb-4 text-sm text-white/70">
                 Download a copy of all your data, including case information, evidence, calendar events, and activity logs.
               </p>
               <button
@@ -153,12 +153,12 @@ function DataRequestPage() {
               {exportedData && (
                 <div className="mt-6">
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="font-semibold text-navy">Exported Data</h3>
-                    <button onClick={handleDownload} className="rounded-lg bg-gray-100 px-4 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-200">
+                    <h3 className="font-semibold text-white">Exported Data</h3>
+                    <button onClick={handleDownload} className="rounded-lg bg-white/10 px-4 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/10">
                       Download JSON
                     </button>
                   </div>
-                  <pre className="max-h-96 overflow-y-auto rounded-lg bg-gray-50 p-4 text-xs text-gray-700">
+                  <pre className="max-h-96 overflow-y-auto rounded-lg bg-white/5 p-4 text-xs text-white/80">
                     {exportedData}
                   </pre>
                 </div>
@@ -166,16 +166,16 @@ function DataRequestPage() {
             </div>
 
             {/* Delete Section */}
-            <div className="rounded-2xl border-2 border-red-100 bg-white p-8 shadow-sm">
+            <div className="rounded-2xl border-2 border-red-800 bg-red-900/10 backdrop-blur-sm p-8">
               <h2 className="mb-4 text-xl font-bold text-red-600">
                 <span className="mr-2">🗑️</span>Delete Your Data
               </h2>
-              <p className="mb-4 text-sm text-gray-600">
+              <p className="mb-4 text-sm text-white/70">
                 Permanently delete all your Fair Fight data, including cases, evidence, calendar events, timeline entries, audit logs, and referral information. This action cannot be undone.
               </p>
 
               {confirmDelete && (
-                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                <div className="mb-4 rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-300">
                   <strong>⚠️ Are you sure?</strong> This will permanently delete ALL your data. This action cannot be reversed. Click the button again to confirm.
                 </div>
               )}
@@ -191,7 +191,7 @@ function DataRequestPage() {
               {confirmDelete && (
                 <button
                   onClick={() => setConfirmDelete(false)}
-                  className="ml-3 rounded-full bg-gray-100 px-6 py-2.5 font-semibold text-gray-600"
+                  className="ml-3 rounded-full bg-white/10 px-6 py-2.5 font-semibold text-white/70"
                 >
                   Cancel
                 </button>
@@ -200,12 +200,12 @@ function DataRequestPage() {
 
             {/* Messages */}
             {message && (
-              <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+              <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-300">
                 {message}
               </div>
             )}
             {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <div className="rounded-xl border border-red-800 bg-red-900/20 p-4 text-sm text-red-300">
                 {error}
               </div>
             )}

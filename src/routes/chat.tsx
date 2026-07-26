@@ -106,11 +106,11 @@ function ChatPage() {
 
   return (
     <AuthenticatedGuard>
-      <main className="flex h-[calc(100vh-120px)] flex-col bg-gray-50">
-        <div className="border-b border-gray-200 bg-white px-4 py-4">
+      <main className="flex h-[calc(100vh-120px)] flex-col bg-navy">
+        <div className="border-b border-white/10 bg-white px-4 py-4">
           <div className="mx-auto max-w-4xl">
-            <h1 className="text-xl font-bold text-navy">AI Legal Education Chat</h1>
-            <p className="text-sm text-gray-500">Ask questions about legal concepts — plain English answers. Not legal advice.</p>
+            <h1 className="text-xl font-bold text-white">AI Legal Education Chat</h1>
+            <p className="text-sm text-white/60">Ask questions about legal concepts — plain English answers. Not legal advice.</p>
           </div>
         </div>
 
@@ -125,7 +125,7 @@ function ChatPage() {
                   className={`max-w-[80%] rounded-2xl px-5 py-3 ${
                     msg.role === "user"
                       ? "bg-navy text-white"
-                      : "border border-gray-200 bg-white text-gray-700"
+                      : "border border-white/10 bg-white text-white/80"
                   }`}
                 >
                   <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
@@ -134,7 +134,7 @@ function ChatPage() {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-5 py-3">
+                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white px-5 py-3">
                   <div className="flex gap-1">
                     <span className="h-2 w-2 animate-bounce rounded-full bg-gold" style={{ animationDelay: "0ms" }} />
                     <span className="h-2 w-2 animate-bounce rounded-full bg-gold" style={{ animationDelay: "150ms" }} />
@@ -147,7 +147,7 @@ function ChatPage() {
           </div>
         </div>
 
-        <div className="border-t border-gray-200 bg-white px-4 py-4">
+        <div className="border-t border-white/10 bg-white px-4 py-4">
           <div className="mx-auto max-w-3xl">
             <div className="flex gap-3">
               <textarea
@@ -156,7 +156,7 @@ function ChatPage() {
                 onKeyDown={handleKeyDown}
                 placeholder="Ask about any legal concept... (e.g., 'What is habeas corpus?' or 'Explain the exclusionary rule')"
                 rows={2}
-                className="flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                className="flex-1 resize-none rounded-xl border border-white/10 bg-navy px-4 py-3 text-sm text-white/90 placeholder-white/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
               />
               <button
                 onClick={handleSend}
@@ -166,7 +166,7 @@ function ChatPage() {
                 {isLoading ? "..." : "Send"}
               </button>
             </div>
-            <p className="mt-2 text-center text-xs text-gray-400">
+            <p className="mt-2 text-center text-xs text-white/40">
               ⚖️ Educational purposes only. Not legal advice. Consult a licensed attorney.
             </p>
           </div>

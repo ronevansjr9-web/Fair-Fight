@@ -39,12 +39,12 @@ function TimelinePage() {
 
   return (
     <AuthenticatedGuard>
-      <main className="min-h-screen bg-gray-50 px-4 py-8">
+      <main className="min-h-screen bg-navy px-4 py-8">
         <div className="mx-auto max-w-3xl">
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-extrabold text-navy">Case Timeline</h1>
-              <p className="mt-1 text-gray-500">Build a chronological timeline of key events</p>
+              <h1 className="text-3xl font-extrabold text-white">Case Timeline</h1>
+              <p className="mt-1 text-white/60">Build a chronological timeline of key events</p>
             </div>
             <button
               onClick={() => setShowAdd(!showAdd)}
@@ -58,51 +58,51 @@ function TimelinePage() {
           </div>
 
           {showAdd && (
-            <div className="mb-8 rounded-2xl bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-bold text-navy">New Timeline Event</h2>
+            <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
+              <h2 className="mb-4 text-lg font-bold text-white">New Timeline Event</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-navy">Date</label>
+                  <label className="mb-1 block text-sm font-semibold text-white">Date</label>
                   <input
                     type="date"
                     value={newEntry.date}
                     onChange={(e) => setNewEntry((p) => ({ ...p, date: e.target.value }))}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-navy">Event Title</label>
+                  <label className="mb-1 block text-sm font-semibold text-white">Event Title</label>
                   <input
                     type="text"
                     value={newEntry.title}
                     onChange={(e) => setNewEntry((p) => ({ ...p, title: e.target.value }))}
                     placeholder='e.g., "Contract Signed," "Incident Occurred," "Filed Complaint"'
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-navy">Description</label>
+                  <label className="mb-1 block text-sm font-semibold text-white">Description</label>
                   <textarea
                     value={newEntry.description}
                     onChange={(e) => setNewEntry((p) => ({ ...p, description: e.target.value }))}
                     rows={2}
                     placeholder="Brief description of what happened..."
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-3 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                   />
                 </div>
               </div>
               <div className="mt-4 flex gap-3">
                 <button onClick={handleAdd} className="gold-gradient rounded-full px-6 py-2.5 text-sm font-semibold text-navy">Add Event</button>
-                <button onClick={() => setShowAdd(false)} className="rounded-full bg-gray-100 px-6 py-2.5 text-sm font-semibold text-gray-600">Cancel</button>
+                <button onClick={() => setShowAdd(false)} className="rounded-full bg-white/10 px-6 py-2.5 text-sm font-semibold text-white/70">Cancel</button>
               </div>
             </div>
           )}
 
           {sortedEntries.length === 0 ? (
-            <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
+            <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-12 text-center shadow-sm">
               <div className="mx-auto mb-4 text-5xl">🕐</div>
-              <p className="mb-2 text-lg font-semibold text-gray-500">No timeline entries yet</p>
-              <p className="mb-4 text-sm text-gray-400">Add key events to build your case timeline</p>
+              <p className="mb-2 text-lg font-semibold text-white/60">No timeline entries yet</p>
+              <p className="mb-4 text-sm text-white/40">Add key events to build your case timeline</p>
               <button onClick={() => setShowAdd(true)} className="gold-gradient rounded-full px-6 py-2.5 font-semibold text-navy">
                 Add Your First Event
               </button>
@@ -114,21 +114,21 @@ function TimelinePage() {
                 {sortedEntries.map((entry, i) => (
                   <div key={entry.id} className="relative flex items-start gap-6">
                     <div className="w-20 flex-shrink-0 text-right">
-                      <span className="text-sm font-semibold text-navy">
+                      <span className="text-sm font-semibold text-white">
                         {new Date(entry.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </span>
                     </div>
                     <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 ${
-                      i === 0 ? "border-gold bg-gold text-white" : "border-gold/30 bg-white text-navy"
+                      i === 0 ? "border-gold bg-gold text-white" : "border-gold/30 bg-white text-white"
                     }`}>
                       <span className="text-xs font-bold">{i + 1}</span>
                     </div>
-                    <div className="flex-1 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                      <h3 className="font-bold text-navy">{entry.title}</h3>
-                      {entry.description && <p className="mt-1 text-sm text-gray-600">{entry.description}</p>}
+                    <div className="flex-1 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-4 shadow-sm">
+                      <h3 className="font-bold text-white">{entry.title}</h3>
+                      {entry.description && <p className="mt-1 text-sm text-white/70">{entry.description}</p>}
                       <button
                         onClick={() => handleRemove(entry.id)}
-                        className="mt-2 text-xs text-gray-400 hover:text-red-500"
+                        className="mt-2 text-xs text-white/40 hover:text-red-500"
                       >
                         Remove
                       </button>

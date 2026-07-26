@@ -83,15 +83,15 @@ function NewCasePage() {
 
   return (
     <AuthenticatedGuard>
-      <main className="min-h-screen bg-gray-50 px-4 py-12">
+      <main className="min-h-screen bg-navy px-4 py-12">
         <div className="mx-auto max-w-2xl">
-          <h1 className="mb-2 text-3xl font-extrabold text-navy">Create New Case</h1>
-          <p className="mb-8 text-gray-600">Start a new case to organize evidence, track deadlines, and get AI-powered legal education.</p>
+          <h1 className="mb-2 text-3xl font-extrabold text-white">Create New Case</h1>
+          <p className="mb-8 text-white/70">Start a new case to organize evidence, track deadlines, and get AI-powered legal education.</p>
 
-          <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-8 shadow-sm">
+          <form onSubmit={handleSubmit} className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
             <div className="space-y-5">
               <div>
-                <label className="mb-1 block text-sm font-semibold text-navy">
+                <label className="mb-1 block text-sm font-semibold text-white">
                   Case Title <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -100,16 +100,16 @@ function NewCasePage() {
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder='e.g., "Smith v. Johnson — Breach of Contract"'
                   required
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                  className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm text-white/90 placeholder-white/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-semibold text-navy">Case Type</label>
+                <label className="mb-1 block text-sm font-semibold text-white">Case Type</label>
                 <select
                   value={caseType}
                   onChange={(e) => setCaseType(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                  className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm text-white/90 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                 >
                   <option>Civil</option>
                   <option>Criminal</option>
@@ -123,30 +123,30 @@ function NewCasePage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-semibold text-navy">Jurisdiction</label>
+                <label className="mb-1 block text-sm font-semibold text-white">Jurisdiction</label>
                 <input
                   type="text"
                   value={jurisdiction}
                   onChange={(e) => setJurisdiction(e.target.value)}
                   placeholder='e.g., "California," "Federal — 9th Circuit"'
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                  className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm text-white/90 placeholder-white/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-semibold text-navy">Description</label>
+                <label className="mb-1 block text-sm font-semibold text-white">Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
                   placeholder="Briefly describe your case. What happened, who's involved, and what's the legal issue?"
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                  className="w-full rounded-xl border border-white/10 bg-navy px-4 py-3 text-sm text-white/90 placeholder-white/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                 />
               </div>
             </div>
 
             {error && (
-              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <div className="mt-4 rounded-xl border border-red-800 bg-red-900/20 p-4 text-sm text-red-300">
                 {error}
               </div>
             )}
@@ -155,20 +155,20 @@ function NewCasePage() {
               <button
                 type="submit"
                 disabled={isSubmitting || !title.trim()}
-                className="gold-gradient flex-1 rounded-full py-3 font-semibold text-navy shadow-md transition-all hover:shadow-lg disabled:opacity-50"
+                className="gold-gradient flex-1 rounded-full py-3 font-semibold text-white shadow-md transition-all hover:shadow-lg disabled:opacity-50"
               >
                 {isSubmitting ? "Creating Case..." : "Create Case"}
               </button>
               <button
                 type="button"
                 onClick={() => navigate({ to: "/dashboard" })}
-                className="rounded-full bg-gray-100 px-6 py-3 font-semibold text-gray-600 transition-all hover:bg-gray-200"
+                className="rounded-full bg-white/10 px-6 py-3 font-semibold text-white/70 transition-all hover:bg-white/10"
               >
                 Cancel
               </button>
             </div>
 
-            <p className="mt-4 text-center text-xs text-gray-400">
+            <p className="mt-4 text-center text-xs text-white/40">
               ⚖️ Fair Fight is for educational purposes only. Your case information is private.
             </p>
           </form>

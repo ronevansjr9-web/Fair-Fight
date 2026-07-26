@@ -202,15 +202,15 @@ function Home() {
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             {auth.isSignedIn ? (
               <button
-                onClick={() => navigate({ to: "/dashboard" })}
-                className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-lg transition-all hover:shadow-xl hover:shadow-gold/20"
-              >
-                Go to Dashboard
-              </button>
+                      onClick={() => navigate({ to: "/dashboard" })}
+                      className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)] transition-all hover:shadow-[0_0_30px_rgba(201,162,39,0.5)]"
+                    >
+                      Go to Dashboard
+                    </button>
             ) : (
               <>
                 <SignUpButton mode="modal">
-                  <button className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-lg transition-all hover:shadow-xl hover:shadow-gold/20">
+                  <button className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)] transition-all hover:shadow-[0_0_30px_rgba(201,162,39,0.5)]">
                     Get Started Free
                   </button>
                 </SignUpButton>
@@ -241,9 +241,9 @@ function Home() {
       </section>
 
       {/* Features Grid */}
-      <section className="px-4 py-20">
+      <section className="bg-navy-dark px-4 py-20">
         <div className="mx-auto max-w-6xl">
-          <h2 className="mb-12 text-center text-3xl font-bold text-navy sm:text-4xl">
+          <h2 className="mb-12 text-center text-3xl font-bold text-white sm:text-4xl">
             Everything you need to understand your legal situation
           </h2>
           <div className="grid gap-8 md:grid-cols-3">
@@ -281,11 +281,11 @@ function Home() {
             ].map((feature) => (
               <div
                 key={feature.title}
-                className="card-hover rounded-2xl border border-gray-100 bg-white p-8 shadow-sm"
+                className="card-hover rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm"
               >
                 <div className="mb-4 text-3xl">{feature.icon}</div>
-                <h3 className="mb-2 text-xl font-bold text-navy">{feature.title}</h3>
-                <p className="text-gray-600">{feature.desc}</p>
+                <h3 className="mb-2 text-xl font-bold text-white">{feature.title}</h3>
+                <p className="text-white/60">{feature.desc}</p>
               </div>
             ))}
           </div>
@@ -293,82 +293,82 @@ function Home() {
       </section>
 
       {/* Demo AI Analysis Section */}
-      <section className="bg-gray-50 px-4 py-20">
+      <section className="bg-navy px-4 py-20">
         <div className="mx-auto max-w-3xl">
-          <h2 className="mb-4 text-center text-3xl font-bold text-navy sm:text-4xl">
+          <h2 className="mb-4 text-center text-3xl font-bold text-white sm:text-4xl">
             Try the AI Case Analyzer
           </h2>
-          <p className="mb-8 text-center text-gray-600">
+          <p className="mb-8 text-center text-white/60">
             Describe your legal situation and get a free educational analysis.
             No sign-up required for your first 3 analyses.
           </p>
-          <div className="rounded-2xl bg-white p-8 shadow-sm">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm">
             <textarea
               value={situation}
               onChange={(e) => setSituation(e.target.value)}
               placeholder="Describe your legal situation in plain English... (e.g., 'My landlord is refusing to return my security deposit even though I gave proper notice. I have photos showing the apartment was left clean.')"
               rows={4}
-              className="mb-4 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-800 placeholder-gray-400 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+              className="mb-4 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
             />
             <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-white/40">
                 Free for your first 3 analyses. No account needed.
               </p>
               <button
                 onClick={handleAnalyze}
                 disabled={isAnalyzing || !situation.trim()}
-                className="gold-gradient rounded-full px-6 py-2.5 font-semibold text-navy transition-all hover:shadow-lg disabled:opacity-50"
+                className="gold-gradient rounded-full px-6 py-2.5 font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)] transition-all hover:shadow-[0_0_30px_rgba(201,162,39,0.5)] disabled:opacity-50"
               >
                 {isAnalyzing ? "Analyzing..." : "Analyze My Situation"}
               </button>
             </div>
 
             {error && (
-              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <div className="mt-4 rounded-xl border border-red-800 bg-red-900/20 p-4 text-sm text-red-300">
                 {error}
               </div>
             )}
 
             {analysis && (
-              <div className="mt-6 space-y-4 rounded-xl border border-gray-100 bg-white p-6">
+              <div className="mt-6 space-y-4 rounded-xl border border-white/10 bg-white/5 p-6">
                 {analysis.situation && (
                   <div>
-                    <h4 className="mb-1 font-semibold text-navy">Your Situation</h4>
-                    <p className="text-sm text-gray-600">{analysis.situation}</p>
+                    <h4 className="mb-1 font-semibold text-gold">Your Situation</h4>
+                    <p className="text-sm text-white/70">{analysis.situation}</p>
                   </div>
                 )}
                 {analysis.concepts && (
                   <div>
-                    <h4 className="mb-1 font-semibold text-navy">Relevant Legal Concepts</h4>
-                    <p className="text-sm text-gray-600">{analysis.concepts}</p>
+                    <h4 className="mb-1 font-semibold text-gold">Relevant Legal Concepts</h4>
+                    <p className="text-sm text-white/70">{analysis.concepts}</p>
                   </div>
                 )}
                 {analysis.nextSteps && (
                   <div>
-                    <h4 className="mb-1 font-semibold text-navy">What to Do Next</h4>
-                    <p className="text-sm text-gray-600">{analysis.nextSteps}</p>
+                    <h4 className="mb-1 font-semibold text-gold">What to Do Next</h4>
+                    <p className="text-sm text-white/70">{analysis.nextSteps}</p>
                   </div>
                 )}
                 {analysis.questions && (
                   <div>
-                    <h4 className="mb-1 font-semibold text-navy">Questions for Your Attorney</h4>
-                    <p className="text-sm text-gray-600">{analysis.questions}</p>
+                    <h4 className="mb-1 font-semibold text-gold">Questions for Your Attorney</h4>
+                    <p className="text-sm text-white/70">{analysis.questions}</p>
                   </div>
                 )}
                 {!proStatus && (
-                  <div className="rounded-lg border border-gold/20 bg-navy p-4 text-center">
+                  <div className="rounded-lg border border-gold/20 bg-navy-light/50 p-4 text-center">
                     <p className="mb-2 text-sm text-white/80">
                       This was a free preview. Upgrade to Pro for unlimited AI analyses per case.
                     </p>
                     <button
                       onClick={handleUpgrade}
-                      className="gold-gradient rounded-full px-6 py-2 text-sm font-semibold text-navy"
+                      className="gold-gradient rounded-full px-6 py-2 text-sm font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)]"
                     >
                       Upgrade to Pro — $99
                     </button>
                   </div>
                 )}
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-white/40">
                   ⚖️ For educational purposes only. Not legal advice. Consult a licensed attorney.
                 </p>
               </div>
@@ -390,15 +390,15 @@ function Home() {
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             {auth.isSignedIn ? (
               <button
-                onClick={() => navigate({ to: "/dashboard" })}
-                className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-lg"
-              >
-                Go to Dashboard
-              </button>
+                      onClick={() => navigate({ to: "/dashboard" })}
+                      className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)]"
+                    >
+                      Go to Dashboard
+                    </button>
             ) : (
               <>
                 <SignUpButton mode="modal">
-                  <button className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-lg">
+                  <button className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)]">
                     Get Started Free
                   </button>
                 </SignUpButton>
@@ -429,16 +429,16 @@ function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white px-4 py-12">
+      <footer className="border-t border-white/10 bg-navy-dark px-4 py-12">
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-8 sm:grid-cols-4">
             <div>
-              <h4 className="mb-3 font-bold text-navy">Fair Fight</h4>
-              <p className="text-sm text-gray-500">AI-powered legal education platform.</p>
+              <h4 className="mb-3 font-bold text-gold">Fair Fight</h4>
+              <p className="text-sm text-white/40">AI-powered legal education platform.</p>
             </div>
             <div>
-              <h4 className="mb-3 font-semibold text-navy">Features</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
+              <h4 className="mb-3 font-semibold text-white">Features</h4>
+              <ul className="space-y-2 text-sm text-white/40">
                 <li><a href="/chat" className="hover:text-gold">AI Legal Chat</a></li>
                 <li><a href="/research" className="hover:text-gold">Legal Research</a></li>
                 <li><a href="/documents" className="hover:text-gold">Documents</a></li>
@@ -446,22 +446,22 @@ function Home() {
               </ul>
             </div>
             <div>
-              <h4 className="mb-3 font-semibold text-navy">Resources</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
+              <h4 className="mb-3 font-semibold text-white">Resources</h4>
+              <ul className="space-y-2 text-sm text-white/40">
                 <li><a href="/learn" className="hover:text-gold">Legal Guides</a></li>
                 <li><a href="/calendar" className="hover:text-gold">Court Calendar</a></li>
                 <li><a href="/timeline" className="hover:text-gold">Timeline</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="mb-3 font-semibold text-navy">Legal</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
+              <h4 className="mb-3 font-semibold text-white">Legal</h4>
+              <ul className="space-y-2 text-sm text-white/40">
                 <li><a href="/privacy" className="hover:text-gold">Privacy Policy</a></li>
                 <li><a href="/data-request" className="hover:text-gold">Data Request</a></li>
               </ul>
             </div>
           </div>
-          <div className="mt-8 border-t border-gray-100 pt-6 text-center text-xs text-gray-400">
+          <div className="mt-8 border-t border-white/10 pt-6 text-center text-xs text-white/40">
             <p>⚖️ Fair Fight is not a law firm and does not provide legal advice. For educational purposes only.</p>
             <p className="mt-1">&copy; {new Date().getFullYear()} Fair Fight. All rights reserved.</p>
           </div>
