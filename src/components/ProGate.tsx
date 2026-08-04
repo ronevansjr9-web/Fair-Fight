@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { createServerFn } from "@tanstack/react-start";
+import { SignInButton } from "@clerk/tanstack-start";
 import { createCheckoutSession, getSubscriptionStatus } from "~/lib/stripe";
+import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 
 const checkProAccess = createServerFn({ method: "GET" }).handler(async () => {
   try {
@@ -48,10 +50,18 @@ export function ProGate({ feature, caseId, children }: ProGateProps) {
     setIsLoading(true);
     try {
       const result = await startCheckout({ caseId });
-      if ("error" in result) alert(result.error);
-      else if (result.url) window.location.href = result.url;
-    } catch { alert("Something went wrong."); }
-    setIsLoading(false);
+      if ("error" in result) {
+        alert(result.error || "Unable to start checkout. Please try again.");
+      } else if (result.url) {
+        // This is checkout initiation, not payment completion.
+        await trackEvent(AnalyticsEvents.CHECKOUT_STARTED, { source: "pro_gate" });
+        window.location.href = result.url;
+      }
+    } catch {
+      alert("Unable to start checkout. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isChecking) return <div className="flex items-center justify-center p-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-gold border-t-transparent" /></div>;
@@ -69,7 +79,9 @@ export function ProGate({ feature, caseId, children }: ProGateProps) {
       <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold/10"><svg className="h-8 w-8 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></div>
       <h3 className="mb-2 text-xl font-bold text-white">Sign In Required</h3>
       <p className="mb-6 text-white/70">Sign in to access {feature.toLowerCase()} and all Fair Fight features.</p>
-      <a href="/?signin=true" className="gold-gradient inline-flex items-center rounded-full px-8 py-3 font-semibold text-navy transition-all hover:shadow-lg hover:shadow-gold/20">Sign In to Continue</a>
+      <SignInButton mode="modal" forceRedirectUrl="/?upgrade=1" fallbackRedirectUrl="/?upgrade=1">
+        <button className="gold-gradient inline-flex items-center rounded-full px-8 py-3 font-semibold text-navy transition-all hover:shadow-lg hover:shadow-gold/20">Sign In to Continue</button>
+      </SignInButton>
     </div>
   );
 }

@@ -82,12 +82,18 @@ function ProfilePage() {
   };
 
   const handleUpgrade = async () => {
-    trackEvent(AnalyticsEvents.CHECKOUT_STARTED);
-    const result = await startUpgrade();
-    if ("error" in result) {
-      setError(result.error || "Failed to start checkout");
-    } else if (result.url) {
-      window.location.href = result.url;
+    setError("");
+    try {
+      const result = await startUpgrade();
+      if ("error" in result) {
+        setError(result.error || "Unable to start checkout. Please try again.");
+      } else if (result.url) {
+        // Track checkout initiation only once Stripe Checkout is successfully created.
+        await trackEvent(AnalyticsEvents.CHECKOUT_STARTED);
+        window.location.href = result.url;
+      }
+    } catch {
+      setError("Unable to start checkout. Please try again.");
     }
   };
 

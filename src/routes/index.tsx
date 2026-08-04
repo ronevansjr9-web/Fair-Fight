@@ -155,7 +155,14 @@ function Home() {
 
   useEffect(() => {
     getUserProStatus().then((r) => setProStatus(r.pro));
-  }, []);
+
+    // Clerk returns here after an upgrade-oriented sign-in/sign-up. Continue to
+    // the existing Checkout flow, without treating the redirect as payment.
+    if (auth.isSignedIn && new URLSearchParams(window.location.search).get("upgrade") === "1") {
+      window.history.replaceState({}, "", window.location.pathname);
+      void handleUpgrade();
+    }
+  }, [auth.isSignedIn]);
 
   const handleAnalyze = async () => {
     if (!situation.trim()) return;
@@ -173,13 +180,34 @@ function Home() {
   };
 
   const handleUpgrade = async () => {
-    const result = await startProCheckout();
-    if ("error" in result) {
-      setError(result.error);
-    } else if (result.url) {
-      window.location.href = result.url;
+    setError("");
+    try {
+      const result = await startProCheckout();
+      if ("error" in result) {
+        setError(result.error || "Unable to start checkout. Please try again.");
+      } else if (result.url) {
+        // This records only a successful redirect to Checkout, never payment completion.
+        await import("~/lib/analytics").then(({ trackEvent, AnalyticsEvents, withUTM }) =>
+          trackEvent(AnalyticsEvents.CHECKOUT_STARTED, withUTM({ source: "homepage" })),
+        );
+        window.location.href = result.url;
+      }
+    } catch {
+      setError("Unable to start checkout. Please try again.");
     }
   };
+
+  const upgradeButton = auth.isSignedIn ? (
+    <button onClick={handleUpgrade} className="gold-gradient rounded-full px-6 py-2 text-sm font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)]">
+      Upgrade to Pro — $99
+    </button>
+  ) : (
+    <SignInButton mode="modal" forceRedirectUrl="/?upgrade=1" fallbackRedirectUrl="/?upgrade=1">
+      <button className="gold-gradient rounded-full px-6 py-2 text-sm font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)]">
+        Sign in to upgrade — $99
+      </button>
+    </SignInButton>
+  );
 
   return (
     <main className="min-h-screen">
@@ -360,12 +388,7 @@ function Home() {
                     <p className="mb-2 text-sm text-white/80">
                       This was a free preview. Upgrade to Pro for unlimited AI analyses per case.
                     </p>
-                    <button
-                      onClick={handleUpgrade}
-                      className="gold-gradient rounded-full px-6 py-2 text-sm font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)]"
-                    >
-                      Upgrade to Pro — $99
-                    </button>
+                    {upgradeButton}
                   </div>
                 )}
                 <p className="text-xs text-white/40">
