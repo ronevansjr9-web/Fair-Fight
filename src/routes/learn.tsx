@@ -5,9 +5,10 @@ export const Route = createFileRoute("/learn")({
   validateSearch: (search: Record<string, unknown>) => ({
     article: (search.article as string) || undefined,
   }),
-  head: ({ search }: { search: { article?: string } }) => {
-    if (search.article) {
-      const article = ARTICLES.find((a) => a.id === search.article);
+  head: ({ search }: { search?: { article?: string } }) => {
+    const articleId = search?.article;
+    if (articleId) {
+      const article = ARTICLES.find((a) => a.id === articleId);
       if (article) {
         const description = article.paragraphs[0].substring(0, 160);
         const ogImage = "https://fairfight.ctonew.app/og-image.png";
