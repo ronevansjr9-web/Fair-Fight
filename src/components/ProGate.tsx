@@ -39,6 +39,15 @@ export function ProGate({ feature, caseId, children }: ProGateProps) {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [hasPro, setHasPro] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [returnUrl, setReturnUrl] = useState("/");
+
+  // Read only the current same-origin browser URL for Clerk's post-auth return.
+  // This preserves the gated page/case context without accepting an open redirect.
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setReturnUrl(`${window.location.pathname}${window.location.search}${window.location.hash}`);
+    }
+  }, []);
 
   useEffect(() => {
     let c = false;
@@ -79,7 +88,7 @@ export function ProGate({ feature, caseId, children }: ProGateProps) {
       <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold/10"><svg className="h-8 w-8 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></div>
       <h3 className="mb-2 text-xl font-bold text-white">Sign In Required</h3>
       <p className="mb-6 text-white/70">Sign in to access {feature.toLowerCase()} and all Fair Fight features.</p>
-      <SignInButton mode="modal" forceRedirectUrl="/?upgrade=1" fallbackRedirectUrl="/?upgrade=1">
+      <SignInButton mode="modal" forceRedirectUrl={returnUrl} fallbackRedirectUrl={returnUrl}>
         <button className="gold-gradient inline-flex items-center rounded-full px-8 py-3 font-semibold text-navy transition-all hover:shadow-lg hover:shadow-gold/20">Sign In to Continue</button>
       </SignInButton>
     </div>

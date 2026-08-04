@@ -156,9 +156,16 @@ function Home() {
   useEffect(() => {
     getUserProStatus().then((r) => setProStatus(r.pro));
 
-    // Clerk returns here after an upgrade-oriented sign-in/sign-up. Continue to
-    // the existing Checkout flow, without treating the redirect as payment.
-    if (auth.isSignedIn && new URLSearchParams(window.location.search).get("upgrade") === "1") {
+    // Continue checkout only when this browser explicitly initiated the
+    // homepage upgrade CTA before authentication. A bare query string (or a
+    // return from another gated feature) must never trigger a purchase.
+    const upgradeIntent = window.sessionStorage.getItem("fairfight:homepage-upgrade-intent");
+    if (
+      auth.isSignedIn &&
+      upgradeIntent === "1" &&
+      new URLSearchParams(window.location.search).get("upgrade") === "1"
+    ) {
+      window.sessionStorage.removeItem("fairfight:homepage-upgrade-intent");
       window.history.replaceState({}, "", window.location.pathname);
       void handleUpgrade();
     }
@@ -203,7 +210,10 @@ function Home() {
     </button>
   ) : (
     <SignInButton mode="modal" forceRedirectUrl="/?upgrade=1" fallbackRedirectUrl="/?upgrade=1">
-      <button className="gold-gradient rounded-full px-6 py-2 text-sm font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)]">
+      <button
+        onClick={() => window.sessionStorage.setItem("fairfight:homepage-upgrade-intent", "1")}
+        className="gold-gradient rounded-full px-6 py-2 text-sm font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)]"
+      >
         Sign in to upgrade — $99
       </button>
     </SignInButton>
