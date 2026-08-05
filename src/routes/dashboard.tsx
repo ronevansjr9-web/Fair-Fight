@@ -145,7 +145,7 @@ function DashboardPage() {
           </div>
 
           {/* Cases List */}
-          <div className="rounded-2xl bg-white shadow-sm">
+          <div className="rounded-2xl border border-white/10 bg-white/5 shadow-sm backdrop-blur-sm">
             <div className="border-b border-white/10 px-6 py-4">
               <h2 className="text-xl font-bold text-white">Your Cases</h2>
             </div>
@@ -166,11 +166,12 @@ function DashboardPage() {
                 </Link>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-white/10">
                 {data.cases.map((c) => (
                   <Link
                     key={c.id}
-                    to="/cases/new"
+                    to="/cases/$caseId"
+                    params={{ caseId: c.id }}
                     className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-white/5"
                   >
                     <div>

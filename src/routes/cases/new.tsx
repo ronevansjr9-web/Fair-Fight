@@ -75,7 +75,7 @@ function NewCasePage() {
 
     if (result.success) {
       trackEvent(AnalyticsEvents.CASE_CREATED);
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/cases/$caseId", params: { caseId: result.caseId } });
     } else if (result.error) {
       setError(result.error);
     }
