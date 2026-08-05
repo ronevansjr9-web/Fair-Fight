@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { createServerFn } from "@tanstack/react-start";
+import { useAuth } from "@clerk/tanstack-start";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
+import { shouldFetchForSignedInUser } from "~/lib/caseFetchGate";
 import { sql } from "~/db";
 
 export const Route = createFileRoute("/cases/$caseId")({
@@ -102,11 +104,25 @@ function formatDate(value: string): string {
 
 function CaseWorkspacePage() {
   const { caseId } = Route.useParams();
+  // Route components render inside <ClerkProvider> (see __root.tsx), so useAuth()
+  // here is SSR-safe. `isSignedIn` is `undefined` while Clerk is still hydrating
+  // on the client — do NOT fire the case fetch during that window: the server
+  // call can return `unauthorized` and the effect would never rerun after
+  // sign-in resolves, stranding the user on "Case Not Found". The fetch below is
+  // gated on `isSignedIn === true` and re-runs when auth resolves; signed-out
+  // users get the AuthenticatedGuard prompt without any case fetch.
+  const auth = useAuth();
   const [state, setState] = useState<
     { status: "loading" } | { status: "error"; reason: string } | { status: "loaded"; case: CaseData }
   >({ status: "loading" });
 
   useEffect(() => {
+    // Wait for Clerk auth to definitively resolve before fetching. If auth is
+    // still hydrating (`undefined`) or the user is signed out (`false`), skip
+    // the fetch entirely — AuthenticatedGuard renders the spinner / sign-in
+    // prompt in those cases. When `isSignedIn` transitions to `true`, the
+    // dependency below re-runs this effect and the case is fetched once.
+    if (!shouldFetchForSignedInUser(auth.isSignedIn)) return;
     let cancelled = false;
     setState({ status: "loading" });
     getCase({ caseId })
@@ -121,7 +137,7 @@ function CaseWorkspacePage() {
     return () => {
       cancelled = true;
     };
-  }, [caseId]);
+  }, [caseId, auth.isSignedIn]);
 
   return (
     <AuthenticatedGuard>
