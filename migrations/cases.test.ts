@@ -20,7 +20,7 @@ describe("canonical cases migration", () => {
   test("documents dependency order and existing-database handling", () => {
     expect(contract).toContain("000_cases.sql`, then `001_case_activity.sql`, then `002_payments.sql");
     expect(contract).toContain("never infer history from table presence");
-    expect(contract).toContain("Stop on any error");
+    expect(contract).toContain("failed migration stops immediately");
     expect(contract).toContain("scripts/migrate.sh");
     expect(runner).toContain("schema_migrations");
     expect(runner).toContain("ON_ERROR_STOP=1");
