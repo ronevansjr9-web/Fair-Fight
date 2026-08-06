@@ -98,3 +98,27 @@ passed to the live host by `bun run go-live` — so the same code works in the p
 and in production. If you connect the database _after_ going live, re-run
 `bun run go-live` so production picks up `DATABASE_URL`. One database serves both the
 preview and the live site.
+
+## Atomic preview publishing and rollback
+
+`bun run publish` uses an immutable release layout:
+
+1. It creates a unique staging directory under `.run/` and builds there (the source
+   `dist/` is never modified). The staged server bundle and non-empty client asset
+   directory are required before promotion.
+2. The complete staging output is renamed into `releases/<UTC-timestamp>-<pid>`.
+   `.run/current` is switched with a same-filesystem `mv -T`, so it is never a
+   partially-built tree. The server resolves the selected release once at startup;
+   it never follows a changed symlink while serving requests.
+3. The old process is stopped using `.run/server.pid`; the new process starts with
+   `RELEASE_DIR` and is checked with `GET /`. Every same-origin `src`/`href` asset
+   in the returned HTML must also respond successfully.
+4. If startup or asset verification fails, the new process is stopped and
+   `.run/current` is atomically restored to the prior release, which is restarted.
+   The last five releases are retained for diagnosis/rollback; failed staging is
+   removed automatically.
+
+The swap is intentionally a brief restart rather than a zero-downtime handoff.
+A hard host failure during the restart can still require operator intervention,
+though immutable releases remain available. This preview procedure is not the
+Vercel `go-live` flow; production-hosting deploys have their own atomicity.
