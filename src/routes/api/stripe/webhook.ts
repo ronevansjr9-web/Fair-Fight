@@ -1,12 +1,13 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { json } from "@tanstack/react-start";
+import { paymentFromCheckoutSession, recordSuccessfulPayment } from "~/lib/payment";
 import Stripe from "stripe";
-import { sql } from "~/db";
 import { logPaymentCompleted } from "~/lib/audit";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 
-export async function POST({ request }: { request: Request }) {
+async function handlePost(request: Request) {
   if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
     return json({ error: "Stripe not configured" }, { status: 500 });
   }
@@ -39,13 +40,9 @@ export async function POST({ request }: { request: Request }) {
         const caseId = session.metadata?.caseId;
 
         if (userId) {
-          // Record the payment in the database
-          await sql()`
-            INSERT INTO payments (user_id, stripe_session_id, amount, status, case_id, created_at)
-            VALUES (${userId}, ${session.id}, ${session.amount_total || 0}, 'completed', ${caseId || null}, NOW())
-            ON CONFLICT (stripe_session_id) DO NOTHING
-          `;
-
+          const payment = paymentFromCheckoutSession(session);
+          if (!payment) break;
+          await recordSuccessfulPayment(payment);
           await logPaymentCompleted(userId, caseId);
         }
         break;
@@ -90,3 +87,7 @@ export async function POST({ request }: { request: Request }) {
     return json({ error: "Processing error" }, { status: 500 });
   }
 }
+
+export const Route = createFileRoute("/api/stripe/webhook")({
+  server: { handlers: { POST: ({ request }) => handlePost(request) } },
+});

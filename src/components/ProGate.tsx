@@ -2,16 +2,16 @@ import { useState, useEffect } from "react";
 import { createServerFn } from "@tanstack/react-start";
 import { SignInButton } from "@clerk/tanstack-start";
 import { createCheckoutSession } from "~/lib/stripe";
-import { hasCaseEntitlement, hasAnyEntitlement } from "~/lib/payment";
+import { hasOwnedCaseEntitlement } from "~/lib/argumentAccess";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 
-const checkProAccess = createServerFn({ method: "GET" }).validator((v: unknown) => ({ caseId: typeof (v as any)?.caseId === "string" ? (v as any).caseId : undefined })).handler(async ({ data }) => {
+const checkProAccess = createServerFn({ method: "GET" }).validator((v: unknown) => { const caseId = (v as any)?.caseId; if (typeof caseId !== "string" || !/^[A-Za-z0-9_-]+$/.test(caseId)) throw new Error("A case is required"); return { caseId }; }).handler(async ({ data }) => {
   try {
     const { getAuth } = await import("@clerk/tanstack-start/server");
     const auth = await getAuth();
     if (!auth.userId) return { hasAccess: false, isAuthenticated: false };
     try {
-      const hasAccess = data.caseId ? await hasCaseEntitlement(auth.userId, data.caseId) : await hasAnyEntitlement(auth.userId);
+      const hasAccess = await hasOwnedCaseEntitlement(auth.userId, data.caseId);
       return { hasAccess, isAuthenticated: true };
     } catch { return { hasAccess: false, isAuthenticated: true }; }
   } catch { return { hasAccess: false, isAuthenticated: false }; }
@@ -54,7 +54,7 @@ export function ProGate({ feature, caseId, children }: ProGateProps) {
     let c = false;
     checkProAccess({ data: { caseId } }).then(r => { if (!c) { if (r.hasAccess) setHasPro(true); else if (r.isAuthenticated) setShowUpgrade(true); setIsChecking(false); } }).catch(() => { if (!c) setIsChecking(false); });
     return () => { c = true; };
-  }, []);
+  }, [caseId]);
 
   const handleUpgrade = async () => {
     setIsLoading(true);
