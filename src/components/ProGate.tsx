@@ -2,16 +2,17 @@ import { useState, useEffect } from "react";
 import { createServerFn } from "@tanstack/react-start";
 import { SignInButton } from "@clerk/tanstack-start";
 import { getCurrentAuth, getPrimaryEmail } from "~/lib/auth";
-import { createCheckoutSession, getSubscriptionStatus } from "~/lib/stripe";
+import { createCheckoutSession } from "~/lib/stripe";
+import { hasCaseEntitlement, hasAnyEntitlement } from "~/lib/payment";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 
-const checkProAccess = createServerFn({ method: "GET" }).handler(async () => {
+const checkProAccess = createServerFn({ method: "GET" }).validator((v: unknown) => ({ caseId: typeof (v as any)?.caseId === "string" ? (v as any).caseId : undefined })).handler(async ({ data }) => {
   try {
     const auth = await getCurrentAuth();
     if (!auth.userId) return { hasAccess: false, isAuthenticated: false };
     try {
-      const status = await getSubscriptionStatus(auth.userId);
-      return { hasAccess: status.active, isAuthenticated: true };
+      const hasAccess = data.caseId ? await hasCaseEntitlement(auth.userId, data.caseId) : await hasAnyEntitlement(auth.userId);
+      return { hasAccess, isAuthenticated: true };
     } catch { return { hasAccess: false, isAuthenticated: true }; }
   } catch { return { hasAccess: false, isAuthenticated: false }; }
 });
@@ -54,7 +55,7 @@ export function ProGate({ feature, caseId, children }: ProGateProps) {
 
   useEffect(() => {
     let c = false;
-    checkProAccess().then(r => { if (!c) { if (r.hasAccess) setHasPro(true); else if (r.isAuthenticated) setShowUpgrade(true); setIsChecking(false); } }).catch(() => { if (!c) setIsChecking(false); });
+    checkProAccess({ data: { caseId } }).then(r => { if (!c) { if (r.hasAccess) setHasPro(true); else if (r.isAuthenticated) setShowUpgrade(true); setIsChecking(false); } }).catch(() => { if (!c) setIsChecking(false); });
     return () => { c = true; };
   }, []);
 
