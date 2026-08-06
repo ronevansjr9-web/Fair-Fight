@@ -29,10 +29,32 @@ After editing, run:
 bun run publish
 ```
 
-This rebuilds the site and restarts the server on port 3000. (Editing files alone
-does not update the live site — you must publish.) It always takes over port 3000
-from whatever is running there, so it's safe to re-run no matter who started the
-current server. The server log is `.run/server.log`.
+This builds a complete release in an isolated staging directory, validates the
+server and client output, then atomically switches `.run/current` before restarting
+the server. The running process resolves one immutable release directory at startup,
+so a rebuild cannot delete chunks still needed by an in-flight process. The last five
+releases are retained under `releases/`; `.env*`, `DATABASE_URL`, and other process
+environment configuration are not copied into or removed from releases. The server
+log is `.run/server.log`.
+
+### Rollback
+
+If a release fails its smoke check, `publish.sh` automatically points `.run/current`
+back to the prior retained release and restarts it. For a manual rollback, stop the
+server, select a retained directory, atomically replace the symlink, and restart with
+the same environment:
+
+```bash
+cd /path/to/site
+release="$(find releases -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\\n' | sort -nr | sed -n '2p' | cut -d' ' -f2-)"
+kill "$(cat .run/server.pid)" 2>/dev/null || true
+ln -s "$release" .run/current.rollback && mv -Tf .run/current.rollback .run/current
+setsid nohup env RELEASE_DIR="$release" bun run start > .run/server.log 2>&1 < /dev/null &
+echo $! > .run/server.pid
+```
+
+Do not delete the active or rollback target release until the replacement server
+has passed its route and asset smoke checks.
 
 ## Going live (production hosting)
 
