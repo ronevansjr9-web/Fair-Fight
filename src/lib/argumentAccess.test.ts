@@ -13,18 +13,27 @@ import { describe, expect, test, mock } from "bun:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-// --- Behavior of hasOwnedCaseEntitlement with a mocked db ---
-// Queue of row results: each `sql()` tagged-template call shifts the next one.
+// --- Behavior of hasOwnedCaseEntitlement and fetchUserCases with mocked modules ---
 let results: Record<string, unknown>[][] = [];
-const sqlMock = () => async () => results.shift() ?? ([] as Record<string, unknown>[]);
+const sqlMock = () => async () => {
+  const next = results.shift();
+  if (next === undefined) throw new Error("DB Error");
+  return next;
+};
 mock.module("~/db", () => ({ sql: sqlMock }));
 
-// Imports must come after mock.module so the mocked db module is used.
+let mockUserId: string | null = "user_1";
+mock.module("~/lib/auth", () => ({
+  getCurrentAuth: async () => ({ userId: mockUserId }),
+  getPrimaryEmail: async () => "user@example.com",
+}));
+
+// Imports must come after mock.module so the mocked modules are used.
 const { hasOwnedCaseEntitlement } = await import("./argumentAccess");
+const { fetchUserCases } = await import("../routes/legal-argument");
 
 describe("hasOwnedCaseEntitlement", () => {
   test("denies access when the case is not owned by the user", async () => {
-    // Ownership query returns no rows -> false, and the payment query never runs.
     results = [[]];
     expect(await hasOwnedCaseEntitlement("user_1", "case_1")).toBe(false);
   });
@@ -48,6 +57,27 @@ describe("hasOwnedCaseEntitlement", () => {
   });
 });
 
+describe("fetchUserCases inner auth logic", () => {
+  test("returns cases for authenticated user", async () => {
+    results = [[{ id: "case_1", title: "My Case" }]];
+    const res = await fetchUserCases("user_1");
+    expect(res).toEqual({
+      cases: [{ id: "case_1", title: "My Case" }],
+    });
+  });
+
+  test("returns empty cases list when database query fails", async () => {
+    results = []; // Will throw "DB Error" in mock
+    const res = await fetchUserCases("user_1");
+    expect(res).toEqual({ cases: [] });
+  });
+
+  test("returns empty cases list when user is not logged in", async () => {
+    const res = await fetchUserCases(null);
+    expect(res).toEqual({ cases: [] });
+  });
+});
+
 // --- Static wiring guard: no any-case/subscription check may authorize the
 // case-specific premium action. ---
 const legalArgumentSource = readFileSync(
@@ -62,10 +92,8 @@ const proGateSource = readFileSync(
 describe("case-scoped authorization wiring", () => {
   test("legal-argument server fn authorizes with hasOwnedCaseEntitlement only", () => {
     expect(legalArgumentSource).toContain("hasOwnedCaseEntitlement(auth.userId, data.caseId)");
-    // The paid-action gate must not fall back to any-case or subscription checks.
     expect(legalArgumentSource).not.toContain("hasAnyEntitlement");
     expect(legalArgumentSource).not.toContain("getSubscriptionStatus");
-    // Auth must go through the request-context helper, never a bare getAuth import.
     expect(legalArgumentSource).toContain("getCurrentAuth");
     expect(legalArgumentSource).not.toContain('import { getAuth }');
     expect(legalArgumentSource).not.toContain('getAuth()');
@@ -82,5 +110,13 @@ describe("case-scoped authorization wiring", () => {
 
   test("legal-argument requires a selected case before generating", () => {
     expect(legalArgumentSource).toContain('if (typeof d.caseId !== "string" || !/^[A-Za-z0-9_-]+$/.test(d.caseId)) throw new Error("Select a case first")');
+  });
+
+  test("legal-argument renders custom selector with empty/loading state and no arbitrary paste fallback", () => {
+    expect(legalArgumentSource).toContain("<select");
+    expect(legalArgumentSource).toContain("userCases.map");
+    expect(legalArgumentSource).toContain("isLoadingCases");
+    expect(legalArgumentSource).toContain("userCases.length === 0");
+    expect(legalArgumentSource).not.toContain('placeholder="Paste your case ID from the dashboard"');
   });
 });
