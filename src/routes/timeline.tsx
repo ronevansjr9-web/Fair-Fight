@@ -1,145 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createServerFn } from "@tanstack/react-start";
+import { useEffect, useState } from "react";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
+import { sql } from "~/db";
 
 export const Route = createFileRoute("/timeline")({
+  validateSearch: (search: Record<string, unknown>) => ({ caseId: typeof search.caseId === "string" ? search.caseId : undefined }),
   component: TimelinePage,
-  head: () => ({
-    meta: [
-      { title: "Case Timeline Builder | Fair Fight" },
-      { name: "description", content: "Build a chronological timeline of events for your legal case. Visualize case history and track key dates." },
-    ],
-  }),
+  head: () => ({ meta: [{ title: "Case Timeline Builder | Fair Fight" }, { name: "description", content: "Build a chronological timeline of events for your legal case." }] }),
 });
+interface TimelineEntry { id: string; date: string; title: string; description: string }
+type Input = { caseId: string; id?: string; date?: string; title?: string; description?: string };
 
-interface TimelineEntry {
-  id: string;
-  date: string;
-  title: string;
-  description: string;
+async function authUser() { const { getAuth } = await import("@clerk/tanstack-start/server"); return (await getAuth()).userId; }
+async function ensureTable() {
+  await sql()`CREATE TABLE IF NOT EXISTS timeline_events (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, case_id TEXT NOT NULL, event_date DATE NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
+  await sql()`ALTER TABLE timeline_events ADD COLUMN IF NOT EXISTS case_id TEXT`;
 }
+const listTimeline = createServerFn({ method: "GET" }).validator((d: unknown) => { const x = d as Input; if (!x.caseId) throw new Error("caseId required"); return { caseId: x.caseId }; }).handler(async ({ data }) => {
+  const userId = await authUser(); if (!userId) return { ok: false as const, entries: [] };
+  try { await ensureTable(); const rows = await sql()`SELECT id, event_date, title, description FROM timeline_events WHERE user_id=${userId} AND case_id=${data.caseId} ORDER BY event_date, created_at`; return { ok: true as const, entries: rows.map((r: Record<string, unknown>) => ({ id: String(r.id), date: String(r.event_date).slice(0, 10), title: String(r.title), description: String(r.description || "") })) }; } catch { return { ok: false as const, entries: [] }; }
+});
+const addTimeline = createServerFn({ method: "POST" }).validator((d: unknown) => { const x = d as Input; if (!x.caseId || !x.title?.trim() || !x.date) throw new Error("caseId, title and date required"); return x; }).handler(async ({ data }) => {
+  const userId = await authUser(); if (!userId) return { ok: false as const, error: "Unauthorized" }; try { await ensureTable(); const id = crypto.randomUUID(); const owned = await sql()`SELECT id FROM cases WHERE id=${data.caseId} AND user_id=${userId} LIMIT 1`; if (!owned.length) return { ok: false as const, error: "Case not found" }; await sql()`INSERT INTO timeline_events (id,user_id,case_id,event_date,title,description) VALUES (${id},${userId},${data.caseId},${data.date},${data.title.trim()},${data.description?.trim() || ""})`; return { ok: true as const }; } catch { return { ok: false as const, error: "Unable to save timeline event" }; }
+});
+const deleteTimeline = createServerFn({ method: "POST" }).validator((d: unknown) => { const x = d as Input; if (!x.caseId || !x.id) throw new Error("caseId and id required"); return { caseId: x.caseId, id: x.id }; }).handler(async ({ data }) => { const userId = await authUser(); if (!userId) return { ok: false as const }; try { await sql()`DELETE FROM timeline_events WHERE id=${data.id} AND case_id=${data.caseId} AND user_id=${userId}`; return { ok: true as const }; } catch { return { ok: false as const }; } });
 
 function TimelinePage() {
-  const [entries, setEntries] = useState<TimelineEntry[]>([]);
-  const [showAdd, setShowAdd] = useState(false);
-  const [newEntry, setNewEntry] = useState({ date: "", title: "", description: "" });
-
-  const handleAdd = () => {
-    if (!newEntry.title.trim() || !newEntry.date) return;
-    setEntries((prev) => [...prev, { id: Date.now().toString(), ...newEntry }]);
-    setNewEntry({ date: "", title: "", description: "" });
-    setShowAdd(false);
-  };
-
-  const handleRemove = (id: string) => {
-    setEntries((prev) => prev.filter((e) => e.id !== id));
-  };
-
+  const { caseId } = Route.useSearch(); const [entries, setEntries] = useState<TimelineEntry[]>([]); const [showAdd, setShowAdd] = useState(false); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [newEntry, setNewEntry] = useState({ date: "", title: "", description: "" });
+  const reload = () => { if (!caseId) { setLoading(false); return; } setLoading(true); listTimeline({ caseId }).then(r => { setEntries(r.entries); if (!r.ok) setError("Unable to load timeline."); }).catch(() => setError("Unable to load timeline.")).finally(() => setLoading(false)); };
+  useEffect(reload, [caseId]);
+  const handleAdd = async () => { if (!caseId || !newEntry.title.trim() || !newEntry.date) return; setError(""); const r = await addTimeline({ caseId, ...newEntry }); if (!r.ok) { setError(r.error); return; } setNewEntry({ date: "", title: "", description: "" }); setShowAdd(false); reload(); };
+  const handleRemove = async (id: string) => { if (!caseId) return; const r = await deleteTimeline({ caseId, id }); if (!r.ok) setError("Unable to remove event."); else reload(); };
   const sortedEntries = [...entries].sort((a, b) => a.date.localeCompare(b.date));
-
-  return (
-    <AuthenticatedGuard>
-      <main className="min-h-screen bg-navy px-4 py-8">
-        <div className="mx-auto max-w-3xl">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-extrabold text-white">Case Timeline</h1>
-              <p className="mt-1 text-white/60">Build a chronological timeline of key events</p>
-            </div>
-            <button
-              onClick={() => setShowAdd(!showAdd)}
-              className="gold-gradient inline-flex items-center rounded-full px-6 py-2.5 font-semibold text-navy shadow-md"
-            >
-              <svg className="mr-1.5 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Event
-            </button>
-          </div>
-
-          {showAdd && (
-            <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6">
-              <h2 className="mb-4 text-lg font-bold text-white">New Timeline Event</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1 block text-sm font-semibold text-white">Date</label>
-                  <input
-                    type="date"
-                    value={newEntry.date}
-                    onChange={(e) => setNewEntry((p) => ({ ...p, date: e.target.value }))}
-                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-semibold text-white">Event Title</label>
-                  <input
-                    type="text"
-                    value={newEntry.title}
-                    onChange={(e) => setNewEntry((p) => ({ ...p, title: e.target.value }))}
-                    placeholder='e.g., "Contract Signed," "Incident Occurred," "Filed Complaint"'
-                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-semibold text-white">Description</label>
-                  <textarea
-                    value={newEntry.description}
-                    onChange={(e) => setNewEntry((p) => ({ ...p, description: e.target.value }))}
-                    rows={2}
-                    placeholder="Brief description of what happened..."
-                    className="w-full rounded-xl border border-white/10 bg-navy px-4 py-3 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
-                  />
-                </div>
-              </div>
-              <div className="mt-4 flex gap-3">
-                <button onClick={handleAdd} className="gold-gradient rounded-full px-6 py-2.5 text-sm font-semibold text-navy">Add Event</button>
-                <button onClick={() => setShowAdd(false)} className="rounded-full bg-white/10 px-6 py-2.5 text-sm font-semibold text-white/70">Cancel</button>
-              </div>
-            </div>
-          )}
-
-          {sortedEntries.length === 0 ? (
-            <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-12 text-center shadow-sm">
-              <div className="mx-auto mb-4 text-5xl">🕐</div>
-              <p className="mb-2 text-lg font-semibold text-white/60">No timeline entries yet</p>
-              <p className="mb-4 text-sm text-white/40">Add key events to build your case timeline</p>
-              <button onClick={() => setShowAdd(true)} className="gold-gradient rounded-full px-6 py-2.5 font-semibold text-navy">
-                Add Your First Event
-              </button>
-            </div>
-          ) : (
-            <div className="relative">
-              <div className="absolute left-20 top-0 h-full w-0.5 bg-gold/30" />
-              <div className="space-y-6">
-                {sortedEntries.map((entry, i) => (
-                  <div key={entry.id} className="relative flex items-start gap-6">
-                    <div className="w-20 flex-shrink-0 text-right">
-                      <span className="text-sm font-semibold text-white">
-                        {new Date(entry.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                      </span>
-                    </div>
-                    <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 ${
-                      i === 0 ? "border-gold bg-gold text-white" : "border-gold/30 bg-white text-white"
-                    }`}>
-                      <span className="text-xs font-bold">{i + 1}</span>
-                    </div>
-                    <div className="flex-1 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-4 shadow-sm">
-                      <h3 className="font-bold text-white">{entry.title}</h3>
-                      {entry.description && <p className="mt-1 text-sm text-white/70">{entry.description}</p>}
-                      <button
-                        onClick={() => handleRemove(entry.id)}
-                        className="mt-2 text-xs text-white/40 hover:text-red-500"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
-    </AuthenticatedGuard>
-  );
+  return <AuthenticatedGuard><main className="min-h-screen bg-navy px-4 py-8"><div className="mx-auto max-w-3xl"><div className="mb-8 flex items-center justify-between"><div><h1 className="text-3xl font-extrabold text-white">Case Timeline</h1><p className="mt-1 text-white/60">Build a chronological timeline of key events</p></div><button disabled={!caseId} onClick={() => setShowAdd(!showAdd)} className="gold-gradient inline-flex items-center rounded-full px-6 py-2.5 font-semibold text-navy shadow-md">＋ Add Event</button></div>{!caseId && <p className="mb-6 rounded-xl border border-gold/30 bg-gold/10 p-4 text-sm text-gold">Open Timeline from a case workspace to add case events.</p>}{error && <p className="mb-6 rounded-xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-200">{error}</p>}{showAdd && <div className="mb-8 rounded-2xl border border-white/10 bg-white/5 p-6"><h2 className="mb-4 text-lg font-bold text-white">New Timeline Event</h2><div className="space-y-4"><input aria-label="Date" type="date" value={newEntry.date} onChange={e => setNewEntry(p => ({...p,date:e.target.value}))} className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm"/><input aria-label="Event Title" value={newEntry.title} onChange={e => setNewEntry(p => ({...p,title:e.target.value}))} placeholder="Event title" className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm"/><textarea aria-label="Description" value={newEntry.description} onChange={e => setNewEntry(p => ({...p,description:e.target.value}))} placeholder="Brief description" rows={2} className="w-full rounded-xl border border-white/10 bg-navy px-4 py-3 text-sm"/></div><div className="mt-4 flex gap-3"><button onClick={handleAdd} className="gold-gradient rounded-full px-6 py-2.5 text-sm font-semibold text-navy">Add Event</button><button onClick={() => setShowAdd(false)} className="rounded-full bg-white/10 px-6 py-2.5 text-sm text-white/70">Cancel</button></div></div>}{loading ? <div className="p-12 text-center text-white/60">Loading timeline…</div> : sortedEntries.length === 0 ? <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center"><p className="mb-4 text-lg font-semibold text-white/60">No timeline entries yet</p><button disabled={!caseId} onClick={() => setShowAdd(true)} className="gold-gradient rounded-full px-6 py-2.5 font-semibold text-navy">Add Your First Event</button></div> : <div className="space-y-6">{sortedEntries.map((entry, i) => <div key={entry.id} className="flex items-start gap-6"><div className="w-20 flex-shrink-0 text-right text-sm font-semibold text-white">{new Date(entry.date+"T00:00:00").toLocaleDateString("en-US", {month:"short",day:"numeric",year:"numeric"})}</div><div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 border-gold bg-white/10 text-xs font-bold text-white">{i+1}</div><div className="flex-1 rounded-xl border border-white/10 bg-white/5 p-4"><h3 className="font-bold text-white">{entry.title}</h3>{entry.description && <p className="mt-1 text-sm text-white/70">{entry.description}</p>}<button onClick={() => handleRemove(entry.id)} className="mt-2 text-xs text-white/40 hover:text-red-300">Remove</button></div></div>)}</div>}</div></main></AuthenticatedGuard>;
 }
