@@ -177,7 +177,7 @@ function Home() {
     setError("");
     setAnalysis(null);
 
-    const result = await analyzeCase({ situation });
+    const result = await analyzeCase({ data: { situation } });
     if (result.success && result.sections) {
       setAnalysis(result.sections);
     } else if (result.error) {

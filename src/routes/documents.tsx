@@ -81,7 +81,7 @@ function DocumentsPage() {
     setIsGenerating(true);
     setError("");
     setGenerated("");
-    const res = await generateDocument({ docType: selectedType, context, jurisdiction });
+    const res = await generateDocument({ data: { docType: selectedType, context, jurisdiction } });
     if (res.success) {
       setGenerated(res.document);
     } else if (res.error) {

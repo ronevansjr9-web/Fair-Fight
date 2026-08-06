@@ -88,7 +88,7 @@ function ChatPage() {
     setIsLoading(true);
 
     const history = messages.map((m) => ({ role: m.role, content: m.content }));
-    const result = await sendMessage({ message: userMessage, history });
+    const result = await sendMessage({ data: { message: userMessage, history } });
 
     if (result.success && result.response) {
       setMessages((prev) => [...prev, { role: "assistant", content: result.response }]);

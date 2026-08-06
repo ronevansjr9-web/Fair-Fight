@@ -71,7 +71,7 @@ function NewCasePage() {
     setIsSubmitting(true);
     setError("");
 
-    const result = await createCase({ title, caseType, jurisdiction, description });
+    const result = await createCase({ data: { title, caseType, jurisdiction, description } });
 
     if (result.success) {
       trackEvent(AnalyticsEvents.CASE_CREATED);
