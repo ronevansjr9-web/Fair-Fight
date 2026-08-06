@@ -43,6 +43,7 @@ export function ProGate({ feature, caseId, children }: ProGateProps) {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [hasPro, setHasPro] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [needsCase, setNeedsCase] = useState(false);
   const [returnUrl, setReturnUrl] = useState("/");
 
   // Read only the current same-origin browser URL for Clerk's post-auth return.
@@ -55,6 +56,17 @@ export function ProGate({ feature, caseId, children }: ProGateProps) {
 
   useEffect(() => {
     let c = false;
+    // Access is exact-case: without a selected owned case there is nothing to
+    // authorize, so ask for one instead of showing the purchase/sign-in flow.
+    if (!caseId || !/^[A-Za-z0-9_-]+$/.test(caseId)) {
+      setHasPro(false);
+      setShowUpgrade(false);
+      setNeedsCase(true);
+      setIsChecking(false);
+      return () => { c = true; };
+    }
+    setNeedsCase(false);
+    setIsChecking(true);
     checkProAccess({ data: { caseId } }).then(r => { if (!c) { if (r.hasAccess) setHasPro(true); else if (r.isAuthenticated) setShowUpgrade(true); setIsChecking(false); } }).catch(() => { if (!c) setIsChecking(false); });
     return () => { c = true; };
   }, [caseId]);
@@ -79,6 +91,13 @@ export function ProGate({ feature, caseId, children }: ProGateProps) {
 
   if (isChecking) return <div className="flex items-center justify-center p-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-gold border-t-transparent" /></div>;
   if (hasPro) return <>{children}</>;
+  if (needsCase) return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 text-center">
+      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold/10"><svg className="h-8 w-8 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>
+      <h3 className="mb-2 text-xl font-bold text-white">Select a Case First</h3>
+      <p className="mb-6 text-white/70">Pro access is granted per case. Enter the case ID from your dashboard above to check access for {feature.toLowerCase()}.</p>
+    </div>
+  );
   if (showUpgrade) return (
     <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 text-center">
       <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold/10"><svg className="h-8 w-8 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></div>

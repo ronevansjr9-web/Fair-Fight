@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { json } from "@tanstack/react-start";
 import { paymentFromCheckoutSession, recordSuccessfulPayment } from "~/lib/payment";
 import Stripe from "stripe";
+import { sql } from "~/db";
 import { logPaymentCompleted } from "~/lib/audit";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
@@ -26,7 +27,9 @@ async function handlePost(request: Request) {
 
   try {
     const body = await request.text();
-    event = stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET);
+    // Async variant: the sync `constructEvent` uses SubtleCryptoProvider which
+    // throws in Bun ("cannot be used in a synchronous context").
+    event = await stripe.webhooks.constructEventAsync(body, signature, STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     console.error("Webhook signature verification failed:", err);
     return json({ error: "Invalid signature" }, { status: 400 });
