@@ -125,7 +125,7 @@ function CaseWorkspacePage() {
     if (!shouldFetchForSignedInUser(auth.isSignedIn)) return;
     let cancelled = false;
     setState({ status: "loading" });
-    getCase({ caseId })
+    getCase({ data: { caseId } })
       .then((result) => {
         if (cancelled) return;
         if (result.ok) setState({ status: "loaded", case: result.case });

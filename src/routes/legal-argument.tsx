@@ -92,11 +92,13 @@ function LegalArgumentPage() {
     setError("");
     setResult("");
     const res = await generateArgument({
-      situation,
-      jurisdiction,
-      caseType,
-      position,
-      additionalContext,
+      data: {
+        situation,
+        jurisdiction,
+        caseType,
+        position,
+        additionalContext,
+      },
     });
     if (res.success) {
       setResult(res.response);

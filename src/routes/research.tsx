@@ -130,7 +130,7 @@ function ResearchPage() {
     setIsSearching(true);
     setError(null);
     try {
-      const res = await legalResearch({ query });
+      const res = await legalResearch({ data: { query } });
       if (res.success) {
         setResults(res.results);
         if (res.results.length === 0) {

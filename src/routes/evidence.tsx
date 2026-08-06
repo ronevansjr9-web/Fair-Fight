@@ -138,7 +138,7 @@ function EvidencePage() {
   };
 
   const handleRemoveFile = async (fileId: string) => {
-    const result = await removeFile({ fileId });
+    const result = await removeFile({ data: { fileId } });
     if (result.success) {
       setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId));
     }

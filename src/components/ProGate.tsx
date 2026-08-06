@@ -58,7 +58,7 @@ export function ProGate({ feature, caseId, children }: ProGateProps) {
   const handleUpgrade = async () => {
     setIsLoading(true);
     try {
-      const result = await startCheckout({ caseId });
+      const result = await startCheckout({ data: { caseId } });
       if ("error" in result) {
         alert(result.error || "Unable to start checkout. Please try again.");
       } else if (result.url) {
