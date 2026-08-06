@@ -4,7 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getCurrentAuth } from "~/lib/auth";
 import { generateArgumentTemplate } from "~/lib/argument-template";
 import { sanitizeInput } from "~/lib/sanitize";
-import { getSubscriptionStatus } from "~/lib/stripe";
+import { hasOwnedCaseEntitlement } from "~/lib/argumentAccess";
 import { ProGate } from "~/components/ProGate";
 
 export const Route = createFileRoute("/legal-argument")({
@@ -50,7 +50,9 @@ const generateArgument = createServerFn({ method: "POST" })
   .validator((data: unknown) => {
     const d = data as Record<string, unknown>;
     if (typeof d.situation !== "string" || !d.situation.trim()) throw new Error("Situation is required");
+    if (typeof d.caseId !== "string" || !/^[A-Za-z0-9_-]+$/.test(d.caseId)) throw new Error("Select a case first");
     return {
+      caseId: d.caseId,
       situation: d.situation as string,
       jurisdiction: (d.jurisdiction as string) || "Federal",
       caseType: (d.caseType as string) || "Civil",
@@ -62,8 +64,7 @@ const generateArgument = createServerFn({ method: "POST" })
     const auth = await getCurrentAuth();
     if (!auth.userId) return { error: "Sign in required" };
 
-    const status = await getSubscriptionStatus(auth.userId);
-    if (!status.active) return { error: "Pro subscription required" };
+    if (!(await hasOwnedCaseEntitlement(auth.userId, data.caseId))) return { error: "This case is not eligible for Pro access" };
 
     const sanitized = sanitizeInput(data.situation);
     const response = await generateArgumentTemplate({
@@ -78,6 +79,7 @@ const generateArgument = createServerFn({ method: "POST" })
   });
 
 function LegalArgumentPage() {
+  const [caseId, setCaseId] = useState("");
   const [situation, setSituation] = useState("");
   const [jurisdiction, setJurisdiction] = useState("Federal");
   const [caseType, setCaseType] = useState("Civil");
@@ -93,6 +95,7 @@ function LegalArgumentPage() {
     setResult("");
     const res = await generateArgument({
       data: {
+        caseId,
         situation,
         jurisdiction,
         caseType,
@@ -116,7 +119,12 @@ function LegalArgumentPage() {
           AI-powered legal argument templates with jurisdiction-specific case law citations.
         </p>
 
-        <ProGate feature="Legal Argument Generator">
+        <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-5">
+          <label className="mb-2 block text-sm font-semibold text-white">Select your case (required)</label>
+          <input value={caseId} onChange={(e) => setCaseId(e.target.value)} placeholder="Paste your case ID from the dashboard" className="w-full rounded-xl border border-white/10 bg-navy px-4 py-2.5 text-sm text-white/90" />
+          <p className="mt-2 text-xs text-white/50">For your security, access is checked against your account and this exact case.</p>
+        </div>
+        <ProGate feature="Legal Argument Generator" caseId={caseId}>
           <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
             <div className="mb-6 grid gap-4 sm:grid-cols-2">
               <div>
