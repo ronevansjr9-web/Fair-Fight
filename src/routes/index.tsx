@@ -7,7 +7,7 @@ import {
   useAuth,
 } from "@clerk/tanstack-start";
 import { createServerFn } from "@tanstack/react-start";
-import { getAuth } from "@clerk/tanstack-start/server";
+import { getCurrentAuth, getPrimaryEmail } from "~/lib/auth";
 import { askAI } from "~/lib/ai";
 import { sanitizeInput } from "~/lib/sanitize";
 import { checkRateLimit } from "~/lib/rate-limit";
@@ -90,7 +90,7 @@ Keep it short — this is a free preview of what Fair Fight Pro can do. Never sa
 
       // Audit logging
       try {
-        const auth = await getAuth();
+        const auth = await getCurrentAuth();
         if (auth.userId) {
           await logAIAnalysisGenerated(auth.userId, 'homepage-demo');
         }
@@ -113,7 +113,7 @@ Keep it short — this is a free preview of what Fair Fight Pro can do. Never sa
    ──────────────────────────────────────────── */
 const getUserProStatus = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const auth = await getAuth();
+    const auth = await getCurrentAuth();
     if (!auth.userId) return { pro: false };
     const status = await getSubscriptionStatus(auth.userId);
     return { pro: status.active };
@@ -126,10 +126,13 @@ const getUserProStatus = createServerFn({ method: "GET" }).handler(async () => {
    Server function — start pro checkout
    ──────────────────────────────────────────── */
 const startProCheckout = createServerFn({ method: "POST" }).handler(async () => {
-  const auth = await getAuth();
+  const auth = await getCurrentAuth();
   if (!auth.userId) return { error: "Please sign in first." };
 
-  const email = auth.user?.primaryEmailAddress?.emailAddress || "";
+  // AuthObject has no `user` property — resolve email via Clerk Backend API.
+  // `null` (lookup failure) is passed as undefined so Stripe omits customer_email
+  // instead of receiving an empty string.
+  const email = (await getPrimaryEmail(auth.userId)) ?? undefined;
   const result = await createCheckoutSession(auth.userId, email);
 
   if ("error" in result) return { error: result.error };

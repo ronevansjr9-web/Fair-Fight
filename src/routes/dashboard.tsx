@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { createServerFn } from "@tanstack/react-start";
-import { getAuth } from "@clerk/tanstack-start/server";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
+import { getCurrentAuth } from "~/lib/auth";
 import { ReferralCard } from "~/components/ReferralCard";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { sql } from "~/db";
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
-  const auth = await getAuth();
+  const auth = await getCurrentAuth();
   if (!auth.userId) return { cases: [], stats: { total: 0, active: 0, resolved: 0 } };
 
   try {

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { createServerFn } from "@tanstack/react-start";
-import { getAuth } from "@clerk/tanstack-start/server";
+import { getCurrentAuth } from "~/lib/auth";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { listFiles, deleteFile } from "~/lib/storage";
 
@@ -34,7 +34,7 @@ interface UploadedFile {
 }
 
 const getUploadedFiles = createServerFn({ method: "GET" }).handler(async () => {
-  const auth = await getAuth();
+  const auth = await getCurrentAuth();
   if (!auth.userId) return { files: [] };
   const files = await listFiles(auth.userId);
   return { files };
@@ -47,7 +47,7 @@ const removeFile = createServerFn({ method: "POST" })
     return { fileId: d.fileId as string };
   })
   .handler(async ({ data }) => {
-    const auth = await getAuth();
+    const auth = await getCurrentAuth();
     if (!auth.userId) return { success: false, error: "Unauthorized" };
     const ok = await deleteFile(data.fileId, auth.userId);
     return { success: ok };

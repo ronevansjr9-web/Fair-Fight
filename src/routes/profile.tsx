@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useUser, useAuth } from "@clerk/tanstack-start";
 import { createServerFn } from "@tanstack/react-start";
-import { getAuth } from "@clerk/tanstack-start/server";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
+import { getCurrentAuth, getPrimaryEmail } from "~/lib/auth";
 import { getSubscriptionStatus, createCustomerPortalSession, createCheckoutSession } from "~/lib/stripe";
 import { getStorageUsed } from "~/lib/storage";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/profile")({
 });
 
 const getProfileData = createServerFn({ method: "GET" }).handler(async () => {
-  const auth = await getAuth();
+  const auth = await getCurrentAuth();
   if (!auth.userId) return { pro: false, storageUsed: 0 };
 
   const [subStatus, storageUsed] = await Promise.all([
@@ -35,7 +35,7 @@ const getProfileData = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 const startBillingPortal = createServerFn({ method: "POST" }).handler(async () => {
-  const auth = await getAuth();
+  const auth = await getCurrentAuth();
   if (!auth.userId) return { error: "Unauthorized" };
 
   const subStatus = await getSubscriptionStatus(auth.userId);
@@ -49,10 +49,13 @@ const startBillingPortal = createServerFn({ method: "POST" }).handler(async () =
 });
 
 const startUpgrade = createServerFn({ method: "POST" }).handler(async () => {
-  const auth = await getAuth();
+  const auth = await getCurrentAuth();
   if (!auth.userId) return { error: "Please sign in first." };
 
-  const email = auth.user?.primaryEmailAddress?.emailAddress || "";
+  // AuthObject has no `user` property — resolve email via Clerk Backend API.
+  // `null` (lookup failure) is passed as undefined so Stripe omits customer_email
+  // instead of receiving an empty string.
+  const email = (await getPrimaryEmail(auth.userId)) ?? undefined;
   const result = await createCheckoutSession(auth.userId, email);
   if ("error" in result) return { error: result.error };
   return { url: result.url };

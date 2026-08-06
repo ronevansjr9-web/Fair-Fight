@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { createServerFn } from "@tanstack/react-start";
-import { getAuth } from "@clerk/tanstack-start/server";
+import { getCurrentAuth } from "~/lib/auth";
 import { askAI } from "~/lib/ai";
 import { sanitizeInput } from "~/lib/sanitize";
 import { logDocumentGenerated } from "~/lib/audit";
@@ -39,7 +39,7 @@ const generateDocument = createServerFn({ method: "POST" })
     };
   })
   .handler(async ({ data }) => {
-    const auth = await getAuth();
+    const auth = await getCurrentAuth();
     if (!auth.userId) return { error: "Sign in required" };
 
     const sanitized = sanitizeInput(data.context);

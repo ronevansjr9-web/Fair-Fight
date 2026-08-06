@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getCurrentAuth } from "~/lib/auth";
 import { sql } from "~/db";
 
 let schemaReady: Promise<void> | undefined;
@@ -30,8 +31,7 @@ const requireCaseId = (value: unknown) => {
   return { caseId: (value as { caseId: string }).caseId };
 };
 async function owner() {
-  const { getAuth } = await import("@clerk/tanstack-start/server");
-  const auth = await getAuth();
+  const auth = await getCurrentAuth();
   if (!auth.userId) throw new Error("Sign in required");
   return auth.userId;
 }

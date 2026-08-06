@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { createServerFn } from "@tanstack/react-start";
-import { getAuth } from "@clerk/tanstack-start/server";
+import { getCurrentAuth } from "~/lib/auth";
 import { askAIStreaming } from "~/lib/ai";
 import { sanitizeInput } from "~/lib/sanitize";
 import { checkRateLimit } from "~/lib/rate-limit";
@@ -51,7 +51,7 @@ The user may ask about any legal topic — court procedures, criminal law, famil
     ];
 
     try {
-      const auth = await getAuth();
+      const auth = await getCurrentAuth();
       if (auth.userId) {
         await logAIAnalysisGenerated(auth.userId, "chat");
       }
