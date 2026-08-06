@@ -1,10 +1,10 @@
 import { json } from "@tanstack/react-start";
-import { getAuth } from "@clerk/tanstack-start/server";
+import { getCurrentAuth, getPrimaryEmail } from "~/lib/auth";
 import { sql } from "~/db";
 import { logDataExported } from "~/lib/audit";
 
 export async function POST({ request }: { request: Request }) {
-  const auth = await getAuth();
+  const auth = await getCurrentAuth(request);
   if (!auth.userId) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -20,7 +20,9 @@ export async function POST({ request }: { request: Request }) {
 
     const exportData = {
       userId: auth.userId,
-      email: auth.user?.primaryEmailAddress?.emailAddress || "",
+      // AuthObject has no `user` property; resolve email via Clerk Backend API.
+      // null (lookup failure) is explicit — never silently empty.
+      email: await getPrimaryEmail(auth.userId),
       exportedAt: new Date().toISOString(),
       cases: cases.map((c: Record<string, unknown>) => ({
         id: c.id, title: c.title, caseType: c.case_type,

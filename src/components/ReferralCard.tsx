@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { createServerFn } from "@tanstack/react-start";
-import { getAuth } from "@clerk/tanstack-start/server";
+import { getCurrentAuth } from "~/lib/auth";
 import { getReferralStats } from "~/lib/referral";
 
 const fetchReferralInfo = createServerFn({ method: "GET" }).handler(async () => {
-  const auth = await getAuth();
+  const auth = await getCurrentAuth();
   if (!auth.userId) return null;
   return getReferralStats(auth.userId);
 });

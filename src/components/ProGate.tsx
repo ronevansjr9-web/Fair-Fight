@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { createServerFn } from "@tanstack/react-start";
 import { SignInButton } from "@clerk/tanstack-start";
+import { getCurrentAuth, getPrimaryEmail } from "~/lib/auth";
 import { createCheckoutSession, getSubscriptionStatus } from "~/lib/stripe";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 
 const checkProAccess = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const { getAuth } = await import("@clerk/tanstack-start/server");
-    const auth = await getAuth();
+    const auth = await getCurrentAuth();
     if (!auth.userId) return { hasAccess: false, isAuthenticated: false };
     try {
       const status = await getSubscriptionStatus(auth.userId);
@@ -23,10 +23,13 @@ const startCheckout = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     try {
-      const { getAuth } = await import("@clerk/tanstack-start/server");
-      const auth = await getAuth();
+      const auth = await getCurrentAuth();
       if (!auth.userId) return { error: "Please sign in first" };
-      const result = await createCheckoutSession(auth.userId, auth.user?.primaryEmailAddress?.emailAddress || "", data.caseId);
+      // AuthObject has no `user` property; resolve email via Clerk Backend API.
+      // `null` (lookup failure) is passed as undefined so Stripe omits
+      // customer_email instead of receiving an empty string.
+      const email = (await getPrimaryEmail(auth.userId)) ?? undefined;
+      const result = await createCheckoutSession(auth.userId, email, data.caseId);
       if ("error" in result) return { error: result.error };
       return { url: result.url };
     } catch { return { error: "Auth error. Try again." }; }

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { createServerFn } from "@tanstack/react-start";
-import { getAuth } from "@clerk/tanstack-start/server";
+import { getCurrentAuth, getPrimaryEmail } from "~/lib/auth";
 import { sql } from "~/db";
 import { logDataExported, logDataDeleted } from "~/lib/audit";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/data-request")({
 });
 
 const exportUserData = createServerFn({ method: "POST" }).handler(async () => {
-  const auth = await getAuth();
+  const auth = await getCurrentAuth();
   if (!auth.userId) return { error: "Sign in required" };
 
   try {
@@ -30,7 +30,9 @@ const exportUserData = createServerFn({ method: "POST" }).handler(async () => {
       success: true,
       data: {
         userId: auth.userId,
-        email: auth.user?.primaryEmailAddress?.emailAddress || "",
+        // AuthObject has no `user` property; resolve email via Clerk Backend API.
+        // null (lookup failure) is explicit — never silently empty.
+        email: await getPrimaryEmail(auth.userId),
         cases: cases.map((c: Record<string, unknown>) => ({
           id: c.id, title: c.title, caseType: c.case_type,
           status: c.status, jurisdiction: c.jurisdiction,
@@ -49,7 +51,7 @@ const exportUserData = createServerFn({ method: "POST" }).handler(async () => {
 });
 
 const deleteUserData = createServerFn({ method: "POST" }).handler(async () => {
-  const auth = await getAuth();
+  const auth = await getCurrentAuth();
   if (!auth.userId) return { error: "Sign in required" };
 
   try {

@@ -1,10 +1,10 @@
 import { json } from "@tanstack/react-start";
-import { getAuth } from "@clerk/tanstack-start/server";
+import { getCurrentAuth } from "~/lib/auth";
 import { sql } from "~/db";
 import { logDataDeleted } from "~/lib/audit";
 
 export async function POST({ request }: { request: Request }) {
-  const auth = await getAuth();
+  const auth = await getCurrentAuth(request);
   if (!auth.userId) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }

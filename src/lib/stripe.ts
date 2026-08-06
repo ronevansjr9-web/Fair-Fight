@@ -22,7 +22,7 @@ function getStripe(): Stripe {
 
 export async function createCheckoutSession(
   userId: string,
-  email: string,
+  email?: string,
   caseId?: string
 ): Promise<{ url: string } | { error: string }> {
   if (!STRIPE_PRO_PRICE_ID) {
@@ -34,7 +34,9 @@ export async function createCheckoutSession(
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-      customer_email: email,
+      // Only attach an email when we actually resolved one server-side. Stripe
+      // rejects an empty string, and we must never fabricate customer data.
+      ...(email ? { customer_email: email } : {}),
       line_items: [
         {
           price: STRIPE_PRO_PRICE_ID,

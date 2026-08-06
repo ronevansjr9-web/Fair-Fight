@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { createServerFn } from "@tanstack/react-start";
 import { useAuth } from "@clerk/tanstack-start";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
+import { getCurrentAuth } from "~/lib/auth";
 import { shouldFetchForSignedInUser } from "~/lib/caseFetchGate";
 import { sql } from "~/db";
 
@@ -46,8 +47,7 @@ const getCase = createServerFn({ method: "GET" })
   })
   .handler(async ({ data }): Promise<CaseResult> => {
     try {
-      const { getAuth } = await import("@clerk/tanstack-start/server");
-      const auth = await getAuth();
+      const auth = await getCurrentAuth();
       if (!auth.userId) return { ok: false, reason: "unauthorized" };
       try {
         const rows = await sql()`
