@@ -161,7 +161,7 @@ function DashboardPage() {
               <div className="p-12 text-center">
                 <div className="mx-auto mb-4 text-4xl">⚠️</div>
                 <p className="mb-2 text-lg font-semibold text-white">Cases are temporarily unavailable</p>
-                <p className="text-sm text-white/50">We could not load your case workspace. No case data was changed. Please try again shortly.</p>
+                <p className="text-sm text-white/50">We could not load your case workspace. Please try again shortly. If the problem continues, contact support before retrying changes.</p>
               </div>
             ) : loading ? (
               <div className="p-12 text-center">
