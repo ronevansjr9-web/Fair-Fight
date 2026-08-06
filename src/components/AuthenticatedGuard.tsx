@@ -1,4 +1,4 @@
-import { useAuth } from "@clerk/tanstack-start";
+import { SignInButton, useAuth } from "@clerk/tanstack-start";
 import type { ReactNode } from "react";
 
 interface AuthenticatedGuardProps {
@@ -30,12 +30,14 @@ export function AuthenticatedGuard({ children, fallback }: AuthenticatedGuardPro
         </div>
         <h2 className="mb-2 text-2xl font-bold text-white">Sign in Required</h2>
         <p className="mb-6 text-white/70">Please sign in to access this page.</p>
-        <a
-          href="/?signin=true"
-          className="gold-gradient inline-flex items-center rounded-full px-8 py-3 font-semibold text-navy transition-all hover:shadow-lg"
-        >
-          Sign In
-        </a>
+        <SignInButton mode="modal">
+          <button
+            type="button"
+            className="gold-gradient inline-flex items-center rounded-full px-8 py-3 font-semibold text-navy transition-all hover:shadow-lg"
+          >
+            Sign In
+          </button>
+        </SignInButton>
       </div>
     );
   }
