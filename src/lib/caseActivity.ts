@@ -93,6 +93,7 @@ export const deleteTimeline = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const userId = await owner();
+    await ensureSchema();
     const rows =
       await sql()`DELETE FROM timeline_entries t USING cases c WHERE t.id=${data.id} AND t.case_id=${data.caseId} AND c.id=t.case_id AND c.user_id=${userId} RETURNING t.id`;
     if (!rows.length) throw new Error("Entry not found");
@@ -103,6 +104,7 @@ export const listCalendar = createServerFn({ method: "GET" })
   .validator(requireCaseId)
   .handler(async ({ data }) => {
     const userId = await owner();
+    await ensureSchema();
     const rows =
       await sql()`SELECT e.id,e.event_date,e.title,e.event_type,e.notes FROM calendar_events e JOIN cases c ON c.id=e.case_id WHERE e.case_id=${data.caseId} AND c.user_id=${userId} ORDER BY e.event_date,e.created_at`;
     return rows.map((r: Record<string, unknown>) => ({
@@ -146,6 +148,7 @@ export const addCalendar = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const userId = await owner();
+    await ensureSchema();
     const rows =
       await sql()`INSERT INTO calendar_events (case_id,event_date,title,event_type,notes) SELECT ${data.caseId},${data.date},${data.title},${data.type},${data.notes} WHERE EXISTS (SELECT 1 FROM cases WHERE id=${data.caseId} AND user_id=${userId}) RETURNING id,event_date,title,event_type,notes`;
     if (!rows.length) throw new Error("Case not found");
@@ -168,6 +171,7 @@ export const deleteCalendar = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const userId = await owner();
+    await ensureSchema();
     const rows =
       await sql()`DELETE FROM calendar_events e USING cases c WHERE e.id=${data.id} AND e.case_id=${data.caseId} AND c.id=e.case_id AND c.user_id=${userId} RETURNING e.id`;
     if (!rows.length) throw new Error("Event not found");
