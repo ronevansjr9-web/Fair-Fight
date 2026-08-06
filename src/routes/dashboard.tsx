@@ -76,11 +76,9 @@ function DashboardPage() {
     });
   }, []);
 
-  // Track checkout completion when returning from Stripe
+  // Return parameters are informational only; access is granted by the webhook-backed DB record.
   useEffect(() => {
-    if (search.checkout === "success") {
-      trackEvent(AnalyticsEvents.CHECKOUT_COMPLETED);
-    }
+    if (search.checkout === "success") trackEvent(AnalyticsEvents.CHECKOUT_COMPLETED);
   }, [search.checkout]);
 
   return (
