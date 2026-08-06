@@ -28,9 +28,37 @@ mock.module("~/lib/auth", () => ({
   getPrimaryEmail: async () => "user@example.com",
 }));
 
+let createCheckoutSessionCalled = false;
+let checkoutSessionArgs: any[] = [];
+mock.module("~/lib/stripe", () => ({
+  createCheckoutSession: async (userId: string, email: string, caseId: string) => {
+    createCheckoutSessionCalled = true;
+    checkoutSessionArgs = [userId, email, caseId];
+    return { url: "https://stripe.example.com/mock-checkout" };
+  },
+}));
+
+const originalReactStart = await import("@tanstack/react-start");
+
+mock.module("@tanstack/react-start", () => ({
+  ...originalReactStart,
+  createServerFn: () => {
+    const res: any = {
+      validator: () => res,
+      handler: (h: any) => {
+        return async (opts: any) => {
+          return h({ data: opts?.data });
+        };
+      },
+    };
+    return res;
+  },
+}));
+
 // Imports must come after mock.module so the mocked modules are used.
-const { hasOwnedCaseEntitlement } = await import("./argumentAccess");
+const { hasOwnedCaseEntitlement, isCaseOwner } = await import("./argumentAccess");
 const { fetchUserCases } = await import("../routes/legal-argument");
+const { startCheckout } = await import("../components/ProGate");
 
 describe("hasOwnedCaseEntitlement", () => {
   test("denies access when the case is not owned by the user", async () => {
@@ -54,6 +82,52 @@ describe("hasOwnedCaseEntitlement", () => {
     expect(await hasOwnedCaseEntitlement("user_1", "")).toBe(false);
     expect(await hasOwnedCaseEntitlement("", "case_1")).toBe(false);
     expect(results.length).toBe(0);
+  });
+});
+
+describe("isCaseOwner", () => {
+  test("returns false when the case is not owned by the user", async () => {
+    results = [[]];
+    expect(await isCaseOwner("user_1", "case_1")).toBe(false);
+  });
+
+  test("returns true when the case is owned by the user", async () => {
+    results = [[{ id: 1 }]];
+    expect(await isCaseOwner("user_1", "case_1")).toBe(true);
+  });
+
+  test("rejects malformed case ids before touching the database", async () => {
+    results = [];
+    expect(await isCaseOwner("user_1", "case_1; DROP TABLE cases")).toBe(false);
+    expect(await isCaseOwner("user_1", "")).toBe(false);
+    expect(await isCaseOwner("", "case_1")).toBe(false);
+    expect(results.length).toBe(0);
+  });
+});
+
+describe("startCheckout server-side ownership gating", () => {
+  test("rejects checkout initiation if caseId is missing", async () => {
+    createCheckoutSessionCalled = false;
+    const res = await startCheckout({ data: {} });
+    expect(res).toEqual({ error: "Select a case before purchasing Pro." });
+    expect(createCheckoutSessionCalled).toBe(false);
+  });
+
+  test("rejects checkout initiation if case is not owned by the user", async () => {
+    createCheckoutSessionCalled = false;
+    results = [[]];
+    const res = await startCheckout({ data: { caseId: "case_unowned" } });
+    expect(res).toEqual({ error: "This case does not exist or you do not have permission to access it" });
+    expect(createCheckoutSessionCalled).toBe(false);
+  });
+
+  test("allows checkout initiation and creates Stripe session if case is owned by user", async () => {
+    createCheckoutSessionCalled = false;
+    results = [[{ id: 1 }]];
+    const res = await startCheckout({ data: { caseId: "case_owned" } });
+    expect(res).toEqual({ url: "https://stripe.example.com/mock-checkout" });
+    expect(createCheckoutSessionCalled).toBe(true);
+    expect(checkoutSessionArgs).toEqual(["user_1", "user@example.com", "case_owned"]);
   });
 });
 

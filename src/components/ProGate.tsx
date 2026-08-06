@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { SignInButton } from "@clerk/tanstack-start";
 import { getCurrentAuth, getPrimaryEmail } from "~/lib/auth";
 import { createCheckoutSession } from "~/lib/stripe";
-import { hasOwnedCaseEntitlement } from "~/lib/argumentAccess";
+import { hasOwnedCaseEntitlement, isCaseOwner } from "~/lib/argumentAccess";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 
 const checkProAccess = createServerFn({ method: "GET" }).validator((v: unknown) => { const caseId = (v as any)?.caseId; if (typeof caseId !== "string" || !/^[A-Za-z0-9_-]+$/.test(caseId)) throw new Error("A case is required"); return { caseId }; }).handler(async ({ data }) => {
@@ -17,7 +17,7 @@ const checkProAccess = createServerFn({ method: "GET" }).validator((v: unknown) 
   } catch { return { hasAccess: false, isAuthenticated: false }; }
 });
 
-const startCheckout = createServerFn({ method: "POST" })
+export const startCheckout = createServerFn({ method: "POST" })
   .validator((data: unknown) => {
     const d = data as Record<string, unknown>;
     return { caseId: (d.caseId as string) || undefined };
@@ -26,6 +26,9 @@ const startCheckout = createServerFn({ method: "POST" })
     try {
       const auth = await getCurrentAuth();
       if (!auth.userId) return { error: "Please sign in first" };
+      if (!data.caseId) return { error: "Select a case before purchasing Pro." };
+      const isOwner = await isCaseOwner(auth.userId, data.caseId);
+      if (!isOwner) return { error: "This case does not exist or you do not have permission to access it" };
       // AuthObject has no `user` property; resolve email via Clerk Backend API.
       // `null` (lookup failure) is passed as undefined so Stripe omits
       // customer_email instead of receiving an empty string.
