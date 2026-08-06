@@ -5,6 +5,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getAuth } from "@clerk/tanstack-start/server";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { getSubscriptionStatus, createCustomerPortalSession, createCheckoutSession } from "~/lib/stripe";
+import { hasAnyEntitlement } from "~/lib/payment";
 import { getStorageUsed } from "~/lib/storage";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 
@@ -23,7 +24,7 @@ const getProfileData = createServerFn({ method: "GET" }).handler(async () => {
   if (!auth.userId) return { pro: false, storageUsed: 0 };
 
   const [subStatus, storageUsed] = await Promise.all([
-    getSubscriptionStatus(auth.userId).catch(() => ({ active: false, customerId: undefined })),
+    Promise.all([hasAnyEntitlement(auth.userId), getSubscriptionStatus(auth.userId).catch(() => ({ active: false, customerId: undefined }))]).then(([pro, billing]) => ({ active: pro, customerId: billing.customerId })).catch(() => ({ active: false, customerId: undefined })),
     getStorageUsed(auth.userId).catch(() => 0),
   ]);
 

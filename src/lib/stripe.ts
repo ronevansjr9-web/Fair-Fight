@@ -1,10 +1,9 @@
 import Stripe from "stripe";
+import { checkoutReturnUrls } from "~/lib/payment";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "";
-const BASE_URL = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : process.env.PUBLIC_SITE_URL || "http://localhost:3000";
+
 
 let _stripe: Stripe | null = null;
 
@@ -25,6 +24,8 @@ export async function createCheckoutSession(
   email: string,
   caseId?: string
 ): Promise<{ url: string } | { error: string }> {
+  if (!caseId) return { error: "Select a case before purchasing Pro." };
+
   if (!STRIPE_PRO_PRICE_ID) {
     return { error: "STRIPE_PRO_PRICE_ID environment variable is not configured" };
   }
@@ -45,13 +46,12 @@ export async function createCheckoutSession(
         userId,
         ...(caseId ? { caseId } : {}),
       },
-      success_url: `${BASE_URL}/dashboard?checkout=success`,
-      cancel_url: `${BASE_URL}/?checkout=cancelled`,
+      ...checkoutReturnUrls(),
       allow_promotion_codes: true,
       billing_address_collection: "auto",
     });
 
-    return { url: session.url || `${BASE_URL}/dashboard` };
+    return { url: session.url || checkoutReturnUrls().success_url };
   } catch (error) {
     console.error("Stripe checkout error:", error);
     return { error: "Failed to create checkout session" };
@@ -65,7 +65,7 @@ export async function createCustomerPortalSession(
     const stripe = getStripe();
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${BASE_URL}/dashboard`,
+      return_url: `${checkoutReturnUrls().success_url.split("?")[0]}`,
     });
 
     return { url: session.url };
