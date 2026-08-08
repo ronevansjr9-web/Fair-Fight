@@ -1,4 +1,4 @@
-BEGIN;
+-- Transaction is owned by scripts/migrate.sh.
 CREATE TABLE IF NOT EXISTS payments (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   checkout_session_id TEXT NOT NULL UNIQUE,
@@ -12,4 +12,3 @@ CREATE TABLE IF NOT EXISTS payments (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS payments_user_case_idx ON payments(user_id, case_id, status);
-COMMIT;

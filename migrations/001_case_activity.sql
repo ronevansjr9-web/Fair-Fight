@@ -1,4 +1,4 @@
-BEGIN;
+-- Transaction is owned by scripts/migrate.sh.
 -- Durable per-case timeline and calendar records. Run against the same database as cases.
 CREATE TABLE IF NOT EXISTS timeline_entries (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -19,4 +19,3 @@ CREATE TABLE IF NOT EXISTS calendar_events (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS calendar_events_case_date_idx ON calendar_events(case_id,event_date,created_at);
-COMMIT;
