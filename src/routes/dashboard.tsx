@@ -22,7 +22,7 @@ export const Route = createFileRoute("/dashboard")({
 
 const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
   const auth = await getCurrentAuth();
-  if (!auth.userId) return { cases: [], stats: { total: 0, active: 0, resolved: 0 } };
+  if (!auth.userId) return { ok: true as const, cases: [], stats: { total: 0, active: 0, resolved: 0 } };
 
   try {
     const cases = await sql()`
@@ -41,6 +41,7 @@ const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
       WHERE user_id = ${auth.userId}
     `;
     return {
+      ok: true as const,
       cases: cases.map((c: Record<string, unknown>) => ({
         id: String(c.id),
         title: String(c.title),
@@ -57,23 +58,32 @@ const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
       },
     };
   } catch {
-    return { cases: [], stats: { total: 0, active: 0, resolved: 0 } };
+    return { ok: false as const, error: "unavailable" as const, cases: [], stats: { total: 0, active: 0, resolved: 0 } };
   }
 });
 
 function DashboardPage() {
   const search = Route.useSearch();
   const [data, setData] = useState<{
+    ok: boolean;
+    error?: "unavailable";
     cases: { id: string; title: string; caseType: string; status: string; jurisdiction: string; createdAt: string; updatedAt: string }[];
     stats: { total: number; active: number; resolved: number };
-  }>({ cases: [], stats: { total: 0, active: 0, resolved: 0 } });
+  }>({ ok: true, cases: [], stats: { total: 0, active: 0, resolved: 0 } });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getDashboardData().then((d) => {
-      setData(d);
-      setLoading(false);
-    });
+    getDashboardData()
+      .then((d) => {
+        setData(d);
+        setLoading(false);
+      })
+      .catch(() => {
+        // Keep database/provider details out of the UI, but never turn an
+        // unavailable schema into a misleading empty workspace.
+        setData({ ok: false, error: "unavailable", cases: [], stats: { total: 0, active: 0, resolved: 0 } });
+        setLoading(false);
+      });
   }, []);
 
   // Return parameters are informational only; access is granted by the webhook-backed DB record.
@@ -147,7 +157,13 @@ function DashboardPage() {
             <div className="border-b border-white/10 px-6 py-4">
               <h2 className="text-xl font-bold text-white">Your Cases</h2>
             </div>
-            {loading ? (
+            {!loading && !data.ok ? (
+              <div className="p-12 text-center">
+                <div className="mx-auto mb-4 text-4xl">⚠️</div>
+                <p className="mb-2 text-lg font-semibold text-white">Cases are temporarily unavailable</p>
+                <p className="text-sm text-white/50">We could not load your case workspace. Please try again shortly. If the problem continues, contact support before retrying changes.</p>
+              </div>
+            ) : loading ? (
               <div className="p-12 text-center">
                 <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gold border-t-transparent" />
               </div>

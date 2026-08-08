@@ -1,3 +1,4 @@
+-- Transaction is owned by scripts/migrate.sh.
 -- Durable per-case timeline and calendar records. Run against the same database as cases.
 CREATE TABLE IF NOT EXISTS timeline_entries (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

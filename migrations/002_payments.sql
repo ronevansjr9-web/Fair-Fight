@@ -1,3 +1,4 @@
+-- Transaction is owned by scripts/migrate.sh.
 CREATE TABLE IF NOT EXISTS payments (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   checkout_session_id TEXT NOT NULL UNIQUE,
