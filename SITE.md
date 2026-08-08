@@ -29,10 +29,32 @@ After editing, run:
 bun run publish
 ```
 
-This rebuilds the site and restarts the server on port 3000. (Editing files alone
-does not update the live site — you must publish.) It always takes over port 3000
-from whatever is running there, so it's safe to re-run no matter who started the
-current server. The server log is `.run/server.log`.
+This builds a complete release in an isolated staging directory, validates the
+server and client output, then atomically switches `.run/current` before restarting
+the server. The running process resolves one immutable release directory at startup,
+so a rebuild cannot delete chunks still needed by an in-flight process. The last five
+releases are retained under `releases/`; `.env*`, `DATABASE_URL`, and other process
+environment configuration are not copied into or removed from releases. The server
+log is `.run/server.log`.
+
+### Rollback
+
+If a release fails its smoke check, `publish.sh` automatically points `.run/current`
+back to the prior retained release and restarts it. For a manual rollback, stop the
+server, select a retained directory, atomically replace the symlink, and restart with
+the same environment:
+
+```bash
+cd /path/to/site
+release="$(find releases -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\\n' | sort -nr | sed -n '2p' | cut -d' ' -f2-)"
+kill "$(cat .run/server.pid)" 2>/dev/null || true
+ln -s "$release" .run/current.rollback && mv -Tf .run/current.rollback .run/current
+setsid nohup env RELEASE_DIR="$release" bun run start > .run/server.log 2>&1 < /dev/null &
+echo $! > .run/server.pid
+```
+
+Do not delete the active or rollback target release until the replacement server
+has passed its route and asset smoke checks.
 
 ## Going live (production hosting)
 
@@ -98,3 +120,27 @@ passed to the live host by `bun run go-live` — so the same code works in the p
 and in production. If you connect the database _after_ going live, re-run
 `bun run go-live` so production picks up `DATABASE_URL`. One database serves both the
 preview and the live site.
+
+## Atomic preview publishing and rollback
+
+`bun run publish` uses an immutable release layout:
+
+1. It creates a unique staging directory under `.run/` and builds there (the source
+   `dist/` is never modified). The staged server bundle and non-empty client asset
+   directory are required before promotion.
+2. The complete staging output is renamed into `releases/<UTC-timestamp>-<pid>`.
+   `.run/current` is switched with a same-filesystem `mv -T`, so it is never a
+   partially-built tree. The server resolves the selected release once at startup;
+   it never follows a changed symlink while serving requests.
+3. The old process is stopped using `.run/server.pid`; the new process starts with
+   `RELEASE_DIR` and is checked with `GET /`. Every same-origin `src`/`href` asset
+   in the returned HTML must also respond successfully.
+4. If startup or asset verification fails, the new process is stopped and
+   `.run/current` is atomically restored to the prior release, which is restarted.
+   The last five releases are retained for diagnosis/rollback; failed staging is
+   removed automatically.
+
+The swap is intentionally a brief restart rather than a zero-downtime handoff.
+A hard host failure during the restart can still require operator intervention,
+though immutable releases remain available. This preview procedure is not the
+Vercel `go-live` flow; production-hosting deploys have their own atomicity.

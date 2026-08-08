@@ -22,6 +22,8 @@ export default defineConfig({
     viteReact(),
   ],
   build: {
+    // Atomic publish builds in an isolated release directory.
+    outDir: process.env.BUILD_DIR || "dist",
     rollupOptions: {
       external: (id) => {
         // Prevent node:async_hooks from being treated as browser-external
