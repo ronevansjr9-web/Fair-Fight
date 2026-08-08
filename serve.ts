@@ -1,9 +1,11 @@
 // Production server for one immutable release. publish.sh builds and swaps releases
 // before restarting this process; RELEASE_DIR is resolved once so a running process
 // never observes a symlink pointing at a different release.
-const PORT = 3000;
-const HOST = "0.0.0.0";
-const releaseDir = await Bun.$`realpath ${process.env.RELEASE_DIR || `${import.meta.dir}/dist`}`.text();
+const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOST || "0.0.0.0";
+// RELEASE_DIR is always the immutable release root containing dist/, RELEASE_ID, and this launcher.
+// The copied launcher therefore has the same contract as the normal and legacy launchers.
+const releaseDir = await Bun.$`realpath ${process.env.RELEASE_DIR || import.meta.dir}`.text();
 const root = releaseDir.trim();
 const { default: handler } = await import(`${root}/dist/server/server.js`);
 const CLIENT_DIR = `${root}/dist/client`;

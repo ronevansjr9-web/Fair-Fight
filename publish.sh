@@ -48,16 +48,8 @@ done
 start_release() { local d="$1"; setsid nohup bun "$d/serve.ts" > .run/server.log 2>&1 < /dev/null & echo $! > .run/server.pid; }
 start_release "$release_dir"
 verify() {
-  local expected="$1" html="$2" header
-  for _ in $(seq 1 60); do
-    header="$(curl -sS -D - -o "$html" http://127.0.0.1:3000/ || true)"
-    if grep -qi "^x-release-id: ${expected}[[:space:]]*$" <<<"$header"; then
-      while read -r asset; do curl -sf "http://127.0.0.1:3000$asset" -o /dev/null || return 1; done < <(grep -oE '(src|href)="/[^"]+"' "$html" | sed -E 's/^[^\"]+"(\/[^\"]+)"$/\1/' | sort -u)
-      return 0
-    fi
-    sleep .2
-  done
-  return 1
+  local expected="$1" html="$2"
+  ./scripts/verify-release.sh "$expected" "http://127.0.0.1:3000" "$html"
 }
 if verify "$release" .run/health.html; then rm -f .run/health.html; find releases -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -nr | tail -n +7 | cut -d' ' -f2- | xargs -r rm -rf; echo "site published atomically: $release"; exit 0; fi
 # Do not claim recovery until the old release identity and assets are healthy.
