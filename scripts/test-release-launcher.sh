@@ -16,6 +16,22 @@ for _ in $(seq 1 50); do curl -fsS --connect-timeout 1 --max-time 2 "http://127.
 ./scripts/verify-release.sh launcher-test "http://127.0.0.1:$port" "$root/ok.html"
 kill "$pid"; wait "$pid" 2>/dev/null || true; pid=""
 
+# The platform's standard root startup runs from the site root, where no RELEASE_ID
+# exists. It must still serve dist/ and must not fabricate release identity.
+legacy_port=$((port + 3))
+mkdir -p "$root/legacy/dist/server" "$root/legacy/dist/client"
+cp "$root/release/dist/server/server.js" "$root/legacy/dist/server/server.js"
+cp "$root/release/dist/client/app.js" "$root/legacy/dist/client/app.js"
+cp serve.ts package.json bun.lock "$root/legacy/"
+(cd /tmp && env -u RELEASE_DIR PORT="$legacy_port" bun "$root/legacy/serve.ts") >"$root/legacy-server.log" 2>&1 & pid=$!
+for _ in $(seq 1 50); do curl -fsS --connect-timeout 1 --max-time 2 "http://127.0.0.1:$legacy_port/" -o "$root/legacy.html" && break; sleep .1; done
+grep -q '<script src="/app.js"></script>' "$root/legacy.html"
+if grep -qi '^X-Release-ID:' <(curl -sS -D - -o /dev/null "http://127.0.0.1:$legacy_port/"); then
+  echo 'root startup unexpectedly emitted release identity' >&2
+  exit 1
+fi
+kill "$pid"; wait "$pid" 2>/dev/null || true; pid=""
+
 run_negative_identity_test() {
   local mode="$1" negative_port="$2"
   local output="$root/$mode.html"
