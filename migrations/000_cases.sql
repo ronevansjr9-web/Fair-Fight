@@ -68,20 +68,26 @@ BEGIN
     END IF;
     IF expected.default_expr IS NULL AND actual_default IS NOT NULL THEN
       RAISE EXCEPTION 'cases schema incompatible: canonical column % has an unexpected default', expected.name;
-    ELSIF expected.default_expr IS NOT NULL AND (actual_default IS NULL OR (expected.name IN ('case_type','status','jurisdiction','description') AND actual_default NOT IN (expected.default_expr, expected.default_expr || '::text'))) THEN
+    ELSIF expected.default_expr IS NOT NULL AND (
+      actual_default IS NULL OR
+      regexp_replace(lower(actual_default), '\s+', '', 'g') <> regexp_replace(lower(expected.default_expr), '\s+', '', 'g')
+    ) THEN
       RAISE EXCEPTION 'cases schema incompatible: canonical column % has an incompatible default', expected.name;
     END IF;
   END LOOP;
 
+  -- Fresh and existing schemas have the same exact ID contract: a single-column
+  -- public primary key on id plus the canonical default for omitted-ID inserts.
   SELECT count(*) INTO id_pk_columns
     FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
     WHERE i.indrelid = 'public.cases'::regclass AND i.indisprimary;
   SELECT EXISTS (SELECT 1 FROM pg_index i JOIN pg_attribute a ON a.attrelid=i.indrelid AND a.attnum=ANY(i.indkey)
     WHERE i.indrelid='public.cases'::regclass AND i.indisprimary AND i.indnkeyatts=1 AND a.attname='id') INTO id_pk_ok;
-  SELECT pg_get_expr(d.adbin, d.adrelid) ~* '^md5\(\(random\(\)::text \|\| clock_timestamp\(\)::text\)\)(::text)?$' INTO id_default_ok
-    FROM pg_attribute a JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum
-    WHERE a.attrelid='public.cases'::regclass AND a.attname='id' AND NOT a.attisdropped;
-  IF id_pk_columns <> 1 OR NOT id_pk_ok OR NOT COALESCE(id_default_ok, false) THEN
+  SELECT EXISTS (SELECT 1 FROM pg_attribute a JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum
+    WHERE a.attrelid='public.cases'::regclass AND a.attname='id' AND NOT a.attisdropped
+      AND regexp_replace(lower(pg_get_expr(d.adbin, d.adrelid)), '\s+', '', 'g') =
+          'md5((random())::text||(clock_timestamp())::text)') INTO id_default_ok;
+  IF id_pk_columns <> 1 OR NOT id_pk_ok OR NOT id_default_ok THEN
     RAISE EXCEPTION 'cases schema incompatible: id requires a single-column primary key and canonical safe default';
   END IF;
 
@@ -89,12 +95,14 @@ BEGIN
     RAISE EXCEPTION 'cases schema incompatible: status contains unsupported values';
   END IF;
   SELECT count(*) INTO status_constraint_count FROM pg_constraint c
-    WHERE c.conrelid='public.cases'::regclass AND c.contype='c' AND pg_get_constraintdef(c.oid) ILIKE '%status%';
+    WHERE c.conrelid='public.cases'::regclass AND c.contype='c' AND pg_get_constraintdef(c.oid, true) ILIKE '%status%';
   SELECT count(*) INTO canonical_status_count FROM pg_constraint c
     WHERE c.conrelid='public.cases'::regclass AND c.contype='c'
       AND regexp_replace(lower(pg_get_constraintdef(c.oid, true)), '\s+', '', 'g') =
         'check((status=any(array[''active''::text,''resolved''::text,''closed''::text])))';
-  IF status_constraint_count > 0 AND canonical_status_count <> 1 THEN
+  -- Every status-related CHECK must be the one canonical predicate. This rejects
+  -- restrictive additions even when the canonical constraint also exists.
+  IF status_constraint_count > 0 AND (status_constraint_count <> 1 OR canonical_status_count <> 1) THEN
     RAISE EXCEPTION 'cases schema incompatible: existing status constraint is noncanonical';
   ELSIF status_constraint_count = 0 THEN
     ALTER TABLE public.cases ADD CONSTRAINT cases_status_check CHECK (status IN ('active', 'resolved', 'closed'));

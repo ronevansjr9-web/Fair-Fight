@@ -23,9 +23,20 @@ describe("canonical cases migration", () => {
     expect(migration).toContain("IF actual_type <> expected.type_name");
     expect(migration).not.toContain("character varying%");
     expect(migration).toContain("IF expected.required_not_null AND NOT actual_not_null");
-    expect(migration).toContain("IF id_pk_columns <> 1 OR NOT id_pk_ok OR NOT COALESCE(id_default_ok, false)");
-    expect(migration).toContain("status_constraint_count > 0 AND canonical_status_count <> 1");
+    expect(migration).toContain("IF id_pk_columns <> 1 OR NOT id_pk_ok OR NOT id_default_ok");
+    expect(migration).toContain("public.cases");
+    expect(migration).toContain("regexp_replace(lower(actual_default)");
+    expect(migration).toContain("timestamp with time zone");
+    expect(migration).toContain("status_constraint_count <> 1 OR canonical_status_count <> 1");
     expect(migration).toContain("existing status constraint is noncanonical");
+  });
+
+  test("fresh and existing contracts are explicit and restrictive variants fail closed", () => {
+    expect(migration).toMatch(/CREATE TABLE public\.cases[\s\S]*id TEXT PRIMARY KEY DEFAULT md5/);
+    expect(migration).toMatch(/id_pk_columns[\s\S]*id_pk_ok[\s\S]*id_default_ok/);
+    expect(migration).toContain("actual_default IS NULL");
+    expect(migration).toContain("status_constraint_count > 0 AND (status_constraint_count <> 1 OR canonical_status_count <> 1)");
+    expect(migration).toContain("pg_get_constraintdef(c.oid, true)");
   });
 
   test("runner emits literal psql commands and quotes migration paths", () => {
@@ -44,7 +55,13 @@ describe("canonical cases migration", () => {
     expect(runner).toContain("INSERT INTO public.schema_migrations");
     expect(runner).toContain("COMMIT;");
     expect(runner).not.toContain("grep -q");
-    for (const sql of allMigrations) expect(sql).not.toMatch(/^\s*(BEGIN|COMMIT);/m);
+    for (const sql of allMigrations) {
+      expect(sql).not.toMatch(/^\s*(BEGIN|COMMIT);/m);
+      expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS public\./);
+      expect(sql).not.toMatch(/REFERENCES cases\b/);
+    }
+    expect(allMigrations[0]).toContain("REFERENCES public.cases(id)");
+    expect(allMigrations[1]).toContain("public.payments");
   });
 
   test("docs state the exact compatibility and transaction contract", () => {
