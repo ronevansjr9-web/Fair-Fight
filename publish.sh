@@ -25,13 +25,17 @@ staging="$(mktemp -d "$PWD/.run/staging.$release.XXXXXX")"
 release_dir="$PWD/releases/$release"
 old_release=""
 candidate_pid=""          # pid of the unverified new-release process, if any
+candidate_start=""        # its /proc start time (pid-reuse-safe identity guard)
 candidate_running=0       # 1 once start_release spawned the unverified candidate
 candidate_verified=0      # 1 only after the candidate passed the exact verifier
 rollback_pid=""           # pid of the rollback (prior-release) process, if started
+rollback_start=""         # its /proc start time (pid-reuse-safe identity guard)
 rollback_started=0        # 1 once the rollback process was launched
 prior_pid=""              # pid serving before the atomic switch (fail-safe reference)
 verifier_pid=""           # pid of the in-flight readiness verifier, if any (global so the
                           # fail-safe interrupt can terminate and reap that exact verifier)
+fail_safe_active=0        # 1 while fail_safe_interrupt runs (re-entry guard: a deferred
+                          # second signal exits immediately instead of re-running cleanup)
 cleanup() { rm -rf "$staging" "$PWD/.run/current.next" "$PWD/.run/rollback.next" "$PWD/.run/current.restore"; }
 trap cleanup EXIT
 # Clear any inherited generic PORT (e.g. PORT=80) so no spawned release process can
@@ -51,10 +55,14 @@ start_release() {
   # ignores INT/TERM so a group signal can never abort it mid-launch, and it forks
   # a child that resets INT/TERM to default before exec'ing the server — so the
   # release process always has default, terminable dispositions even though the
-  # parent may be running with traps installed. The child's exec chain
-  # (env -> setsid -> nohup -> bun) preserves its PID, which is what is recorded;
-  # setsid detaches the server from the publisher's process group so a later group
-  # signal never reaches it directly (only the fail-safe trap terminates it).
+  # parent may be running with traps installed. That reset is only effective if
+  # INT/TERM are not already SIG_IGN at shell entry (a non-interactive shell
+  # cannot reset an inherited ignore), so every caller — including the fail-safe
+  # interrupt — must spawn with handler traps armed, never with `trap ''`.
+  # The child's exec chain (env -> setsid -> nohup -> bun) preserves its PID,
+  # which is what is recorded; setsid detaches the server from the publisher's
+  # process group so a later group signal never reaches it directly (only the
+  # fail-safe trap terminates it).
   # 9>&- closes the publish lock (fd 9) in the spawned process.
   sh -c 'trap "" INT TERM; (trap - INT TERM; exec env '"$uports"' setsid nohup bun "$1/serve.ts" 9>&- > .run/server.log 2>&1 < /dev/null) & printf "%s\n" "$!" > .run/server.pid' _ "$d"
 }
@@ -131,34 +139,83 @@ test_signal_hook() {
   trap 'fail_safe_interrupt 143' TERM
   kill -INT $$
 }
+# Candidate process identity helpers. PIDs are reusable: once the candidate is
+# reaped, the kernel may hand its pid to an unrelated short-lived process (e.g.
+# a spawned release's port-freeing shell), so a bare `kill -0` can false-positive
+# on a dead candidate and — worse — lead stop_candidate or the trap to signal an
+# innocent process. Every check therefore compares the recorded start time too:
+# only the exact process recorded at spawn may be signalled, and a pid whose start
+# time differs (or that is an unreaped zombie, which holds no resources and cannot
+# bind the listener) is treated as gone.
+track_candidate() { # pid — record the candidate's identity (pid + start time)
+  candidate_pid="$1"
+  candidate_start="$(LC_ALL=C ps -o lstart= -p "$candidate_pid" 2>/dev/null || true)"
+}
+track_rollback() { # pid — record the rollback process's identity (pid + start time)
+  rollback_pid="$1"
+  rollback_start="$(LC_ALL=C ps -o lstart= -p "$rollback_pid" 2>/dev/null || true)"
+}
+rollback_alive() { # true only for the EXACT recorded rollback process (running, not a zombie)
+  local st
+  [ -n "$rollback_pid" ] || return 1
+  kill -0 "$rollback_pid" 2>/dev/null || return 1
+  if [ -n "$rollback_start" ] && [ "$(LC_ALL=C ps -o lstart= -p "$rollback_pid" 2>/dev/null || true)" != "$rollback_start" ]; then
+    return 1 # pid reused by an unrelated process
+  fi
+  st="$(LC_ALL=C ps -o stat= -p "$rollback_pid" 2>/dev/null || true)"
+  case "${st:0:1}" in Z|X) return 1 ;; esac
+  return 0
+}
+candidate_alive() { # true only for the EXACT recorded candidate process (running, not a zombie)
+  local st
+  [ -n "$candidate_pid" ] || return 1
+  kill -0 "$candidate_pid" 2>/dev/null || return 1
+  if [ -n "$candidate_start" ] && [ "$(LC_ALL=C ps -o lstart= -p "$candidate_pid" 2>/dev/null || true)" != "$candidate_start" ]; then
+    return 1 # pid reused by an unrelated process
+  fi
+  st="$(LC_ALL=C ps -o stat= -p "$candidate_pid" 2>/dev/null || true)"
+  case "${st:0:1}" in Z|X) return 1 ;; esac
+  return 0
+}
+candidate_gone() { # true when the candidate is confirmed gone (reaped, reused, or zombie)
+  [ -n "$candidate_pid" ] || return 0
+  kill -0 "$candidate_pid" 2>/dev/null || return 0
+  if [ -n "$candidate_start" ] && [ "$(LC_ALL=C ps -o lstart= -p "$candidate_pid" 2>/dev/null || true)" != "$candidate_start" ]; then
+    return 0
+  fi
+  local st
+  st="$(LC_ALL=C ps -o stat= -p "$candidate_pid" 2>/dev/null || true)"
+  case "${st:0:1}" in Z|X) return 0 ;; esac
+  return 1
+}
 # Bounded candidate-stop/reap helper: stop the unverified candidate and PROVE it is
-# gone — the recorded process is dead (kill -0 fails) AND no listener remains on
-# the publish port — before the caller deletes the candidate release or re-selects
-# the prior release, so a rollback can never race a dying candidate for the
-# listener and a directory is never deleted while its process survives. Escalation
-# targets ONLY the candidate's recorded pid (TERM retries, then KILL): the helper
-# never terminates an unrelated listener or a known-good/rollback process — if a
-# listener remains after the candidate is dead it is not the candidate, so the
-# helper fails closed (returns 1) rather than kill it, and callers refuse to
-# delete the release or select a rollback that would race that listener. Bounded:
-# ~5 s of TERM retries, then ~5 s of KILL escalation against the candidate pid.
+# gone — the recorded process is dead (kill -0 fails or the pid was reused) AND no
+# listener remains on the publish port — before the caller deletes the candidate
+# release or re-selects the prior release, so a rollback can never race a dying
+# candidate for the listener and a directory is never deleted while its process
+# survives. Escalation targets ONLY the candidate's recorded identity (TERM
+# retries, then KILL): the helper never terminates an unrelated listener, a reused
+# pid, or a known-good/rollback process — if a listener remains after the candidate
+# is dead it is not the candidate, so the helper fails closed (returns 1) rather
+# than kill it, and callers refuse to delete the release or select a rollback that
+# would race that listener. Bounded: ~5 s of TERM retries, then ~5 s of KILL
+# escalation against the candidate identity.
 stop_candidate() {
   local i
   for i in $(seq 1 50); do
-    if { [ -z "$candidate_pid" ] || ! kill -0 "$candidate_pid" 2>/dev/null; } \
-       && ! lsof -t -iTCP:"$listener_port" -sTCP:LISTEN >/dev/null 2>&1; then
+    if candidate_gone && ! lsof -t -iTCP:"$listener_port" -sTCP:LISTEN >/dev/null 2>&1; then
       candidate_running=0
       return 0
     fi
-    if [ -n "$candidate_pid" ] && kill -0 "$candidate_pid" 2>/dev/null; then
+    if candidate_alive; then
       kill "$candidate_pid" 2>/dev/null || true
     fi
     sleep .1
   done
-  # Escalate only against the candidate's recorded pid — never a listener that is
-  # not the candidate (e.g. a prior process still finishing), and never a selected
-  # rollback process.
-  if [ -n "$candidate_pid" ] && kill -0 "$candidate_pid" 2>/dev/null; then
+  # Escalate only against the candidate's recorded identity — never a listener that
+  # is not the candidate (e.g. a prior process still finishing), never a reused
+  # pid, and never a selected rollback process.
+  if candidate_alive; then
     kill -KILL "$candidate_pid" 2>/dev/null || true
   fi
   for i in $(seq 1 50); do
@@ -166,7 +223,7 @@ stop_candidate() {
       candidate_running=0
       return 0
     fi
-    [ -n "$candidate_pid" ] && kill -0 "$candidate_pid" 2>/dev/null && kill -KILL "$candidate_pid" 2>/dev/null || true
+    candidate_alive && kill -KILL "$candidate_pid" 2>/dev/null || true
     sleep .1
   done
   candidate_running=0
@@ -196,9 +253,20 @@ stop_candidate() {
 #     never points at a release with no serving process.
 fail_safe_interrupt() {
   local rc="$1" lsnr sp
-  # Block further signals while the fail-safe runs (the caught signal is already
-  # blocked during its own trap; mask the other one too to prevent re-entry).
-  trap '' INT TERM
+  # Never leave INT/TERM ignored for children spawned while the fail-safe runs.
+  # `trap '' INT TERM` (SIG_IGN) would be inherited by start_release's helper and
+  # the restore-path verifier, and a non-interactive shell cannot reset a signal
+  # that was SIG_IGN at entry — the helper's `trap - INT TERM` would silently
+  # no-op, so a prior release restored after SIGINT/SIGTERM would run with TERM
+  # ignored and refuse normal termination, keeping the listener and blocking the
+  # next publish's candidate from binding. Re-arm the handler traps instead:
+  # bash defers additional signals while a trap is executing, and the re-entry
+  # guard below turns any deferred re-entry into an immediate exit rather than a
+  # second pass over the cleanup.
+  trap 'fail_safe_interrupt 130' INT
+  trap 'fail_safe_interrupt 143' TERM
+  if (( fail_safe_active )); then exit "$rc"; fi
+  fail_safe_active=1
   # Terminate and reap the in-flight readiness verifier (if any): a group signal
   # already kills it (the verifier resets INT/QUIT to default), but a signal
   # delivered only to publish.sh must never leave the verifier polling — or
@@ -212,7 +280,7 @@ fail_safe_interrupt() {
   if (( ! candidate_verified )) && [ -n "$release_dir" ] && [ "$(readlink -f .run/current 2>/dev/null || true)" = "$release_dir" ]; then
     # The unverified candidate is selected. Fall back to the recorded pid file in
     # case the signal landed between the launch and the state-variable assignment.
-    [ -n "$candidate_pid" ] || candidate_pid="$(cat .run/server.pid 2>/dev/null || true)"
+    if [ -n "$candidate_pid" ]; then track_candidate "$candidate_pid"; else track_candidate "$(cat .run/server.pid 2>/dev/null || true)"; fi
     lsnr="$(lsof -t -iTCP:"$listener_port" -sTCP:LISTEN 2>/dev/null | head -1 || true)"
     if [ -n "$prior_pid" ] && [ "$candidate_pid" = "$prior_pid" ] && [ "$lsnr" = "$prior_pid" ] && kill -0 "$prior_pid" 2>/dev/null; then
       # The candidate was never started (signal in the selection window) and the
@@ -239,6 +307,7 @@ fail_safe_interrupt() {
         mv -Tf .run/current.restore .run/current
         start_release "$old_release"
         rollback_pid="$(cat .run/server.pid)"
+        track_rollback "$rollback_pid"
         rollback_started=1
         if verify_ready "$(cat "$old_release/RELEASE_ID")" .run/restore.html; then
           echo "publish interrupted; prior release $(basename "$old_release") restored and verified" >&2
@@ -255,7 +324,7 @@ fail_safe_interrupt() {
   elif [ -n "$old_release" ] && [ -d "$old_release" ] && [ "$(readlink -f .run/current 2>/dev/null || true)" = "$old_release" ]; then
     # Rollback path: current already points at the prior release.
     sp="$(cat .run/server.pid 2>/dev/null || true)"
-    if (( rollback_started )) || { [ -n "$sp" ] && [ "$sp" != "$candidate_pid" ] && kill -0 "$sp" 2>/dev/null; }; then
+    if (( rollback_started )) || { [ -n "$sp" ] && [ "$sp" != "$candidate_pid" ] && [ "$sp" = "$rollback_pid" ] && rollback_alive; }; then
       # A rollback process is running (or at least launched): never kill it and
       # never start a second one — a trap must never kill a known-good rollback process.
       :
@@ -264,6 +333,7 @@ fail_safe_interrupt() {
       # points at a release with no serving process.
       start_release "$old_release"
       rollback_pid="$(cat .run/server.pid)"
+      track_rollback "$rollback_pid"
       rollback_started=1
       if verify_ready "$(cat "$old_release/RELEASE_ID")" .run/restore.html; then
         echo "publish interrupted; prior release $(basename "$old_release") restarted and verified" >&2
@@ -274,9 +344,19 @@ fail_safe_interrupt() {
     fi
     # The orphaned candidate directory: its process was terminated (and the
     # listener confirmed free) before the rollback began, so removing it can never
-    # delete a directory whose process survives.
-    if [ -n "$release_dir" ] && [ -d "$release_dir" ] && { [ -z "$candidate_pid" ] || ! kill -0 "$candidate_pid" 2>/dev/null; }; then
-      rm -rf "$release_dir"
+    # delete a directory whose process survives. candidate_gone treats a reaped,
+    # pid-reused, or zombie candidate as gone — but the instantaneous check can
+    # race a transient state (an unreaped zombie or a pid reused by a short-lived
+    # process), so poll briefly and only remove once it is confirmed gone; if the
+    # pid is still alive after the bound, fail closed and leave the directory.
+    if [ -n "$release_dir" ] && [ -d "$release_dir" ]; then
+      for i in $(seq 1 20); do
+        candidate_gone && break
+        sleep .1
+      done
+      if candidate_gone; then
+        rm -rf "$release_dir"
+      fi
     fi
   elif (( ! candidate_verified )); then
     # Pre-promotion abort (or no prior release): no candidate process exists, so
@@ -344,6 +424,7 @@ done
 test_signal_hook promote-stopped
 start_release "$release_dir"
 candidate_pid="$(cat .run/server.pid)"
+track_candidate "$candidate_pid"
 candidate_running=1
 test_signal_hook promote-tracked
 if verify_ready "$release" .run/health.html; then
@@ -368,6 +449,7 @@ if [ -n "$old_release" ] && [ -d "$old_release" ]; then
   test_signal_hook rollback-selected
   start_release "$old_release"
   rollback_pid="$(cat .run/server.pid)"
+  track_rollback "$rollback_pid"
   rollback_started=1
   test_signal_hook rollback-started
   if verify_ready "$(cat "$old_release/RELEASE_ID")" .run/rollback.html; then rm -rf "$release_dir"; rm -f .run/rollback.html; echo "release failed; rollback verified" >&2; exit 1; fi

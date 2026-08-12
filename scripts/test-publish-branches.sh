@@ -263,6 +263,10 @@ rm -f "$sandbox/dist/client/app.js" "$sandbox/releases/$rel4/dist/client/app.js"
 # p4b_pid would falsely match the leftover as the "rollback process" before this
 # publish even rolls back.
 phase5_start_pid="$(cat "$sandbox/.run/server.pid")"
+# Track the phase-5 start server too: on a FAILING exit path (e.g. the publish
+# refuses to select a rollback) this pid is neither the candidate nor the
+# rollback and would otherwise leak holding the test port — cleanup reaps it.
+track_pid "$phase5_start_pid"
 # Phase 5 timeline: candidate verification keeps failing for ~12 s (40 attempts x
 # 300 ms), then the rollback starts and its verification keeps failing for another
 # ~12 s. The test observes the ACTUAL rollback transition — .run/current back on
