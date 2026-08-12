@@ -57,6 +57,23 @@ grep -q "trap 'fail_safe_interrupt 130' INT" publish.sh
 grep -q "trap 'fail_safe_interrupt 143' TERM" publish.sh
 grep -q 'never leave an unverified candidate selected' publish.sh
 grep -q 'must never kill a known-good rollback process' publish.sh
+# Guard the closed transition windows: the launch + PID recording must be atomic
+# (single foreground helper; a signal can never land between the spawn and the pid
+# write), the trap must be able to find the candidate from the pid file if the
+# signal lands before the state variable is assigned, the rollback process must be
+# tracked separately (rollback_pid/rollback_started) so a trap can never start a
+# second rollback process or kill a known-good one, the prior serving pid must be
+# captured for the selection-window fast path, the failed candidate must be
+# terminated and its port confirmed free before the prior release is restarted
+# (rollback can never race a dying candidate), and the deterministic test seam
+# (FF_TEST_SIGNAL_AT) must be wired in for the interrupt-injection matrix.
+grep -q 'test_signal_hook' publish.sh
+grep -q 'FF_TEST_SIGNAL_AT' publish.sh
+grep -q 'rollback_pid' publish.sh
+grep -q 'rollback_started' publish.sh
+grep -q 'prior_pid' publish.sh
+grep -q '9>&-' publish.sh
+grep -q 'sh -c' publish.sh
 # The canonical platform port must remain the default verification target (a wrong
 # port can never be accepted) and the production listener default.
 grep -q '127.0.0.1:3000' scripts/verify-ready.sh

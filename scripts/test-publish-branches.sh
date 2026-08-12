@@ -23,6 +23,15 @@
 #      process — the trap must never kill a known-good rollback process — it only
 #      removes the orphaned candidate directory and exits 130 with the rollback
 #      process still alive and serving.
+#   6. DETERMINISTIC SIGNAL-INJECTION MATRIX: FF_TEST_SIGNAL_AT makes publish.sh
+#      inject SIGINT into itself at exactly each formerly unsafe transition point
+#      (promote-selected, promote-stopped, promote-tracked, rollback-killed,
+#      rollback-selected, rollback-started) — no wall-clock races. Each injection
+#      asserts .run/current resolves to the intended prior release, the
+#      candidate/superseded process is reaped (kill -0 fails), exactly one
+#      listener survives, no candidate directory or markers remain, the
+#      still-serving known-good process at promote-selected is never killed, and
+#      the launched rollback process at rollback-started is never killed.
 # Every phase ends with pid-level no-orphan assertions (the tracked process is
 # actually gone — kill -0 fails — or, where a release must keep serving, is proven
 # alive), not merely the absence of a listener. The sandbox uses the FF_TEST_*
@@ -274,6 +283,100 @@ cand5="$(find "$sandbox/releases" -mindepth 1 -maxdepth 1 -type d -newer "$sandb
 ! test -e "$sandbox/.run/current.next" && ! test -e "$sandbox/.run/rollback.next" && ! test -e "$sandbox/.run/current.restore" \
   || { echo "phase 5 interrupt markers left behind:"; ls -la "$sandbox/.run"; exit 1; }
 echo "phase 5: interrupted rollback left the known-good rollback process $rollback_pid alive and serving"
+# --- Phase 6: DETERMINISTIC SIGNAL-INJECTION MATRIX --------------------------
+# Every formerly unsafe transition window is now covered by a deterministic hook
+# (FF_TEST_SIGNAL_AT): publish.sh re-arms its trap and injects SIGINT into itself
+# at exactly the named point, so the fail-safe is proven without wall-clock races:
+#   promote-selected  (candidate selected, prior process still serving — the trap
+#                      must restore the selection WITHOUT killing the known-good
+#                      process)
+#   promote-stopped   (prior process stopped, candidate not yet started)
+#   promote-tracked   (candidate running and fully tracked — deterministic twin of
+#                      the timeout-based phase 4b)
+#   rollback-killed   (failed candidate terminated, prior release not yet re-selected)
+#   rollback-selected (prior release selected, rollback process not yet started)
+#   rollback-started  (rollback process launched but unverified — deterministic
+#                      twin of the timeout-based phase 5: known-good rollback must
+#                      never be killed)
+# After every injection: .run/current must resolve to the intended (prior) release,
+# the candidate/superseded process must be reaped (kill -0 fails), exactly one
+# listener (the serving release) may remain, no candidate directory or swap/
+# interrupt markers may survive, and the exit code must be 130 (SIGINT).
+echo "phase 6: deterministic signal-injection matrix across every formerly unsafe transition window"
+# Repair the phase-5 damage so rel4 is a healthy known-good release again, and make
+# the matrix candidates fail verification fast (broken asset) so the rollback
+# section is reachable for the rollback-* points.
+printf 'app-js\n' > "$sandbox/releases/$rel4/dist/client/app.js"
+rm -f "$sandbox/dist/client/app.js"
+inject_point() { # point expected-msg
+  local point="$1" expect_msg="$2" rc cur cand_release server_pid lsnr i
+  set +e
+  (
+    cd "$sandbox"
+    env -u PORT FF_TEST_PORT="$port" FF_TEST_SKIP_BUILD=1 FF_TEST_SKIP_INSTALL=1 \
+      FF_TEST_READY_MAX_ATTEMPTS=3 FF_TEST_READY_BACKOFF_MS=200 FF_TEST_READY_DEADLINE_SECS=20 \
+      FF_TEST_SIGNAL_AT="$point" bash ./publish.sh
+  ) >"$sandbox/phase6-$point.log" 2>&1
+  rc=$?
+  set -e
+  (( rc == 130 )) || { echo "phase 6 $point: expected exit 130, got $rc:"; cat "$sandbox/phase6-$point.log"; exit 1; }
+  # .run/current must resolve to the intended (prior) release.
+  cur="$(readlink -f "$sandbox/.run/current")"
+  [[ "$cur" == "$sandbox/releases/$rel4" ]] || { echo "phase 6 $point: current not prior release $rel4: $cur"; cat "$sandbox/phase6-$point.log"; exit 1; }
+  # Exactly one candidate release directory was created by the interrupted publish;
+  # it must be gone (never leave an unverified candidate selected or its directory
+  # behind).
+  cand_release="$(find "$sandbox/releases" -mindepth 1 -maxdepth 1 -type d -newer "$sandbox/releases/$rel4" | head -1)"
+  [ -z "$cand_release" ] || { echo "phase 6 $point: candidate release left behind: $cand_release"; exit 1; }
+  # No swap/interrupt markers or staging may remain.
+  ! test -e "$sandbox/.run/current.next" && ! test -e "$sandbox/.run/rollback.next" && ! test -e "$sandbox/.run/current.restore" && ! test -e "$sandbox/.run/restore.html" \
+    || { echo "phase 6 $point: markers left behind:"; ls -la "$sandbox/.run"; exit 1; }
+  ! find "$sandbox/.run" -maxdepth 1 -name 'staging.*' | grep -q . || { echo "phase 6 $point: staging dir left behind"; exit 1; }
+  # Exactly one server process must be tracked, alive, and the sole listener.
+  server_pid="$(cat "$sandbox/.run/server.pid")"
+  assert_pid_alive "$server_pid" "phase 6 $point serving release"
+  lsnr=""
+  for i in $(seq 1 50); do
+    lsnr="$(lsof -t -iTCP:"$port" -sTCP:LISTEN 2>/dev/null | head -1 || true)"
+    [ -n "$lsnr" ] && [ "$lsnr" = "$server_pid" ] && break
+    sleep .1
+  done
+  [ -n "$lsnr" ] && [ "$lsnr" = "$server_pid" ] || { echo "phase 6 $point: listener '$lsnr' != tracked server pid $server_pid"; exit 1; }
+  test "$(lsof -t -iTCP:"$port" -sTCP:LISTEN 2>/dev/null | wc -l)" = 1 || { echo "phase 6 $point: more than one listener on $port"; exit 1; }
+  [ -z "$expect_msg" ] || grep -q "$expect_msg" "$sandbox/phase6-$point.log" \
+    || { echo "phase 6 $point: expected message '$expect_msg' missing:"; cat "$sandbox/phase6-$point.log"; exit 1; }
+  "$SCRIPT_DIR/verify-release.sh" "$rel4" "http://127.0.0.1:$port" "$sandbox/phase6-$point-verify.html"
+  echo "phase 6 $point: prior release $rel4 selected, candidate reaped, exactly one listener (pid $server_pid) verified"
+}
+# 6a promote-selected: the trap must restore the selection WITHOUT killing the
+# still-serving known-good process (same pid keeps serving afterwards).
+prior_serving_pid="$(cat "$sandbox/.run/server.pid")"
+inject_point promote-selected 'restored (still serving)'
+assert_pid_alive "$prior_serving_pid" "phase 6 promote-selected (known-good process must not be killed)"
+test "$(cat "$sandbox/.run/server.pid")" = "$prior_serving_pid" \
+  || { echo "phase 6 promote-selected: server pid changed ($(cat "$sandbox/.run/server.pid") != $prior_serving_pid)"; exit 1; }
+# 6b promote-stopped: the trap must restore AND restart the prior release.
+inject_point promote-stopped 'restored and verified'
+# 6c promote-tracked: the trap must terminate the unverified candidate process and
+# restore/restart the prior release (deterministic twin of phase 4b).
+inject_point promote-tracked 'restored and verified'
+# 6d rollback-killed: the candidate is already dead and the port free; the trap
+# must complete the restore without trying to kill anything.
+inject_point rollback-killed 'restored and verified'
+# 6e rollback-selected: the trap must START the rollback process so .run/current
+# never points at a release with no serving process.
+inject_point rollback-selected 'restarted and verified'
+# 6f rollback-started: the trap must NOT kill the launched (unverified) rollback
+# process and must NOT start a second one — same pid alive and serving afterwards
+# (deterministic twin of phase 5).
+rollback_before_pid="$(cat "$sandbox/.run/server.pid")"
+inject_point rollback-started ''
+assert_pid_alive "$rollback_before_pid" "phase 6 rollback-started (known-good rollback process must not be killed)"
+test "$(cat "$sandbox/.run/server.pid")" = "$rollback_before_pid" \
+  || { echo "phase 6 rollback-started: pid changed ($(cat "$sandbox/.run/server.pid") != $rollback_before_pid)"; exit 1; }
+grep -q 'restored and verified\|restarted and verified' "$sandbox/phase6-rollback-started.log" \
+  && { echo "phase 6 rollback-started: trap wrongly restored/restarted over the rollback process"; exit 1; }
+echo "phase 6: deterministic matrix passed — promote-selected (known-good process untouched), promote-stopped, promote-tracked, rollback-killed, rollback-selected, rollback-started (known-good rollback never killed)"
 # --- Final cleanup: no process or listener may survive any branch --------------
 if [ -f "$sandbox/.run/server.pid" ]; then
   final_pid="$(cat "$sandbox/.run/server.pid")"
