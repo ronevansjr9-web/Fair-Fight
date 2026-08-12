@@ -17,15 +17,23 @@
 #      (never reaching arithmetic evaluation, sleep, or network work);
 #   9. the wall-clock deadline is the hard overall bound (deadline exhaustion exits
 #      within a bounded real time even with a huge attempt count);
-#  10. an interrupted readiness run cleans up and leaves no test listener behind.
+#  10. an interrupted readiness run cleans up and leaves no test listener behind;
+#  11. the deadline is TRULY AGGREGATE: a multi-asset server that stalls every
+#      request cannot make an in-flight root/asset verification substantially
+#      overrun the deadline — the run exits within a bounded real time of a small
+#      deadline even with many slow assets (each request is capped at the remaining
+#      wall-clock budget by verify-release.sh).
 # Every scenario uses a disposable port from the 20000-22999 range (probed free, no
 # collision with the canonical 3000, the launcher's 18000s range, or the
-# publish-branch test's 23000s range), tracks its server pid, and asserts no
-# listener remains on normal, error, and interruption paths.
+# publish-branch test's 23000s range), tracks its server pid, reaps it, and asserts
+# both that the process is actually gone (kill -0 fails — not merely that no
+# listener remains) and that no listener remains on normal, error, and
+# interruption paths.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 root="$(mktemp -d /tmp/ff-verify-ready.XXXXXX)"
 pids=()
+track_pid() { pids+=("$1"); }   # every started server is reaped by cleanup even on early exit
 cleanup() {
   local p
   for p in "${pids[@]:-}"; do kill "$p" 2>/dev/null || true; done
@@ -47,17 +55,19 @@ pick_free_port() { # 20000-22999, never the canonical 3000 or another test's ran
 # for a fixed window, not a flaky race), then serves / with the given
 # identity/status and the given asset_status for every same-origin asset path.
 # An optional stall sleeps inside each request to hold a verification attempt open
-# for interruption coverage. Stdio is redirected so the backgrounded server never
-# holds the caller's command-substitution pipe open (otherwise the pid capture
-# would block until the server exits).
-start_server() { # port delay identity root_status asset_status [stall]
+# for interruption coverage; an optional asset count emits that many same-origin
+# stylesheet/script tags so multi-asset verification timing is exercised. Stdio is
+# redirected so the backgrounded server never holds the caller's command-substitution
+# pipe open (otherwise the pid capture would block until the server exits).
+start_server() { # port delay identity root_status asset_status [stall [assets]]
   local port="$1" delay="$2" identity="$3" root_status="$4" asset_status="$5"
-  local stall="${6:-0}"
-  python3 - "$port" "$delay" "$identity" "$root_status" "$asset_status" "$stall" >/dev/null 2>&1 <<'PY' &
+  local stall="${6:-0}" assets="${7:-2}"
+  python3 - "$port" "$delay" "$identity" "$root_status" "$asset_status" "$stall" "$assets" >/dev/null 2>&1 <<'PY' &
 import http.server, sys, time
 port, delay = int(sys.argv[1]), float(sys.argv[2])
 identity, root_status = sys.argv[3], int(sys.argv[4])
 asset_status, stall = sys.argv[5], float(sys.argv[6])
+assets = int(sys.argv[7])
 if delay:
     time.sleep(delay)  # deterministic delayed start: connection refused until this elapses
 class H(http.server.BaseHTTPRequestHandler):
@@ -65,10 +75,13 @@ class H(http.server.BaseHTTPRequestHandler):
         if stall:
             time.sleep(stall)
         if self.path == '/':
+            links = ''.join('<link rel="stylesheet" href="/a%d.css">' % i for i in range(assets))
+            scripts = ''.join('<script src="/a%d.js"></script>' % i for i in range(assets))
+            body = '<html><head>%s</head><body>ok%s</body></html>' % (links, scripts)
             self.send_response(root_status)
             self.send_header('X-Release-ID', identity)
             self.end_headers()
-            self.wfile.write(b'<html><head><link rel="stylesheet" href="/app.css"></head><body><script src="/app.js"></script></body></html>')
+            self.wfile.write(body.encode())
         elif asset_status == '404':
             self.send_response(404); self.end_headers()
         elif asset_status == '500':
@@ -81,10 +94,22 @@ http.server.HTTPServer(('127.0.0.1', port), H).serve_forever()
 PY
   echo $!
 }
+# Reap a stopped server and PROVE the process is gone (kill -0 fails), not merely
+# that the port no longer has a listener — a process can be alive without listening.
+assert_pid_gone() { # pid context
+  local pid="$1" ctx="$2" i
+  for i in $(seq 1 50); do
+    if ! kill -0 "$pid" 2>/dev/null; then return 0; fi
+    sleep .1
+  done
+  echo "process $pid still alive $ctx" >&2
+  exit 1
+}
 stop_server() { # pid — used when a scenario ends; the EXIT trap covers failure paths
   local pid="$1"
   kill "$pid" 2>/dev/null || true
   wait "$pid" 2>/dev/null || true
+  assert_pid_gone "$pid" "(stopped at end of scenario)"
 }
 assert_no_listener() { # port context
   local port="$1" ctx="$2"
@@ -102,7 +127,7 @@ backoff=500
 delay=2.0
 # 1. Delayed promoted release becomes ready within the bound.
 port="$(pick_free_port)"
-pid="$(start_server "$port" "$delay" "release-promoted" 200 200)"
+pid="$(start_server "$port" "$delay" "release-promoted" 200 200)"; track_pid "$pid"
 if READY_MAX_ATTEMPTS="$attempts" READY_BACKOFF_MS="$backoff" "$SCRIPT_DIR/verify-ready.sh" "release-promoted" "$root/promoted.html" "http://127.0.0.1:$port" >"$root/s1.log" 2>&1; then
   echo "1. delayed promoted release became ready within bound"
 else
@@ -114,7 +139,7 @@ stop_server "$pid"; pid=""
 assert_no_listener "$port" "after scenario 1"
 # 2. Delayed rolled-back release becomes ready within the bound.
 port="$(pick_free_port)"
-pid="$(start_server "$port" "$delay" "release-rolled-back" 200 200)"
+pid="$(start_server "$port" "$delay" "release-rolled-back" 200 200)"; track_pid "$pid"
 if READY_MAX_ATTEMPTS="$attempts" READY_BACKOFF_MS="$backoff" "$SCRIPT_DIR/verify-ready.sh" "release-rolled-back" "$root/rollback.html" "http://127.0.0.1:$port" >"$root/s2.log" 2>&1; then
   echo "2. delayed rolled-back release became ready within bound"
 else
@@ -137,7 +162,7 @@ echo "3. never-ready release failed cleanly within attempt bound"
 # 4. Delayed server with the WRONG identity must still fail (retries do not mask
 #    wrong release identity once the process becomes ready).
 port="$(pick_free_port)"
-pid="$(start_server "$port" "$delay" "other-release" 200 200)"
+pid="$(start_server "$port" "$delay" "other-release" 200 200)"; track_pid "$pid"
 if READY_MAX_ATTEMPTS="$attempts" READY_BACKOFF_MS="$backoff" "$SCRIPT_DIR/verify-ready.sh" "release-promoted" "$root/wrong.html" "http://127.0.0.1:$port" >"$root/s4.log" 2>&1; then
   echo "4. delayed wrong-identity release unexpectedly passed verification" >&2
   exit 1
@@ -148,7 +173,7 @@ echo "4. delayed wrong-identity release correctly failed"
 # 5. Delayed server answering 500 with the correct identity must still fail
 #    (retries do not mask non-2xx root responses).
 port="$(pick_free_port)"
-pid="$(start_server "$port" "$delay" "release-promoted" 500 200)"
+pid="$(start_server "$port" "$delay" "release-promoted" 500 200)"; track_pid "$pid"
 if READY_MAX_ATTEMPTS="$attempts" READY_BACKOFF_MS="$backoff" "$SCRIPT_DIR/verify-ready.sh" "release-promoted" "$root/fail.html" "http://127.0.0.1:$port" >"$root/s5.log" 2>&1; then
   echo "5. delayed 500 release unexpectedly passed verification" >&2
   exit 1
@@ -159,7 +184,7 @@ echo "5. delayed 500 release correctly failed"
 # 6. Delayed server with a VALID root identity but a MISSING same-origin asset must
 #    still fail (retries do not mask invalid/missing assets).
 port="$(pick_free_port)"
-pid="$(start_server "$port" "$delay" "release-promoted" 200 404)"
+pid="$(start_server "$port" "$delay" "release-promoted" 200 404)"; track_pid "$pid"
 if READY_MAX_ATTEMPTS="$attempts" READY_BACKOFF_MS="$backoff" "$SCRIPT_DIR/verify-ready.sh" "release-promoted" "$root/missing-asset.html" "http://127.0.0.1:$port" >"$root/s6.log" 2>&1; then
   echo "6. missing-asset release unexpectedly passed verification" >&2
   exit 1
@@ -170,7 +195,7 @@ echo "6. missing same-origin asset after valid root identity correctly failed"
 # 7. Delayed server with a VALID root identity but a FAILING (500) same-origin
 #    asset must still fail.
 port="$(pick_free_port)"
-pid="$(start_server "$port" "$delay" "release-promoted" 200 500)"
+pid="$(start_server "$port" "$delay" "release-promoted" 200 500)"; track_pid "$pid"
 if READY_MAX_ATTEMPTS="$attempts" READY_BACKOFF_MS="$backoff" "$SCRIPT_DIR/verify-ready.sh" "release-promoted" "$root/bad-asset.html" "http://127.0.0.1:$port" >"$root/s7.log" 2>&1; then
   echo "7. failing-asset release unexpectedly passed verification" >&2
   exit 1
@@ -227,7 +252,7 @@ echo "9. wall-clock deadline exhaustion enforced within bounded real time"
 #     is interrupted too — a lone SIGINT to the script would be deferred until the
 #     request completes) and the test's tracked-server cleanup then frees the port.
 port="$(pick_free_port)"
-pid="$(start_server "$port" 0 "release-interrupt" 200 200 30)"
+pid="$(start_server "$port" 0 "release-interrupt" 200 200 30)"; track_pid "$pid"
 if timeout --signal=INT --kill-after=3 2 env READY_MAX_ATTEMPTS=120 READY_BACKOFF_MS=500 READY_DEADLINE_SECS=60 \
     "$SCRIPT_DIR/verify-ready.sh" "release-interrupt" "$root/interrupt.html" "http://127.0.0.1:$port" >"$root/interrupt.out" 2>&1; then
   echo "10. interrupted verification unexpectedly succeeded" >&2
@@ -239,4 +264,24 @@ fi
 stop_server "$pid"; pid=""
 assert_no_listener "$port" "after scenario 10 interruption"
 echo "10. interrupted readiness run cleaned up with no listener left"
-echo 'bounded readiness retry: delayed promotion, delayed rollback, never-ready, wrong-identity, 500, missing-asset, failing-asset, hostile-env, deadline-exhaustion, and interruption tests passed'
+# 11. TRULY AGGREGATE deadline: a multi-asset server that stalls EVERY request
+#     (root and each of 12 same-origin assets for 30 s each) must not make the
+#     verification substantially overrun a 2 s wall-clock deadline. Without the
+#     per-request remaining-budget cap this would take 13 x 5 s = 65 s per attempt;
+#     with it, the run ends within a couple seconds of the deadline because every
+#     request is capped at the seconds remaining and the attempt aborts the moment
+#     the budget is spent.
+port="$(pick_free_port)"
+pid="$(start_server "$port" 0 "release-stall" 200 200 30 6)"; track_pid "$pid"
+start="$(date +%s)"
+if READY_MAX_ATTEMPTS=120 READY_BACKOFF_MS=500 READY_DEADLINE_SECS=2 "$SCRIPT_DIR/verify-ready.sh" "release-stall" "$root/stall.html" "http://127.0.0.1:$port" >"$root/stall.out" 2>&1; then
+  echo "11. stalling multi-asset release unexpectedly passed verification" >&2
+  exit 1
+fi
+elapsed=$(( $(date +%s) - start ))
+(( elapsed <= 8 )) || { echo "11. stalling multi-asset verification took ${elapsed}s (deadline was 2 s) — in-flight verification overran the deadline" >&2; cat "$root/stall.out" >&2; exit 1; }
+grep -q "wall-clock deadline" "$root/stall.out" || { echo "11. deadline failure message missing" >&2; cat "$root/stall.out" >&2; exit 1; }
+stop_server "$pid"; pid=""
+assert_no_listener "$port" "after scenario 11 stalling multi-asset"
+echo "11. stalling multi-asset verification bounded by the remaining wall-clock budget (aggregate deadline)"
+echo 'bounded readiness retry: delayed promotion, delayed rollback, never-ready, wrong-identity, 500, missing-asset, failing-asset, hostile-env, deadline-exhaustion, interruption, and aggregate-deadline stalling tests passed'

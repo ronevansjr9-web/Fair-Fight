@@ -10,10 +10,16 @@
 # X-Release-ID, 2xx status, every same-origin asset 2xx) with backoff until the
 # process is ready or a bound is exhausted.
 #
-# Bounds — the wall-clock deadline is the hard overall cap and covers the time
-# every retry spends in full root/asset verification (not merely the inter-attempt
-# sleep); the attempt count is a secondary bound so a slow-but-progressing process
-# still terminates promptly once the deadline is reached:
+# Bounds — the wall-clock deadline is the hard overall cap and is TRULY AGGREGATE:
+# it covers the inter-attempt sleep AND every second an attempt spends inside the
+# full root/asset verification. verify-ready.sh passes the absolute deadline to
+# verify-release.sh (READY_DEADLINE_EPOCH), which caps every individual request —
+# root and each same-origin asset — at the seconds remaining until that deadline
+# and aborts the attempt the moment the budget is spent (re-checked before every
+# request), so no in-flight verification can substantially overrun the deadline
+# even with many slow assets. The inter-attempt backoff is likewise capped at the
+# remaining budget. The attempt count is a secondary bound so a slow-but-progressing
+# process still terminates promptly once the deadline is reached:
 #   READY_MAX_ATTEMPTS  (default 30,  cap 120)  maximum verification attempts
 #   READY_BACKOFF_MS    (default 500, cap 5000) sleep between failed attempts, ms
 #   READY_DEADLINE_SECS (default 120, cap 600)  overall wall-clock deadline, seconds
@@ -61,7 +67,10 @@ while :; do
     echo "release $expected not healthy within the ${deadline_secs}s wall-clock deadline (${i} attempt(s)) against $base_url" >&2
     exit 1
   fi
-  if "$SCRIPT_DIR/verify-release.sh" "$expected" "$base_url" "$html"; then
+  # Pass the absolute deadline into the full verifier: every root/asset request is
+  # capped at the remaining budget, so an in-flight verification cannot
+  # substantially overrun the deadline (the deadline is aggregate).
+  if READY_DEADLINE_EPOCH="$deadline" "$SCRIPT_DIR/verify-release.sh" "$expected" "$base_url" "$html"; then
     exit 0
   fi
   i=$((i + 1))
@@ -69,5 +78,13 @@ while :; do
     echo "release $expected not healthy after $attempts attempts (backoff ${backoff_ms}ms) against $base_url" >&2
     exit 1
   fi
-  sleep "$(awk -v ms="$backoff_ms" 'BEGIN { printf "%.3f", ms / 1000 }')"
+  # Cap the inter-attempt sleep at the remaining budget: the wall-clock deadline is
+  # the hard overall bound and includes sleep time, so a large backoff can never
+  # push the run substantially past it.
+  rem=$(( deadline - $(date +%s) ))
+  if (( rem <= 0 )); then
+    echo "release $expected not healthy within the ${deadline_secs}s wall-clock deadline (${i} attempt(s)) against $base_url" >&2
+    exit 1
+  fi
+  sleep "$(awk -v ms="$backoff_ms" -v cap="$rem" 'BEGIN { s = ms / 1000; if (s > cap) s = cap; printf "%.3f", s }')"
 done
