@@ -154,8 +154,17 @@ falsely fail with connection refused. Instead the full verifier (exact
 `X-Release-ID`, 2xx status, every same-origin asset) is re-run with backoff against
 the canonical port 3000 until the process is healthy or a bound is exhausted. Two
 bounds are enforced: the **wall-clock deadline** (default 120 s, cap 600 s) is the
-hard overall cap and includes the time every retry spends in full root/asset
-verification, not merely the inter-attempt sleep; the **attempt count** (default
+hard overall cap and is **truly aggregate** — it covers the inter-attempt sleep
+AND every second an attempt spends inside the full root/asset verification.
+`verify-ready.sh` computes the absolute deadline once and passes it to the full
+verifier as `READY_DEADLINE_EPOCH`; `scripts/verify-release.sh` then caps every
+individual request (the root and each same-origin asset, with the budget
+re-checked before every request) at the seconds remaining until that deadline and
+aborts the attempt the moment the budget is spent, so an in-flight multi-asset
+verification can never substantially overrun the deadline even with many slow
+assets. The inter-attempt backoff is likewise capped at the remaining budget.
+Standalone/direct callers that do not pass an epoch get the fixed per-request
+defaults (2 s connect / 5 s max time) instead. The **attempt count** (default
 30, cap 120) with per-attempt backoff (default 500 ms, cap 5000 ms) is the
 secondary bound so a slow-but-progressing process still terminates promptly. All
 three values (`READY_MAX_ATTEMPTS`, `READY_BACKOFF_MS`, `READY_DEADLINE_SECS`) must
@@ -170,17 +179,46 @@ healthy either, the publish reports failure rather than claiming recovery.
 
 Production readiness bounds are fixed: `publish.sh` explicitly clears any inherited
 `READY_MAX_ATTEMPTS` / `READY_BACKOFF_MS` / `READY_DEADLINE_SECS` for every spawned
-verifier, so an inherited value can never change production behavior. Only explicit
-test-only seams may shorten the bound — `FF_TEST_READY_MAX_ATTEMPTS`,
+verifier (`env -u` per spawn), so an inherited value can never change production
+behavior or cause unbounded delay. Overrides can only ever shorten the bound, and
+only through the explicit test-only seams — `FF_TEST_READY_MAX_ATTEMPTS`,
 `FF_TEST_READY_BACKOFF_MS`, `FF_TEST_READY_DEADLINE_SECS` (never set by the
-platform, and still validated/capped by `verify-ready.sh`) — used by
-`scripts/test-verify-ready.sh` for deterministic delayed starts and by
+platform, and still validated/capped by `verify-ready.sh`): when one is set,
+`publish.sh` forwards it as the corresponding `READY_*` value for that spawned
+verifier; when none are set, production runs with the fixed defaults. These seams
+are used by `scripts/test-verify-ready.sh` for deterministic delayed starts and by
 `scripts/test-publish-branches.sh`, which executes the real `publish.sh` promotion,
 rollback, and both-failed branches in a disposable sandbox on a test-only port.
 The other test-only seams (`FF_TEST_PORT` relocates the listener, `FF_TEST_SKIP_BUILD`
 and `FF_TEST_SKIP_INSTALL` skip the heavy build/install steps against a pre-seeded
 dist) are likewise never set by the platform; production always builds, installs,
 and verifies on the canonical port 3000 with the fixed defaults.
+
+### Interruption fail-safe
+
+After the atomic promotion/start, `publish.sh` installs SIGINT/SIGTERM traps that
+make interruption fail-safe (`fail_safe_interrupt`), so an operator interrupt can
+never leave an unverified release selected or a known-good process killed:
+
+- **Candidate-selected path.** If the unverified candidate release is currently
+  selected (`.run/current` → the new release) when SIGINT/SIGTERM arrives, the
+  trap terminates the unverified candidate process (tracked via
+  `candidate_pid`/`candidate_running`/`candidate_verified` and killed until the
+  listener is free), atomically restores `.run/current` to the prior release
+  through `.run/current.restore` + `mv -Tf`, restarts the prior release and
+  best-effort re-verifies it (logging "prior release … restored and verified" or
+  "… restored but readiness verification failed"), removes the interrupted
+  candidate directory, and never leaves an unverified candidate selected. If no
+  prior release exists, `.run/current` is removed rather than left pointing at the
+  candidate. It exits 130 (SIGINT) / 143 (SIGTERM).
+- **Rollback path.** If the signal arrives while a rollback verification is
+  running (the candidate is already stopped and `.run/current` already points at
+  the prior release), the trap only removes the orphaned candidate directory — it
+  deliberately does **not** touch the running rollback process, because a trap
+  must never kill a known-good rollback process.
+- Both paths clean the interrupted-artifact markers (`.run/health.html`,
+  `.run/rollback.html`) and the EXIT cleanup removes the swap markers
+  (`.run/current.next`, `.run/rollback.next`, `.run/current.restore`).
 
 The swap is intentionally a brief restart rather than a zero-downtime handoff.
 A hard host failure during the restart can still require operator intervention,
