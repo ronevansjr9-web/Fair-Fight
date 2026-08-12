@@ -30,6 +30,8 @@ candidate_verified=0      # 1 only after the candidate passed the exact verifier
 rollback_pid=""           # pid of the rollback (prior-release) process, if started
 rollback_started=0        # 1 once the rollback process was launched
 prior_pid=""              # pid serving before the atomic switch (fail-safe reference)
+verifier_pid=""           # pid of the in-flight readiness verifier, if any (global so the
+                          # fail-safe interrupt can terminate and reap that exact verifier)
 cleanup() { rm -rf "$staging" "$PWD/.run/current.next" "$PWD/.run/rollback.next" "$PWD/.run/current.restore"; }
 trap cleanup EXIT
 # Clear any inherited generic PORT (e.g. PORT=80) so no spawned release process can
@@ -94,17 +96,27 @@ verify_ready() {
   # expires — blocking every later publish with "publish already running" (exit
   # 75). The subshell resets INT/QUIT to default and closes fd 9 before exec'ing
   # the verifier, so an interrupted verification terminates with the group signal
-  # and never holds the lock.
+  # and never holds the lock. The pid is recorded globally (verifier_pid) so the
+  # fail-safe interrupt can terminate and reap that exact verifier even when a
+  # signal is delivered only to publish.sh (not the whole group).
   ( trap - INT QUIT; exec "${ready_env[@]}" ./scripts/verify-ready.sh "$expected" "$html" "$base_url" 9>&- ) &
   vp=$!
+  verifier_pid="$vp"
   if wait "$vp"; then
+    verifier_pid=""
     return 0
   else
     rc=$?
   fi
-  # Reap the verifier if the trap already exited around it (a direct SIGINT to
-  # publish.sh alone would otherwise leave it running).
-  kill -0 "$vp" 2>/dev/null && kill "$vp" 2>/dev/null || true
+  # Reap the verifier if it is somehow still alive when the wait returns (e.g. a
+  # trap already ran around it): a direct signal to publish.sh alone must never
+  # leave the verifier polling — or holding the publish lock open — until its
+  # retry bound expires.
+  if kill -0 "$vp" 2>/dev/null; then
+    kill "$vp" 2>/dev/null || true
+    wait "$vp" 2>/dev/null || true
+  fi
+  verifier_pid=""
   return "$rc"
 }
 # Deterministic test-only signal injection (FF_TEST_SIGNAL_AT): re-arms the traps
@@ -118,6 +130,48 @@ test_signal_hook() {
   trap 'fail_safe_interrupt 130' INT
   trap 'fail_safe_interrupt 143' TERM
   kill -INT $$
+}
+# Bounded candidate-stop/reap helper: stop the unverified candidate and PROVE it is
+# gone — the recorded process is dead (kill -0 fails) AND no listener remains on
+# the publish port — before the caller deletes the candidate release or re-selects
+# the prior release, so a rollback can never race a dying candidate for the
+# listener and a directory is never deleted while its process survives. Escalation
+# targets ONLY the candidate's recorded pid (TERM retries, then KILL): the helper
+# never terminates an unrelated listener or a known-good/rollback process — if a
+# listener remains after the candidate is dead it is not the candidate, so the
+# helper fails closed (returns 1) rather than kill it, and callers refuse to
+# delete the release or select a rollback that would race that listener. Bounded:
+# ~5 s of TERM retries, then ~5 s of KILL escalation against the candidate pid.
+stop_candidate() {
+  local i
+  for i in $(seq 1 50); do
+    if { [ -z "$candidate_pid" ] || ! kill -0 "$candidate_pid" 2>/dev/null; } \
+       && ! lsof -t -iTCP:"$listener_port" -sTCP:LISTEN >/dev/null 2>&1; then
+      candidate_running=0
+      return 0
+    fi
+    if [ -n "$candidate_pid" ] && kill -0 "$candidate_pid" 2>/dev/null; then
+      kill "$candidate_pid" 2>/dev/null || true
+    fi
+    sleep .1
+  done
+  # Escalate only against the candidate's recorded pid — never a listener that is
+  # not the candidate (e.g. a prior process still finishing), and never a selected
+  # rollback process.
+  if [ -n "$candidate_pid" ] && kill -0 "$candidate_pid" 2>/dev/null; then
+    kill -KILL "$candidate_pid" 2>/dev/null || true
+  fi
+  for i in $(seq 1 50); do
+    if ! lsof -t -iTCP:"$listener_port" -sTCP:LISTEN >/dev/null 2>&1; then
+      candidate_running=0
+      return 0
+    fi
+    [ -n "$candidate_pid" ] && kill -0 "$candidate_pid" 2>/dev/null && kill -KILL "$candidate_pid" 2>/dev/null || true
+    sleep .1
+  done
+  candidate_running=0
+  echo "candidate could not be stopped and the listener on port $listener_port could not be freed" >&2
+  return 1
 }
 # Fail-safe interruption. The traps are installed before the build and stay armed
 # for the whole run; every transition below is state-tracked so a SIGINT/SIGTERM
@@ -145,6 +199,16 @@ fail_safe_interrupt() {
   # Block further signals while the fail-safe runs (the caught signal is already
   # blocked during its own trap; mask the other one too to prevent re-entry).
   trap '' INT TERM
+  # Terminate and reap the in-flight readiness verifier (if any): a group signal
+  # already kills it (the verifier resets INT/QUIT to default), but a signal
+  # delivered only to publish.sh must never leave the verifier polling — or
+  # holding the publish lock open via its inherited fd — until its retry bound
+  # expires; kill the exact verifier and wait so it is actually reaped.
+  if [ -n "$verifier_pid" ] && kill -0 "$verifier_pid" 2>/dev/null; then
+    kill "$verifier_pid" 2>/dev/null || true
+  fi
+  [ -z "$verifier_pid" ] || wait "$verifier_pid" 2>/dev/null || true
+  verifier_pid=""
   if (( ! candidate_verified )) && [ -n "$release_dir" ] && [ "$(readlink -f .run/current 2>/dev/null || true)" = "$release_dir" ]; then
     # The unverified candidate is selected. Fall back to the recorded pid file in
     # case the signal landed between the launch and the state-variable assignment.
@@ -160,18 +224,16 @@ fail_safe_interrupt() {
         echo "publish interrupted; prior release $(basename "$old_release") restored (still serving)" >&2
       fi
     else
-      # Terminate the candidate process and wait until the listener is actually
-      # free, so the restored release can never race a dying candidate for the port
-      # and the candidate directory is never deleted while its process survives.
-      if [ -n "$candidate_pid" ] && kill -0 "$candidate_pid" 2>/dev/null; then
-        kill "$candidate_pid" 2>/dev/null || true
+      # Stop the candidate and PROVE it is gone — process dead AND listener absent
+      # — before restoring, so the prior release can never race a dying candidate
+      # for the port and the candidate directory is never deleted while its
+      # process survives. If the candidate cannot be stopped, fail closed: never
+      # restore over a live listener or delete a directory whose process survives.
+      if ! stop_candidate; then
+        echo "publish interrupted; candidate could not be stopped — leaving current selection untouched" >&2
+        rm -f .run/health.html .run/rollback.html .run/restore.html
+        exit "$rc"
       fi
-      for _ in $(seq 1 50); do
-        if ! lsof -t -iTCP:"$listener_port" -sTCP:LISTEN >/dev/null 2>&1; then break; fi
-        [ -n "$candidate_pid" ] && kill "$candidate_pid" 2>/dev/null || true
-        sleep .1
-      done
-      candidate_running=0
       if [ -n "$old_release" ] && [ -d "$old_release" ]; then
         ln -s "$old_release" .run/current.restore 2>/dev/null || true
         mv -Tf .run/current.restore .run/current
@@ -293,14 +355,13 @@ fi
 # The candidate is terminated and its port confirmed free BEFORE the prior release
 # is re-selected and restarted, so the rollback can never race a dying candidate
 # for the listener (the formerly unsafe "failed candidate termination -> prior
-# release restoration/restart" window).
-if [ -n "$candidate_pid" ] && kill -0 "$candidate_pid" 2>/dev/null; then kill "$candidate_pid" 2>/dev/null || true; fi
-for _ in $(seq 1 50); do
-  if ! lsof -t -iTCP:"$listener_port" -sTCP:LISTEN >/dev/null 2>&1; then break; fi
-  [ -n "$candidate_pid" ] && kill "$candidate_pid" 2>/dev/null || true
-  sleep .1
-done
-candidate_running=0
+# release restoration/restart" window). stop_candidate proves both the process is
+# dead (kill -0 fails) and no listener remains; if it cannot, fail closed rather
+# than select a rollback that would race a surviving candidate for the port.
+if ! stop_candidate; then
+  echo "release failed; candidate could not be stopped — refusing to select rollback" >&2
+  exit 1
+fi
 test_signal_hook rollback-killed
 if [ -n "$old_release" ] && [ -d "$old_release" ]; then
   ln -s "$old_release" .run/rollback.next; mv -Tf .run/rollback.next .run/current

@@ -216,16 +216,21 @@ signal:
   touching it.
 - **Candidate-selected path.** If the unverified candidate release is currently
   selected (`.run/current` → the new release) when SIGINT/SIGTERM arrives, the
-  trap terminates the candidate process (the recorded pid plus anything still
-  listening — the prior process was already stopped, so any listener here is the
-  candidate, never a known-good process) and waits until the listener is actually
-  free, atomically restores `.run/current` to the prior release through
-  `.run/current.restore` + `mv -Tf`, restarts the prior release and best-effort
-  re-verifies it (logging "prior release … restored and verified" or "… restored
-  but readiness verification failed"), removes the interrupted candidate
-  directory, and never leaves an unverified candidate selected. If no prior
-  release exists, `.run/current` is removed rather than left pointing at the
-  candidate. It exits 130 (SIGINT) / 143 (SIGTERM).
+  trap stops the candidate through one bounded helper (`stop_candidate`) and only
+  proceeds once it has **proved** the candidate is gone — the recorded process is
+  dead (`kill -0` fails) AND no listener remains on the publish port — before
+  atomically restoring `.run/current` to the prior release through
+  `.run/current.restore` + `mv -Tf`, restarting the prior release and best-effort
+  re-verifying it (logging "prior release … restored and verified" or "… restored
+  but readiness verification failed"), removing the interrupted candidate
+  directory, and never leaving an unverified candidate selected. `stop_candidate`
+  escalates only against the candidate (the recorded pid, then the listener that
+  can only be the candidate's — the prior process was stopped before the candidate
+  was launched, and a selected rollback process is never touched); if the port
+  still cannot be freed it fails closed rather than restore over a live listener
+  or delete a directory whose process survives. If no prior release exists,
+  `.run/current` is removed rather than left pointing at the candidate. It exits
+  130 (SIGINT) / 143 (SIGTERM).
 - **Rollback path.** If the signal arrives while `.run/current` already points at
   the prior release (a rollback selection), the trap only removes the orphaned
   candidate directory (its process was terminated before the rollback began) — it
@@ -234,17 +239,34 @@ signal:
   process was not yet started, the trap starts it (logging "prior release …
   restarted and verified") so `.run/current` never points at a release with no
   serving process.
-- The failed-candidate termination is likewise safe: the candidate is killed and
-  its port confirmed free before the prior release is re-selected and restarted,
-  so the rollback can never race a dying candidate for the listener.
+- The failed-candidate termination is likewise safe: the same bounded
+  `stop_candidate` helper is used by the normal (non-interrupt) rollback — the
+  candidate is killed and both its process death and port freedom are proved
+  before the prior release is re-selected and restarted, so the rollback can never
+  race a dying candidate for the listener. If the candidate cannot be stopped, the
+  publish fails closed rather than select a rollback that would race for the port.
+- **The in-flight readiness verifier is tracked globally (`verifier_pid`) and the
+  trap terminates and reaps that exact verifier.** The verifier runs as a
+  background child with INT/QUIT reset to default and the publish lock (fd 9)
+  closed (`9>&-`), so a whole-group interrupt kills it with the group signal; a
+  signal delivered only to `publish.sh` (e.g. the deterministic `FF_TEST_SIGNAL_AT`
+  injection) is handled by the trap itself, which kills and `wait`s the recorded
+  verifier pid so it can never keep polling — or keep the flock held — until its
+  retry bound expires.
 - Both paths clean the interrupted-artifact markers (`.run/health.html`,
   `.run/rollback.html`, `.run/restore.html`) and the EXIT cleanup removes the swap
   markers (`.run/current.next`, `.run/rollback.next`, `.run/current.restore`).
 The deterministic interrupt tests (`scripts/test-publish-branches.sh`) inject
 SIGINT through `FF_TEST_SIGNAL_AT` at every formerly unsafe transition point
 (`promote-selected`, `promote-stopped`, `promote-tracked`, `rollback-killed`,
-`rollback-selected`, `rollback-started`) plus the whole-group timeout interrupts
-mid-verification, and assert `.run/current` resolves to the intended release, every
-candidate/superseded pid is reaped, no listener survives unexpectedly, and a
-known-good rollback process is never killed.
+`rollback-selected`, `rollback-started`). The wall-clock interrupted-rollback
+phase observes the ACTUAL rollback transition (`.run/current` back on the prior
+release with a new server pid distinct from both the phase-start pid and the
+candidate pid), injects SIGINT into the publish's whole process group only after
+observing it — `timeout` is just a long deadman, so the publish must exit 130, not
+124 — and asserts the candidate pid and the in-flight verifier pid are reaped
+(`kill -0` fails), the rollback pid is alive and the sole listener with the
+current selection retained, no markers or candidate directory remain, and the
+publish lock is acquirable (the interrupted verifier never holds fd 9). Every
+captured pid is killed and waited in the test's final cleanup.
 Vercel `go-live` flow; production-hosting deploys have their own atomicity.

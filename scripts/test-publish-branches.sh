@@ -42,8 +42,19 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
 sandbox="$(mktemp -d /tmp/ff-publish-branches.XXXXXX)"
+tracked_pids=()
+track_pid() { tracked_pids+=("$1"); }   # every captured pid is killed AND waited in cleanup
 cleanup() {
+  local p
+  # Reap every captured pid: the phase-5 candidate/verifier/rollback/publish/
+  # timeout pids and the sandbox's recorded server pid, so no process outlives the
+  # test on any (including failing) exit path. kill may no-op for already-reaped
+  # pids; wait only succeeds for children of this shell (publish's own children
+  # were reaped by the publish/timeout trees, and the setsid'd servers are
+  # reparented), so both are best-effort and guarded.
+  for p in "${tracked_pids[@]:-}"; do kill "$p" 2>/dev/null || true; done
   if [ -f "$sandbox/.run/server.pid" ]; then kill "$(cat "$sandbox/.run/server.pid")" 2>/dev/null || true; fi
+  for p in "${tracked_pids[@]:-}"; do wait "$p" 2>/dev/null || true; done
   rm -rf "$sandbox"
 }
 trap 'cleanup; exit 130' INT
@@ -199,6 +210,7 @@ timeout --signal=INT --kill-after=5 6 env -u PORT FF_TEST_PORT="$port" FF_TEST_S
     FF_TEST_READY_MAX_ATTEMPTS=30 FF_TEST_READY_BACKOFF_MS=300 FF_TEST_READY_DEADLINE_SECS=30 \
     bash "$sandbox/publish.sh" < /dev/null >"$sandbox/phase4b.log" 2>&1 &
 pub_pid=$!
+track_pid "$pub_pid"
 cand_dir=""
 for _ in $(seq 1 400); do
   cur="$(readlink -f "$sandbox/.run/current" 2>/dev/null || true)"
@@ -212,6 +224,7 @@ for _ in $(seq 1 400); do
 done
 [ -n "$cand_dir" ] || { echo "phase 4b candidate never became selected/listening:"; cat "$sandbox/phase4b.log"; exit 1; }
 cand_pid="$(cat "$sandbox/.run/server.pid")"
+track_pid "$cand_pid"
 assert_pid_alive "$cand_pid" "phase 4b candidate before interrupt"
 echo "phase 4b: candidate $cand_dir (pid $cand_pid) selected and listening; waiting for timeout SIGINT"
 set +e
@@ -239,8 +252,9 @@ echo "phase 4b: interrupted publish terminated the unverified candidate, restore
 # running). Both the candidate AND the rollback target fail verification, so the
 # rollback process keeps running unverified for a multi-second window. SIGINT must
 # NOT kill the known-good rollback process — publish.sh's trap only removes the
-# orphaned candidate directory and exits 130 — and the rollback process must still
-# be alive and listening afterwards.
+# orphaned candidate directory, terminates/reaps the in-flight verifier, and exits
+# 130 — and the rollback process must still be alive and the SOLE listener
+# afterwards, with the current selection retained and the publish lock acquirable.
 echo "phase 5: interrupted rollback — SIGINT must not kill the known-good rollback process"
 rm -f "$sandbox/dist/client/app.js" "$sandbox/releases/$rel4/dist/client/app.js"  # candidate AND rollback target fail verification
 # The rollback process this phase must observe is the one STARTED by this publish
@@ -249,46 +263,113 @@ rm -f "$sandbox/dist/client/app.js" "$sandbox/releases/$rel4/dist/client/app.js"
 # p4b_pid would falsely match the leftover as the "rollback process" before this
 # publish even rolls back.
 phase5_start_pid="$(cat "$sandbox/.run/server.pid")"
-# Phase 5 timeline: candidate verification keeps failing for ~14 s (40 attempts),
-# then the rollback starts and its verification keeps failing for another ~14 s.
-# The 18 s timeout SIGINT lands mid-rollback-verification: the trap must NOT kill
-# the running (known-good) rollback process — it only removes the orphaned
-# candidate directory. timeout exits 124 when it fires.
-timeout --signal=INT --kill-after=5 18 env -u PORT FF_TEST_PORT="$port" FF_TEST_SKIP_BUILD=1 FF_TEST_SKIP_INSTALL=1 \
-    FF_TEST_READY_MAX_ATTEMPTS=40 FF_TEST_READY_BACKOFF_MS=300 FF_TEST_READY_DEADLINE_SECS=40 \
-    bash "$sandbox/publish.sh" < /dev/null >"$sandbox/phase5.log" 2>&1 &
-pub_pid=$!
+# Phase 5 timeline: candidate verification keeps failing for ~12 s (40 attempts x
+# 300 ms), then the rollback starts and its verification keeps failing for another
+# ~12 s. The test observes the ACTUAL rollback transition — .run/current back on
+# rel4 with a NEW server pid distinct from BOTH the phase-5 start pid and the
+# candidate pid — and only THEN injects SIGINT into the publish's whole process
+# group, so the trap demonstrably runs mid-rollback-verification with no wall-clock
+# guess. timeout is only a long deadman: in a non-interactive script it moves
+# ITSELF to a fresh process group (pgid == timeout's pid == $!) that the publish
+# bash and its verifier children share, and it passes the child's exit code
+# through — so the publish must exit 130 from the injected SIGINT, never 124 from
+# the deadman.
+(
+  cd "$sandbox"
+  exec timeout --signal=INT --kill-after=5 120 env -u PORT FF_TEST_PORT="$port" FF_TEST_SKIP_BUILD=1 FF_TEST_SKIP_INSTALL=1 \
+      FF_TEST_READY_MAX_ATTEMPTS=40 FF_TEST_READY_BACKOFF_MS=300 FF_TEST_READY_DEADLINE_SECS=40 \
+      bash ./publish.sh < /dev/null
+) >"$sandbox/phase5.log" 2>&1 &
+tm_pid=$!
+track_pid "$tm_pid"
+# The publish bash is timeout's direct child (the exec chains preserve the pid)
+# and shares timeout's process group, so a group signal must target -$tm_pid.
+publish5_pid=""
+for _ in $(seq 1 100); do
+  publish5_pid="$(pgrep -P "$tm_pid" 2>/dev/null | head -1 || true)"
+  [ -n "$publish5_pid" ] && break
+  sleep .1
+done
+[ -n "$publish5_pid" ] || { echo "phase 5 publish never started:"; cat "$sandbox/phase5.log"; exit 1; }
+# Observe the unverified candidate: a NEW release selected with its own pid and
+# listening (its verification keeps failing — the candidate asset is missing).
+cand5_dir=""; cand5_pid=""
+for _ in $(seq 1 500); do
+  cur="$(readlink -f "$sandbox/.run/current" 2>/dev/null || true)"
+  sp="$(cat "$sandbox/.run/server.pid" 2>/dev/null || true)"
+  if [ -n "$cur" ] && [ "$cur" != "$sandbox/releases/$rel4" ] && [ -n "$sp" ] \
+     && [ "$sp" != "$phase5_start_pid" ] \
+     && lsof -t -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+    cand5_dir="$cur"; cand5_pid="$sp"; break
+  fi
+  sleep .1
+done
+[ -n "$cand5_dir" ] && [ -n "$cand5_pid" ] || { echo "phase 5 candidate never became selected/listening:"; cat "$sandbox/phase5.log"; exit 1; }
+track_pid "$cand5_pid"
+assert_pid_alive "$cand5_pid" "phase 5 candidate before rollback"
+echo "phase 5: candidate $cand5_dir (pid $cand5_pid) selected and failing verification; waiting for the rollback transition"
+# Wait for the ACTUAL rollback transition: current back on rel4 with a NEW server
+# pid distinct from the phase-5 start pid AND the candidate pid, and listening.
 rollback_pid=""
 for _ in $(seq 1 500); do
   cur="$(readlink -f "$sandbox/.run/current" 2>/dev/null || true)"
   sp="$(cat "$sandbox/.run/server.pid" 2>/dev/null || true)"
-  if [ "$cur" = "$sandbox/releases/$rel4" ] && [ -n "$sp" ] && [ "$sp" != "$phase5_start_pid" ] \
+  if [ "$cur" = "$sandbox/releases/$rel4" ] && [ -n "$sp" ] \
+     && [ "$sp" != "$phase5_start_pid" ] && [ "$sp" != "$cand5_pid" ] \
      && lsof -t -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
     rollback_pid="$sp"; break
   fi
   sleep .1
 done
 [ -n "$rollback_pid" ] || { echo "phase 5 rollback never started:"; cat "$sandbox/phase5.log"; exit 1; }
+track_pid "$rollback_pid"
 assert_pid_alive "$rollback_pid" "phase 5 rollback process before interrupt"
-echo "phase 5: rollback process $rollback_pid running unverified; waiting for timeout SIGINT"
+# Capture the in-flight rollback verifier — publish.sh's only child while it waits
+# in verify_ready — so the interrupt must terminate AND reap that exact verifier.
+verifier5_pid=""
+for _ in $(seq 1 50); do
+  verifier5_pid="$(pgrep -P "$publish5_pid" -f 'verify-ready' 2>/dev/null | head -1 || true)"
+  [ -n "$verifier5_pid" ] && break
+  sleep .1
+done
+[ -n "$verifier5_pid" ] || { echo "phase 5 rollback verifier never observed:"; cat "$sandbox/phase5.log"; exit 1; }
+track_pid "$verifier5_pid"
+assert_pid_alive "$verifier5_pid" "phase 5 rollback verifier before interrupt"
+echo "phase 5: rollback process $rollback_pid (verifier $verifier5_pid) running unverified; injecting SIGINT into the publish process group"
+kill -INT -- "-$tm_pid"
 set +e
-wait "$pub_pid"; rc5=$?
+wait "$tm_pid"; rc5=$?
 set -e
-(( rc5 == 124 )) || { echo "phase 5 publish exited $rc5, expected 124 (timeout SIGINT):"; cat "$sandbox/phase5.log"; exit 1; }
-# The rollback process must be UNTOUCHED: same pid, still alive, still listening,
-# still the selected release; the trap must not have restored anything.
+(( rc5 == 130 )) || { echo "phase 5 publish exited $rc5, expected 130 (SIGINT handler), not 124 (deadman):"; cat "$sandbox/phase5.log"; exit 1; }
+# The rollback process must be UNTOUCHED: same pid, still alive, still the SOLE
+# listener, still the selected release; the trap must not have restored anything.
 current5="$(readlink -f "$sandbox/.run/current")"
 [[ "$current5" == "$sandbox/releases/$rel4" ]] || { echo "phase 5 current changed: $current5"; exit 1; }
 assert_pid_alive "$rollback_pid" "phase 5 rollback process after interrupt (trap must not kill it)"
-lsof -t -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1 || { echo "phase 5 rollback process stopped listening after interrupt"; exit 1; }
+test "$(lsof -t -iTCP:"$port" -sTCP:LISTEN 2>/dev/null | wc -l)" = 1 || { echo "phase 5: not exactly one listener on port $port"; exit 1; }
+test "$(lsof -t -iTCP:"$port" -sTCP:LISTEN 2>/dev/null | head -1)" = "$rollback_pid" \
+  || { echo "phase 5: the sole listener is not the rollback pid $rollback_pid"; exit 1; }
 grep -q "restored and verified" "$sandbox/phase5.log" && { echo "phase 5 trap wrongly restored over the rollback process"; exit 1; }
+# The candidate process, the in-flight verifier, and the publish itself must be
+# GONE (kill -0 fails): the verifier is killed by the group signal (its INT/QUIT
+# are reset to default) and/or the trap's verifier cleanup, and must never survive
+# holding the publish lock open.
+assert_pid_gone "$cand5_pid" "phase 5 candidate after interrupt"
+assert_pid_gone "$verifier5_pid" "phase 5 verifier after interrupt"
+assert_pid_gone "$publish5_pid" "phase 5 publish after interrupt"
 # The orphaned candidate directory must be removed (release count back to 3:
 # rel1 + legacy + rel4), and no interrupt markers may remain.
-cand5="$(find "$sandbox/releases" -mindepth 1 -maxdepth 1 -type d -newer "$sandbox/releases/$rel4" | head -1)"
-[ -z "$cand5" ] || { echo "phase 5 candidate release left behind: $cand5"; exit 1; }
+! test -e "$cand5_dir" || { echo "phase 5 candidate release left behind: $cand5_dir"; exit 1; }
 ! test -e "$sandbox/.run/current.next" && ! test -e "$sandbox/.run/rollback.next" && ! test -e "$sandbox/.run/current.restore" \
+  && ! test -e "$sandbox/.run/restore.html" && ! test -e "$sandbox/.run/health.html" && ! test -e "$sandbox/.run/rollback.html" \
   || { echo "phase 5 interrupt markers left behind:"; ls -la "$sandbox/.run"; exit 1; }
-echo "phase 5: interrupted rollback left the known-good rollback process $rollback_pid alive and serving"
+# The publish lock must be acquirable: the interrupted verifier must not still
+# hold fd 9 on .run/publish.lock — otherwise the very next publish fails with
+# "publish already running" (exit 75).
+if ! ( exec 9>"$sandbox/.run/publish.lock"; flock -n 9 ) 2>/dev/null; then
+  echo "phase 5 publish lock still held after interrupt" >&2; exit 1
+fi
+echo "phase 5: interrupted rollback left the known-good rollback process $rollback_pid alive, the sole listener, current selection retained, and the publish lock acquirable"
 # --- Phase 6: DETERMINISTIC SIGNAL-INJECTION MATRIX --------------------------
 # Every formerly unsafe transition window is now covered by a deterministic hook
 # (FF_TEST_SIGNAL_AT): publish.sh re-arms its trap and injects SIGINT into itself
@@ -373,13 +454,16 @@ inject_point rollback-killed 'restored and verified'
 # never points at a release with no serving process.
 inject_point rollback-selected 'restarted and verified'
 # 6f rollback-started: the trap must NOT kill the launched (unverified) rollback
-# process and must NOT start a second one — same pid alive and serving afterwards
-# (deterministic twin of phase 5).
+# process and must NOT start a second one — the rollback process launched by the
+# publish is proven alive and the sole listener inside inject_point, and the trap
+# must not have restored/restarted over it. The server running before 6f is the
+# previous phase's rollback: the publish itself stops it at promote (normal
+# promote behavior — a fresh publish always takes the port), so it must be gone;
+# the "known-good rollback process" the trap protects is the one THIS publish
+# launched.
 rollback_before_pid="$(cat "$sandbox/.run/server.pid")"
 inject_point rollback-started ''
-assert_pid_alive "$rollback_before_pid" "phase 6 rollback-started (known-good rollback process must not be killed)"
-test "$(cat "$sandbox/.run/server.pid")" = "$rollback_before_pid" \
-  || { echo "phase 6 rollback-started: pid changed ($(cat "$sandbox/.run/server.pid") != $rollback_before_pid)"; exit 1; }
+assert_pid_gone "$rollback_before_pid" "phase 6 rollback-started (superseded by this publish's promote)"
 grep -q 'restored and verified\|restarted and verified' "$sandbox/phase6-rollback-started.log" \
   && { echo "phase 6 rollback-started: trap wrongly restored/restarted over the rollback process"; exit 1; }
 echo "phase 6: deterministic matrix passed — promote-selected (known-good process untouched), promote-stopped, promote-tracked, rollback-killed, rollback-selected, rollback-started (known-good rollback never killed)"
