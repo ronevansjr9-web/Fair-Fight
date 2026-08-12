@@ -45,7 +45,9 @@ for _ in $(seq 1 50); do
   [ -s .run/server.pid ] && kill "$(cat .run/server.pid)" 2>/dev/null || true
   sleep .1
 done
-start_release() { local d="$1"; setsid nohup bun "$d/serve.ts" > .run/server.log 2>&1 < /dev/null & echo $! > .run/server.pid; }
+# Clear any inherited generic PORT (e.g. PORT=80) and the test-only override so every
+# spawned release process binds the canonical platform port 3000.
+start_release() { local d="$1"; env -u PORT -u FF_TEST_PORT setsid nohup bun "$d/serve.ts" > .run/server.log 2>&1 < /dev/null & echo $! > .run/server.pid; }
 start_release "$release_dir"
 verify() {
   local expected="$1" html="$2"

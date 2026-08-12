@@ -37,6 +37,12 @@ releases are retained under `releases/`; `.env*`, `DATABASE_URL`, and other proc
 environment configuration are not copied into or removed from releases. The server
 log is `.run/server.log`.
 
+The server always binds the platform-required port 3000. An inherited generic `PORT`
+(e.g. `PORT=80`) is deliberately ignored — it can never choose the listener — and
+`publish.sh` clears it (plus the test-only override) for every spawned release
+process. Only the explicit test-only `FF_TEST_PORT` override, used exclusively by
+`scripts/test-release-launcher.sh`, relocates the listener for isolated tests.
+
 ### Rollback
 
 If a release fails its smoke check, `publish.sh` automatically points `.run/current`
@@ -49,7 +55,7 @@ cd /path/to/site
 release="$(find releases -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\\n' | sort -nr | sed -n '2p' | cut -d' ' -f2-)"
 kill "$(cat .run/server.pid)" 2>/dev/null || true
 ln -s "$release" .run/current.rollback && mv -Tf .run/current.rollback .run/current
-setsid nohup env RELEASE_DIR="$release" bun run start > .run/server.log 2>&1 < /dev/null &
+setsid nohup env -u PORT -u FF_TEST_PORT RELEASE_DIR="$release" bun run start > .run/server.log 2>&1 < /dev/null &
 echo $! > .run/server.pid
 ```
 

@@ -1,8 +1,20 @@
 // Production server for one immutable release. publish.sh builds and swaps releases
 // before restarting this process; RELEASE_DIR is resolved once so a running process
 // never observes a symlink pointing at a different release.
-const PORT = Number(process.env.PORT || 3000);
+//
+// Canonical port contract: the platform requires this site on port 3000, so the
+// launcher always listens on 3000 in every normal/root and immutable-release path.
+// An inherited generic PORT (e.g. PORT=80) must never choose the listener and is
+// deliberately ignored. Only the explicit test-only override FF_TEST_PORT (used
+// exclusively by scripts/test-release-launcher.sh) may relocate the listener, so
+// isolated tests keep a controlled port without changing production behavior.
+const CANONICAL_PORT = 3000;
+const rawTestPort = Number(process.env.FF_TEST_PORT);
+const PORT = Number.isInteger(rawTestPort) && rawTestPort > 0 && rawTestPort <= 65535 ? rawTestPort : CANONICAL_PORT;
 const HOST = process.env.HOST || "0.0.0.0";
+if (process.env.PORT) {
+  console.log(`team-site ignoring inherited PORT=${process.env.PORT}; serving canonical port ${PORT}`);
+}
 // RELEASE_DIR is always the immutable release root containing dist/, RELEASE_ID, and this launcher.
 // A normal/legacy root launch has no RELEASE_ID; it remains compatible with the platform's
 // standard startup and simply serves dist/ without an identity header.
