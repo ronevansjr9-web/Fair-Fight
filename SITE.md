@@ -146,6 +146,22 @@ preview and the live site.
    The last five releases are retained for diagnosis/rollback; failed staging is
    removed automatically.
 
+Verification of a spawned process (both the promoted release and, on failure, the
+rolled-back release) is a **bounded readiness retry** (`scripts/verify-ready.sh`):
+a freshly spawned process is not immediately reachable — it must import the SSR
+bundle and bind the listener — so a single immediate probe races readiness and can
+falsely fail with connection refused. Instead the full verifier (exact
+`X-Release-ID`, 2xx status, every same-origin asset) is re-run with backoff against
+the canonical port 3000 until the process is healthy or the bound (default 30
+attempts, 500 ms backoff) is exhausted. Every retry is a complete, exact check, so
+a wrong release identity, a non-2xx response, an invalid asset, or a wrong listener
+port can never pass — the retry only delays the verdict. If the process never
+becomes healthy within the bound, the release is treated as failed and rollback
+proceeds; if the rolled-back release never becomes healthy either, the publish
+reports failure rather than claiming recovery. `READY_MAX_ATTEMPTS` and
+`READY_BACKOFF_MS` are test-only seams used by `scripts/test-verify-ready.sh` to
+exercise deterministic delayed starts; production behavior keeps the defaults.
+
 The swap is intentionally a brief restart rather than a zero-downtime handoff.
 A hard host failure during the restart can still require operator intervention,
 though immutable releases remain available. This preview procedure is not the

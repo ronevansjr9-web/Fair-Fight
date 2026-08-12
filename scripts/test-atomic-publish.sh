@@ -24,9 +24,15 @@ grep -q 'bun ci' publish.sh
 grep -q 'X-Release-ID' serve.ts
 grep -q 'legacy-' publish.sh
 grep -q 'rollback verified' publish.sh
+# Guard the bounded readiness retry: both promotion and rollback verification must
+# go through verify-ready.sh, and every verification attempt must target the
+# canonical port 3000 (a wrong port can never be accepted).
+grep -q 'verify-ready' publish.sh
+test "$(grep -c 'verify-ready' publish.sh)" -ge 2
+grep -q '127.0.0.1:3000' publish.sh
 # Guard the canonical port contract: spawned release processes must clear inherited
 # generic PORT, and the launcher must keep only the explicit test-only override.
 grep -q -- '-u PORT' publish.sh
 grep -q 'FF_TEST_PORT' serve.ts
 grep -q 'CANONICAL_PORT' serve.ts
-echo 'atomic release, existing-listener failure, first-deploy legacy rollback simulations, and canonical port guards passed'
+echo 'atomic release, existing-listener failure, first-deploy legacy rollback simulations, bounded readiness retry guards, and canonical port guards passed'

@@ -49,16 +49,22 @@ done
 # spawned release process binds the canonical platform port 3000.
 start_release() { local d="$1"; env -u PORT -u FF_TEST_PORT setsid nohup bun "$d/serve.ts" > .run/server.log 2>&1 < /dev/null & echo $! > .run/server.pid; }
 start_release "$release_dir"
-verify() {
+# Bounded readiness retry: a freshly spawned release is not immediately reachable
+# (SSR bundle import, listener bind), so a single immediate probe races readiness.
+# verify-ready.sh re-runs the full exact verifier (2xx, exact X-Release-ID, every
+# same-origin asset) with backoff against the canonical port 3000 until healthy or
+# the bound is exhausted. It never masks wrong identity, non-2xx, invalid assets, or
+# a wrong port, and exits 1 if the process never becomes healthy.
+verify_ready() {
   local expected="$1" html="$2"
-  ./scripts/verify-release.sh "$expected" "http://127.0.0.1:3000" "$html"
+  ./scripts/verify-ready.sh "$expected" "$html" "http://127.0.0.1:3000"
 }
-if verify "$release" .run/health.html; then rm -f .run/health.html; find releases -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -nr | tail -n +7 | cut -d' ' -f2- | xargs -r rm -rf; echo "site published atomically: $release"; exit 0; fi
+if verify_ready "$release" .run/health.html; then rm -f .run/health.html; find releases -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -nr | tail -n +7 | cut -d' ' -f2- | xargs -r rm -rf; echo "site published atomically: $release"; exit 0; fi
 # Do not claim recovery until the old release identity and assets are healthy.
 kill "$(cat .run/server.pid 2>/dev/null || true)" 2>/dev/null || true
 if [ -n "$old_release" ] && [ -d "$old_release" ]; then
   ln -s "$old_release" .run/rollback.next; mv -Tf .run/rollback.next .run/current
   start_release "$old_release"
-  if verify "$(cat "$old_release/RELEASE_ID")" .run/rollback.html; then rm -rf "$release_dir"; rm -f .run/rollback.html; echo "release failed; rollback verified" >&2; exit 1; fi
+  if verify_ready "$(cat "$old_release/RELEASE_ID")" .run/rollback.html; then rm -rf "$release_dir"; rm -f .run/rollback.html; echo "release failed; rollback verified" >&2; exit 1; fi
 fi
 rm -rf "$release_dir"; rm -f .run/health.html .run/rollback.html; echo "release and rollback failed" >&2; exit 1
