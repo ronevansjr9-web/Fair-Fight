@@ -152,15 +152,35 @@ a freshly spawned process is not immediately reachable — it must import the SS
 bundle and bind the listener — so a single immediate probe races readiness and can
 falsely fail with connection refused. Instead the full verifier (exact
 `X-Release-ID`, 2xx status, every same-origin asset) is re-run with backoff against
-the canonical port 3000 until the process is healthy or the bound (default 30
-attempts, 500 ms backoff) is exhausted. Every retry is a complete, exact check, so
-a wrong release identity, a non-2xx response, an invalid asset, or a wrong listener
-port can never pass — the retry only delays the verdict. If the process never
-becomes healthy within the bound, the release is treated as failed and rollback
-proceeds; if the rolled-back release never becomes healthy either, the publish
-reports failure rather than claiming recovery. `READY_MAX_ATTEMPTS` and
-`READY_BACKOFF_MS` are test-only seams used by `scripts/test-verify-ready.sh` to
-exercise deterministic delayed starts; production behavior keeps the defaults.
+the canonical port 3000 until the process is healthy or a bound is exhausted. Two
+bounds are enforced: the **wall-clock deadline** (default 120 s, cap 600 s) is the
+hard overall cap and includes the time every retry spends in full root/asset
+verification, not merely the inter-attempt sleep; the **attempt count** (default
+30, cap 120) with per-attempt backoff (default 500 ms, cap 5000 ms) is the
+secondary bound so a slow-but-progressing process still terminates promptly. All
+three values (`READY_MAX_ATTEMPTS`, `READY_BACKOFF_MS`, `READY_DEADLINE_SECS`) must
+be strict base-10 positive integers and are rejected with a usage error before any
+arithmetic, sleep, or network work if malformed, zero/negative, or oversized, so
+hostile or accidental values can never cause unbounded delay. Every retry is a
+complete, exact check, so a wrong release identity, a non-2xx response, an invalid
+or missing asset, or a wrong listener port can never pass — the retry only delays
+the verdict. If the process never becomes healthy within the bounds, the release is
+treated as failed and rollback proceeds; if the rolled-back release never becomes
+healthy either, the publish reports failure rather than claiming recovery.
+
+Production readiness bounds are fixed: `publish.sh` explicitly clears any inherited
+`READY_MAX_ATTEMPTS` / `READY_BACKOFF_MS` / `READY_DEADLINE_SECS` for every spawned
+verifier, so an inherited value can never change production behavior. Only explicit
+test-only seams may shorten the bound — `FF_TEST_READY_MAX_ATTEMPTS`,
+`FF_TEST_READY_BACKOFF_MS`, `FF_TEST_READY_DEADLINE_SECS` (never set by the
+platform, and still validated/capped by `verify-ready.sh`) — used by
+`scripts/test-verify-ready.sh` for deterministic delayed starts and by
+`scripts/test-publish-branches.sh`, which executes the real `publish.sh` promotion,
+rollback, and both-failed branches in a disposable sandbox on a test-only port.
+The other test-only seams (`FF_TEST_PORT` relocates the listener, `FF_TEST_SKIP_BUILD`
+and `FF_TEST_SKIP_INSTALL` skip the heavy build/install steps against a pre-seeded
+dist) are likewise never set by the platform; production always builds, installs,
+and verifies on the canonical port 3000 with the fixed defaults.
 
 The swap is intentionally a brief restart rather than a zero-downtime handoff.
 A hard host failure during the restart can still require operator intervention,

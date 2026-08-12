@@ -25,14 +25,22 @@ grep -q 'X-Release-ID' serve.ts
 grep -q 'legacy-' publish.sh
 grep -q 'rollback verified' publish.sh
 # Guard the bounded readiness retry: both promotion and rollback verification must
-# go through verify-ready.sh, and every verification attempt must target the
-# canonical port 3000 (a wrong port can never be accepted).
+# go through verify-ready.sh, production must clear inherited READY_* overrides so
+# they can never change production behavior, and the wall-clock deadline bound must
+# be enforced by the verifier itself.
 grep -q 'verify-ready' publish.sh
 test "$(grep -c 'verify-ready' publish.sh)" -ge 2
-grep -q '127.0.0.1:3000' publish.sh
+grep -q -- '-u READY_MAX_ATTEMPTS -u READY_BACKOFF_MS -u READY_DEADLINE_SECS' publish.sh
+grep -q 'READY_DEADLINE_SECS' scripts/verify-ready.sh
+grep -q 'READY_MAX_ATTEMPTS' scripts/verify-ready.sh
+grep -q 'READY_BACKOFF_MS' scripts/verify-ready.sh
+# The canonical platform port must remain the default verification target (a wrong
+# port can never be accepted) and the production listener default.
+grep -q '127.0.0.1:3000' scripts/verify-ready.sh
+grep -q 'listener_port=3000' publish.sh
 # Guard the canonical port contract: spawned release processes must clear inherited
 # generic PORT, and the launcher must keep only the explicit test-only override.
 grep -q -- '-u PORT' publish.sh
 grep -q 'FF_TEST_PORT' serve.ts
 grep -q 'CANONICAL_PORT' serve.ts
-echo 'atomic release, existing-listener failure, first-deploy legacy rollback simulations, bounded readiness retry guards, and canonical port guards passed'
+echo 'atomic release, existing-listener failure, first-deploy legacy rollback simulations, bounded readiness retry guards, deadline bound guards, and canonical port guards passed'
