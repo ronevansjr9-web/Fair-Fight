@@ -243,6 +243,12 @@ echo "phase 4b: interrupted publish terminated the unverified candidate, restore
 # be alive and listening afterwards.
 echo "phase 5: interrupted rollback — SIGINT must not kill the known-good rollback process"
 rm -f "$sandbox/dist/client/app.js" "$sandbox/releases/$rel4/dist/client/app.js"  # candidate AND rollback target fail verification
+# The rollback process this phase must observe is the one STARTED by this publish
+# (a new pid): phase 4b's trap restarted the prior release, so the pid serving at
+# phase-5 start is the phase-4b restored server, not p4b_pid — comparing against
+# p4b_pid would falsely match the leftover as the "rollback process" before this
+# publish even rolls back.
+phase5_start_pid="$(cat "$sandbox/.run/server.pid")"
 # Phase 5 timeline: candidate verification keeps failing for ~14 s (40 attempts),
 # then the rollback starts and its verification keeps failing for another ~14 s.
 # The 18 s timeout SIGINT lands mid-rollback-verification: the trap must NOT kill
@@ -256,7 +262,7 @@ rollback_pid=""
 for _ in $(seq 1 500); do
   cur="$(readlink -f "$sandbox/.run/current" 2>/dev/null || true)"
   sp="$(cat "$sandbox/.run/server.pid" 2>/dev/null || true)"
-  if [ "$cur" = "$sandbox/releases/$rel4" ] && [ -n "$sp" ] && [ "$sp" != "$p4b_pid" ] \
+  if [ "$cur" = "$sandbox/releases/$rel4" ] && [ -n "$sp" ] && [ "$sp" != "$phase5_start_pid" ] \
      && lsof -t -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
     rollback_pid="$sp"; break
   fi

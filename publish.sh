@@ -84,9 +84,18 @@ verify_ready() {
   # traps IMMEDIATELY while waiting via the wait builtin (a foreground child would
   # defer the trap until the child exits), so a signal landing mid-verification is
   # never held for the remaining retry bound — the fail-safe restores/cleans up and
-  # exits within milliseconds. The background child stays in the publish process
-  # group, so a group signal reaches it too.
-  "${ready_env[@]}" ./scripts/verify-ready.sh "$expected" "$html" "$base_url" &
+  # exits within milliseconds. The child stays in the publish process group, so a
+  # group signal reaches it too.
+  #
+  # The verifier child must not inherit the publish lock (fd 9): bash gives a
+  # simple-command background child of a non-interactive shell SIGINT/SIGQUIT =
+  # SIG_IGN, so a verifier still running when an interrupt lands would otherwise
+  # survive the group signal and keep the flock held until its retry bound
+  # expires — blocking every later publish with "publish already running" (exit
+  # 75). The subshell resets INT/QUIT to default and closes fd 9 before exec'ing
+  # the verifier, so an interrupted verification terminates with the group signal
+  # and never holds the lock.
+  ( trap - INT QUIT; exec "${ready_env[@]}" ./scripts/verify-ready.sh "$expected" "$html" "$base_url" 9>&- ) &
   vp=$!
   if wait "$vp"; then
     return 0
