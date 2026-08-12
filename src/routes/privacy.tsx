@@ -16,7 +16,7 @@ function PrivacyPage() {
       <div className="mx-auto max-w-3xl">
         <h1 className="mb-8 text-4xl font-extrabold text-white">Privacy Policy</h1>
         <div className="space-y-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8 text-white/80 leading-relaxed">
-          <p className="text-sm text-white/40">Last Updated: January 2026</p>
+          <p className="text-sm text-white/40">Last Updated: August 12, 2026</p>
 
           <section>
             <h2 className="mb-3 text-xl font-bold text-white">1. Introduction</h2>

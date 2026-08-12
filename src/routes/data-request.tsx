@@ -28,7 +28,12 @@ const exportUserData = createServerFn({ method: "POST" }).handler(async () => {
     return tempUnavailableError();
   }
 
-  return { error: TEMP_UNAVAILABLE_MESSAGE };
+  // NOTE: the working export implementation was removed by the restriction
+  // change; clearing the flag alone does NOT restore it (see
+  // lib/restrictedFeatures.ts). Rebuilding this handler to export every
+  // category of data (including files and payment records) and proving it
+  // end-to-end must precede any re-enable.
+  return tempUnavailableError();
 });
 
 const deleteUserData = createServerFn({ method: "POST" }).handler(async () => {
@@ -41,7 +46,12 @@ const deleteUserData = createServerFn({ method: "POST" }).handler(async () => {
     return tempUnavailableError();
   }
 
-  return { error: TEMP_UNAVAILABLE_MESSAGE };
+  // NOTE: the working deletion implementation was removed by the restriction
+  // change; clearing the flag alone does NOT restore it (see
+  // lib/restrictedFeatures.ts). Rebuilding this handler as a transaction over
+  // every category of data (including files and payment records) and proving
+  // it end-to-end must precede any re-enable.
+  return tempUnavailableError();
 });
 
 function DataRequestPage() {

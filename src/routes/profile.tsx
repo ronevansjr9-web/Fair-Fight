@@ -18,28 +18,31 @@ export const Route = createFileRoute("/profile")({
 
 const getProfileData = createServerFn({ method: "GET" }).handler(async () => {
   const auth = await getCurrentAuth();
-  if (!auth.userId) return { pro: false, storageUsed: 0 };
+  if (!auth.userId) return { unavailable: true, pro: false };
 
-  // P0 fail-closed gate: Pro entitlement and billing status are not verified.
-  // Report the honest status (no Pro) without querying Stripe or the payments
-  // table. When the gate is lifted, restore the entitlement/storage lookups.
+  // P0 fail-closed gate: Pro entitlement, billing status, and storage usage
+  // are not verified, and the lookups that would produce them were removed.
+  // Report an honest unavailable state instead of fabricated zeros. Clearing
+  // the flag alone does NOT restore the removed lookups (see
+  // lib/restrictedFeatures.ts); re-enabling requires restoring and verifying
+  // them first.
   if (RESTRICTED_FEATURES.checkoutProActivation) {
-    return { pro: false, storageUsed: 0 };
+    return { unavailable: true, pro: false };
   }
 
-  return { pro: false, storageUsed: 0 };
+  // The verified entitlement/storage/payment-history lookups belong here once
+  // the flow is repaired and tested; until then the honest state is reported.
+  return { unavailable: true, pro: false };
 });
 
 function ProfilePage() {
   const { user, isLoaded: userLoaded } = useUser();
-  const [profileData, setProfileData] = useState({ pro: false, storageUsed: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getProfileData().then((d) => {
-      setProfileData(d);
-      setLoading(false);
-    });
+    getProfileData()
+      .then(() => setLoading(false))
+      .catch(() => setLoading(false));
   }, []);
 
   if (!userLoaded) {
@@ -51,12 +54,6 @@ function ProfilePage() {
       </AuthenticatedGuard>
     );
   }
-
-  const formatStorage = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
 
   return (
     <AuthenticatedGuard>
@@ -111,7 +108,7 @@ function ProfilePage() {
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider text-white/40">Storage Used</p>
                 <p className="mt-1 text-sm text-white/80">
-                  {loading ? "..." : formatStorage(profileData.storageUsed)}
+                  {loading ? "..." : "Temporarily unavailable"}
                 </p>
               </div>
               <div>
@@ -142,10 +139,13 @@ function ProfilePage() {
           {/* Payment History */}
           <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
             <h2 className="mb-1 text-xl font-bold text-white">Payment History</h2>
-            <p className="mb-6 text-sm text-white/60">Your recent transactions</p>
+            <p className="mb-6 text-sm text-white/60">Payment history is temporarily unavailable</p>
             <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-center">
               <div className="mx-auto mb-3 text-3xl">🧾</div>
-              <p className="text-sm text-white/60">No payments yet.</p>
+              <p className="text-sm text-white/60">
+                Payment history is temporarily unavailable while we finish safety
+                verification. No payments are being accepted right now.
+              </p>
             </div>
           </div>
 

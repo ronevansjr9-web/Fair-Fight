@@ -213,7 +213,7 @@ function Home() {
               },
               {
                 title: "Evidence Manager",
-                desc: "Organize case evidence and prepare for attorney conversations. File uploads are temporarily unavailable while we verify durable storage.",
+                desc: "Organizing and uploading case evidence is temporarily unavailable while we verify durable file storage.",
                 icon: "📎",
               },
               {

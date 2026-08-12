@@ -13,7 +13,9 @@ export const checkProAccess = createServerFn({ method: "GET" }).validator((v: un
     if (!auth.userId) return { hasAccess: false, isAuthenticated: false };
     // P0 fail-closed gate: Pro activation is not yet verified, so no new
     // entitlement can exist. Only pre-existing paid entitlements (if any)
-    // keep working.
+    // keep working. The `startCheckout` server function was removed with the
+    // restriction change — clearing the flag does NOT restore it; the purchase
+    // funnel must be rebuilt and verified first (see lib/restrictedFeatures.ts).
     if (RESTRICTED_FEATURES.checkoutProActivation) {
       return { hasAccess: false, isAuthenticated: true };
     }

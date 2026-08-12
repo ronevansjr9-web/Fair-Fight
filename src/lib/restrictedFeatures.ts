@@ -20,8 +20,38 @@
  * statutes/case law/court rules, sign-in, and the durable case / timeline /
  * calendar surfaces.
  *
- * Flip a flag to `false` only when the corresponding flow has been repaired,
- * covered by tests, and enabled through a controlled deploy.
+ * ── IMPORTANT: what clearing a flag does and does NOT do ──────────────────
+ *
+ * A flag below is a temporary fail-closed gate over one unverified flow. It
+ * does NOT by itself restore a working flow. This change did two different
+ * kinds of work, and re-enabling each flow needs both:
+ *
+ *   (a) Flows whose implementations were KEPT behind the flag (only gated):
+ *       - Stripe Checkout / customer-portal session creation (lib/stripe.ts)
+ *       - Evidence uploadFile (lib/storage.ts)
+ *       - API routes: /api/upload, /api/user/export-data,
+ *         /api/user/delete-data, /api/stripe/webhook
+ *       - ProGate.checkProAccess and legal-argument.generateArgument
+ *       For these, clearing the flag re-exposes the existing implementation,
+ *       which must first be repaired, covered by tests, and enabled through a
+ *       controlled deploy.
+ *
+ *   (b) Flows whose implementations were REMOVED or replaced by this change:
+ *       - the `startCheckout` server function and the purchase funnel
+ *         (replaced by the ProGate unavailable panel),
+ *       - the evidence-manager UI (upload form, file list, delete actions —
+ *         replaced by the unavailable panel),
+ *       - the self-serve export/delete server-fn handlers in
+ *         routes/data-request.tsx (their working bodies were removed and both
+ *         now return the temporary-unavailable error unconditionally),
+ *       - the profile storage/payment-history lookups in routes/profile.tsx
+ *         (removed; the page reports an honest unavailable state).
+ *       For these, clearing the flag alone does NOT restore anything: the
+ *       implementation must be rebuilt first, then verified end-to-end, then
+ *       the flag cleared through a controlled deploy.
+ *
+ * So the rule is: clear a flag ONLY as the last step of re-enabling its
+ * flow — never as the re-enabling action itself.
  */
 export const RESTRICTED_FEATURES = {
   /** Stripe Checkout session creation + webhook entitlement recording. */
@@ -44,4 +74,14 @@ export const TEMP_UNAVAILABLE_STATUS = 503;
 /** Standard fail-closed payload for server functions. */
 export function tempUnavailableError(): { error: string } {
   return { error: TEMP_UNAVAILABLE_MESSAGE };
+}
+
+/**
+ * Whether client-controlled `?checkout=success` analytics may fire. The
+ * checkout flow is restricted, so a client-supplied return parameter must not
+ * be trusted to record a completed purchase. Re-enables automatically once
+ * checkoutProActivation is cleared.
+ */
+export function shouldTrackCheckoutSuccess(): boolean {
+  return !RESTRICTED_FEATURES.checkoutProActivation;
 }

@@ -29,6 +29,7 @@ import {
   RESTRICTED_FEATURES,
   TEMP_UNAVAILABLE_MESSAGE,
   TEMP_UNAVAILABLE_STATUS,
+  shouldTrackCheckoutSuccess,
   tempUnavailableError,
 } from "./restrictedFeatures";
 
@@ -207,5 +208,149 @@ describe("public copy no longer promises restricted flows", () => {
   test("legal argument route describes the temporary unavailability", () => {
     const source = read("../routes/legal-argument.tsx");
     expect(source).toContain("Temporarily unavailable");
+  });
+});
+
+/* ────────────────────────────────────────────
+   Independent-review regression tests
+   (fix/restrict-unverified-flows review pass)
+   ──────────────────────────────────────────── */
+
+describe("review fix: profile shows honest temporary-unavailable state, not fabricated claims", () => {
+  test("profile page no longer shows fabricated 0 B storage or 'No payments yet'", () => {
+    const source = read("../routes/profile.tsx");
+    // No fabricated numbers or empty-history claims.
+    expect(source).not.toContain("No payments yet");
+    expect(source).not.toContain("0 B");
+    expect(source).not.toContain("formatStorage");
+    expect(source).not.toContain("storageUsed");
+    // Honest temporary-unavailable state is shown for both sections.
+    expect(source).toMatch(/Storage Used[\s\S]*?Temporarily unavailable/);
+    expect(source.toLowerCase()).toContain("payment history is temporarily unavailable");
+  });
+
+  test("profile server fn reports unavailable instead of fabricated zeros", () => {
+    const source = read("../routes/profile.tsx");
+    const body = handlerBody(source, "getProfileData");
+    expect(body).toContain("unavailable");
+    expect(body).not.toMatch(/storageUsed:\s*0/);
+  });
+});
+
+describe("review fix: evidence copy matches the whole-manager restriction", () => {
+  test("landing page does not claim evidence organization remains available", () => {
+    const source = read("../routes/index.tsx");
+    expect(source).not.toContain("File uploads are temporarily unavailable");
+    expect(source).not.toMatch(/Organize case evidence and prepare/);
+    expect(source).toMatch(/Evidence Manager[\s\S]*?temporarily unavailable/);
+  });
+
+  test("case workspace does not claim evidence organization remains available", () => {
+    const source = read("../routes/cases/$caseId.tsx");
+    expect(source).not.toContain("uploads temporarily unavailable");
+    expect(source).not.toMatch(/tools for organizing evidence/);
+    expect(source).toContain("Temporarily unavailable — organizing and uploading case evidence");
+  });
+
+  test("evidence route meta and body describe the whole-manager restriction", () => {
+    const source = read("../routes/evidence.tsx");
+    expect(source).not.toMatch(/Organize case evidence and prepare/);
+    expect(source.toLowerCase()).toContain("the evidence manager");
+    expect(source.toLowerCase()).toContain("temporarily unavailable");
+  });
+
+  test("dashboard meta no longer claims evidence management", () => {
+    const source = read("../routes/dashboard.tsx");
+    expect(source).not.toContain("manage cases, evidence");
+  });
+});
+
+describe("review fix: gate docs and code do not claim a flag flip restores removed implementations", () => {
+  test("restriction docs say clearing a flag alone does not restore flows", () => {
+    const source = read("./restrictedFeatures.ts");
+    // No leftover "flip the flag to re-enable" oversimplification.
+    expect(source).not.toMatch(/flip a flag/i);
+    expect(source).toContain("does NOT restore");
+    expect(source).toContain("must be rebuilt");
+  });
+
+  test("data-request handlers stay fail-closed even after the gate (implementations removed)", () => {
+    const source = read("../routes/data-request.tsx");
+    const exportBody = handlerBody(source, "exportUserData");
+    expect(exportBody).toContain("tempUnavailableError");
+    expect(exportBody).not.toContain("success: true");
+    const deleteBody = handlerBody(source, "deleteUserData");
+    expect(deleteBody).toContain("tempUnavailableError");
+    expect(deleteBody).not.toContain("success: true");
+  });
+
+  test("evidence manager UI was removed, not left half-working behind the flag", () => {
+    const source = read("../routes/evidence.tsx");
+    // No working upload form / file list surface remains in the page.
+    expect(source).not.toContain("Upload a File");
+    expect(source).not.toContain("Files are stored securely");
+  });
+});
+
+describe("review fix: checkout-success analytics are disabled while checkout is restricted", () => {
+  test("shouldTrackCheckoutSuccess is false while the checkout gate is on", () => {
+    expect(RESTRICTED_FEATURES.checkoutProActivation).toBe(true);
+    expect(shouldTrackCheckoutSuccess()).toBe(false);
+  });
+
+  test("dashboard guards the client-controlled checkout-success event with the gate", () => {
+    const source = read("../routes/dashboard.tsx");
+    expect(source).toContain("shouldTrackCheckoutSuccess");
+    const callSite =
+      /if \(search\.checkout === "success" && shouldTrackCheckoutSuccess\(\)\)\s*\{\s*trackEvent\(AnalyticsEvents\.CHECKOUT_COMPLETED\)/;
+    expect(source).toMatch(callSite);
+  });
+});
+
+describe("review fix: privacy policy last-amended date", () => {
+  test("privacy policy is dated August 12, 2026", () => {
+    const source = read("../routes/privacy.tsx");
+    expect(source).toContain("Last Updated: August 12, 2026");
+    expect(source).not.toContain("Last Updated: January 2026");
+  });
+});
+
+/* ────────────────────────────────────────────
+   Preservation guards: ungated free and core
+   flows must remain available
+   ──────────────────────────────────────────── */
+
+describe("ungated flows are NOT gated (preservation)", () => {
+  const ungatedRoutes: Record<string, string> = {
+    "../routes/learn.tsx": "createFileRoute(\"/learn\")",
+    "../routes/research.tsx": "createFileRoute(\"/research\")",
+    "../routes/timeline.tsx": "createFileRoute(\"/timeline\")",
+    "../routes/calendar.tsx": "createFileRoute(\"/calendar\")",
+    "../routes/cases/new.tsx": "createFileRoute(\"/cases/new\")",
+    "../routes/cases/$caseId.tsx": "createFileRoute(\"/cases/$caseId\")",
+  };
+
+  for (const [file, routeDecl] of Object.entries(ungatedRoutes)) {
+    test(`${file} keeps its route and does not import the restriction gate`, () => {
+      const source = read(file);
+      expect(source).toContain(routeDecl);
+      expect(source).not.toContain("RESTRICTED_FEATURES");
+      expect(source).not.toContain("TEMP_UNAVAILABLE_STATUS");
+    });
+  }
+
+  test("sign-in and free education entry points remain in the header", () => {
+    const source = read("../routes/__root.tsx");
+    expect(source).toContain("<SignInButton");
+    expect(source).toContain('<Link to="/learn"');
+    expect(source).not.toContain("RESTRICTED_FEATURES");
+  });
+
+  test("the restriction doc lists free education/research and core case flows as not gated", () => {
+    const source = read("./restrictedFeatures.ts").toLowerCase();
+    expect(source).toContain("not gated");
+    expect(source).toContain("free legal education");
+    // "the durable case / timeline / calendar surfaces" may wrap across lines.
+    expect(source).toMatch(/case \/ timeline \/\s*\*?\s*calendar/);
   });
 });

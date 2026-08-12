@@ -5,6 +5,7 @@ import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { getCurrentAuth } from "~/lib/auth";
 import { ReferralCard } from "~/components/ReferralCard";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
+import { shouldTrackCheckoutSuccess } from "~/lib/restrictedFeatures";
 import { sql } from "~/db";
 
 export const Route = createFileRoute("/dashboard")({
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — Fair Fight" },
-      { name: "description", content: "Your Fair Fight dashboard — manage cases, evidence, and legal education tools." },
+      { name: "description", content: "Your Fair Fight dashboard — manage cases, timelines, court calendar, and legal education tools." },
     ],
   }),
 });
@@ -77,8 +78,12 @@ function DashboardPage() {
   }, []);
 
   // Return parameters are informational only; access is granted by the webhook-backed DB record.
+  // While checkout is restricted, ignore client-controlled ?checkout=success so
+  // it cannot fabricate a completed-purchase analytics event.
   useEffect(() => {
-    if (search.checkout === "success") trackEvent(AnalyticsEvents.CHECKOUT_COMPLETED);
+    if (search.checkout === "success" && shouldTrackCheckoutSuccess()) {
+      trackEvent(AnalyticsEvents.CHECKOUT_COMPLETED);
+    }
   }, [search.checkout]);
 
   return (

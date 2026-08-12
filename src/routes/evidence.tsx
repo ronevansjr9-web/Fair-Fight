@@ -13,7 +13,7 @@ export const Route = createFileRoute("/evidence")({
   head: () => ({
     meta: [
       { title: "Evidence Manager — Fair Fight" },
-      { name: "description", content: "Organize case evidence and prepare for attorney conversations. File uploads are temporarily unavailable while we verify durable storage." },
+      { name: "description", content: "The Evidence Manager — organizing and uploading case evidence — is temporarily unavailable while we verify durable file storage. Educational purposes only — not legal advice." },
     ],
   }),
 });
@@ -37,6 +37,10 @@ const getUploadedFiles = createServerFn({ method: "GET" }).handler(async () => {
     return { files: [], unavailable: true };
   }
 
+  // NOTE: the evidence-manager UI (upload form, file list, delete actions)
+  // was replaced by the unavailable panel; clearing the flag alone does NOT
+  // restore it (see lib/restrictedFeatures.ts). The stored-file surface must
+  // be rebuilt and the durable-storage path verified before any re-enable.
   const files = await listFiles(auth.userId);
   return { files };
 });
@@ -68,7 +72,8 @@ function EvidencePage() {
         <div className="mx-auto max-w-3xl">
           <h1 className="mb-2 text-3xl font-extrabold text-white">Evidence Manager</h1>
           <p className="mb-8 text-white/70">
-            Organize your case evidence and prepare for attorney conversations.
+            The Evidence Manager — organizing and uploading case evidence — is
+            temporarily unavailable while we verify durable file storage.
           </p>
 
           <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
