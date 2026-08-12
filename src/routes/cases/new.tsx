@@ -13,7 +13,7 @@ export const Route = createFileRoute("/cases/new")({
   head: () => ({
     meta: [
       { title: "Create New Case — Fair Fight" },
-      { name: "description", content: "Create a new legal case on Fair Fight to start organizing evidence, tracking deadlines, and getting AI-powered legal education." },
+      { name: "description", content: "Create a new legal case on Fair Fight to track important dates and court deadlines and get AI-powered legal education." },
     ],
   }),
 });
@@ -88,7 +88,7 @@ function NewCasePage() {
       <main className="min-h-screen bg-navy px-4 py-12">
         <div className="mx-auto max-w-2xl">
           <h1 className="mb-2 text-3xl font-extrabold text-white">Create New Case</h1>
-          <p className="mb-8 text-white/70">Start a new case to organize evidence, track deadlines, and get AI-powered legal education.</p>
+          <p className="mb-8 text-white/70">Start a new case to track important dates and court deadlines and get AI-powered legal education.</p>
 
           <form onSubmit={handleSubmit} className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
             <div className="space-y-5">

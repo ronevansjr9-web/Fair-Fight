@@ -360,6 +360,39 @@ describe("final re-review regression: evidence unavailable heading", () => {
   });
 });
 
+describe("final review: case-creation copy and root structured data make no disabled-flow promises", () => {
+  test("new case page meta and body no longer promise evidence organization", () => {
+    const source = read("../routes/cases/new.tsx");
+    // Creating a case must not promise the gated Evidence Manager, in either
+    // the route metadata or the visible page copy.
+    expect(source).not.toMatch(/organi[sz][a-z]* evidence/i);
+    expect(source).not.toMatch(/start (to )?organi[sz][a-z]*/i);
+    // Case creation and the durable timeline/calendar intent are preserved.
+    expect(source).toContain('createFileRoute("/cases/new")');
+    expect(source).toContain("Create New Case");
+    expect(source).toMatch(/track important dates and court deadlines/i);
+    expect(source.toLowerCase()).toContain("ai-powered legal education");
+  });
+
+  test("root structured data no longer advertises legal-argument generation", () => {
+    const source = read("../routes/__root.tsx");
+    // The enabled-looking HowTo legal-argument workflow is gone: no argument
+    // generation, AI case-law/argument analysis, citations, or strategy
+    // outlines in any metadata or structured data.
+    expect(source).not.toContain("HowTo");
+    expect(source).not.toMatch(/Prepare a Legal Argument/i);
+    expect(source).not.toMatch(/legal argument/i);
+    expect(source).not.toMatch(/case citations/i);
+    expect(source).not.toMatch(/strategy outline/i);
+    expect(source).not.toMatch(/AI Analyzes Your Case/i);
+    // Truthful general legal-education metadata is retained.
+    expect(source.toLowerCase()).toContain("legal education");
+    expect(source).toContain("FAQPage");
+    expect(source).toContain("not a law firm");
+    expect(source).toMatch(/never paywalled/i);
+  });
+});
+
 /* ────────────────────────────────────────────
    Preservation guards: ungated free and core
    flows must remain available

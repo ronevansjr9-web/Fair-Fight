@@ -130,36 +130,6 @@ export const Route = createRootRoute({
           ]
         }),
       },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "HowTo",
-          "name": "How to Prepare a Legal Argument with Fair Fight",
-          "description": "Use Fair Fight's AI-powered platform to prepare a legal argument template with jurisdiction-specific case law citations in three steps.",
-          "step": [
-            {
-              "@type": "HowToStep",
-              "position": 1,
-              "name": "Describe Your Legal Situation",
-              "text": "Create a case on Fair Fight and describe your legal situation in plain English. Gather any documents, evidence, or court papers you have. The more detail you provide, the better the analysis."
-            },
-            {
-              "@type": "HowToStep",
-              "position": 2,
-              "name": "AI Analyzes Your Case",
-              "text": "Fair Fight's AI identifies relevant statutes, case law, and legal principles from your jurisdiction. It generates plain-English summaries, relevant legal concepts, and potential arguments based on the law."
-            },
-            {
-              "@type": "HowToStep",
-              "position": 3,
-              "name": "Review and Refine Your Argument",
-              "text": "Review the AI-generated legal argument template. The platform provides jurisdiction-specific case citations, best possible arguments, counter-arguments to anticipate, and a detailed strategy outline. Use this to prepare for meetings with your attorney."
-            }
-          ],
-          "totalTime": "PT15M"
-        }),
-      },
     ],
     // Security headers applied at the HTTP level
     ...Object.fromEntries(
