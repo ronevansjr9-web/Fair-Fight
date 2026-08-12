@@ -83,7 +83,7 @@ function EvidencePage() {
               </svg>
             </div>
             <h2 className="mb-2 text-center text-xl font-bold text-white">
-              Evidence uploads are temporarily unavailable
+              The Evidence Manager is temporarily unavailable
             </h2>
             <p className="mx-auto mb-6 max-w-xl text-center text-sm text-white/70">
               {TEMP_UNAVAILABLE_MESSAGE}

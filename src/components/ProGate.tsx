@@ -11,11 +11,15 @@ export const checkProAccess = createServerFn({ method: "GET" }).validator((v: un
   try {
     const auth = await getCurrentAuth();
     if (!auth.userId) return { hasAccess: false, isAuthenticated: false };
-    // P0 fail-closed gate: Pro activation is not yet verified, so no new
-    // entitlement can exist. Only pre-existing paid entitlements (if any)
-    // keep working. The `startCheckout` server function was removed with the
-    // restriction change — clearing the flag does NOT restore it; the purchase
-    // funnel must be rebuilt and verified first (see lib/restrictedFeatures.ts).
+    // P0 fail-closed gate: Pro activation is not yet verified end-to-end, so
+    // access is intentionally denied while the gate is active — even when an
+    // entitlement record already exists for this user/case. Existing payment
+    // and entitlement records are preserved (never deleted or altered), but
+    // they are not honored for access until the flow is repaired, verified,
+    // and the flag is cleared through a controlled deploy. The `startCheckout`
+    // server function was removed with the restriction change — clearing the
+    // flag does NOT restore it; the purchase funnel must be rebuilt and
+    // verified first (see lib/restrictedFeatures.ts).
     if (RESTRICTED_FEATURES.checkoutProActivation) {
       return { hasAccess: false, isAuthenticated: true };
     }

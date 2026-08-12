@@ -316,6 +316,51 @@ describe("review fix: privacy policy last-amended date", () => {
 });
 
 /* ────────────────────────────────────────────
+   Final re-review regression tests (PR #16):
+   webhook gate payload/ordering, entitlement
+   comment truthfulness, evidence heading
+   ──────────────────────────────────────────── */
+
+describe("final re-review regression: webhook 503 feature_restricted gate", () => {
+  test("webhook restricted payload carries the feature_restricted code", () => {
+    const source = read("../routes/api/stripe/webhook.ts");
+    expect(source).toContain('code: "feature_restricted"');
+    expect(source).not.toContain('code: "temporarily_unavailable"');
+  });
+
+  test("webhook gate stays the handler's first check (fail-closed not weakened)", () => {
+    const source = read("../routes/api/stripe/webhook.ts");
+    const gate = source.indexOf("RESTRICTED_FEATURES.checkoutProActivation");
+    expect(gate).toBeGreaterThanOrEqual(0);
+    // The gate must precede the Stripe env guard, Stripe client
+    // construction, and signature verification inside the handler.
+    expect(gate).toBeLessThan(source.indexOf("if (!STRIPE_SECRET_KEY"));
+    expect(gate).toBeLessThan(source.indexOf("new Stripe("));
+    expect(gate).toBeLessThan(source.indexOf("stripe-signature"));
+  });
+});
+
+describe("final re-review regression: entitlement comment truthfulness", () => {
+  test("checkProAccess comment states records are preserved but access is intentionally denied", () => {
+    const source = read("../components/ProGate.tsx");
+    // No claim that pre-existing entitlements keep working while gated.
+    expect(source).not.toMatch(/pre-existing paid entitlements/i);
+    expect(source).not.toMatch(/keep working/i);
+    // Truthful statement: preserved records, intentionally denied access.
+    expect(source).toMatch(/intentionally denied/i);
+    expect(source).toMatch(/preserved/i);
+  });
+});
+
+describe("final re-review regression: evidence unavailable heading", () => {
+  test("primary evidence heading states the whole manager is unavailable", () => {
+    const source = read("../routes/evidence.tsx");
+    expect(source).toContain("The Evidence Manager is temporarily unavailable");
+    expect(source).not.toContain("Evidence uploads are temporarily unavailable");
+  });
+});
+
+/* ────────────────────────────────────────────
    Preservation guards: ungated free and core
    flows must remain available
    ──────────────────────────────────────────── */

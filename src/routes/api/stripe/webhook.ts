@@ -15,12 +15,13 @@ const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 
 async function handlePost(request: Request) {
   // P0 fail-closed gate: the webhook records the durable Pro entitlement, and
-  // that path is not verified end-to-end yet. Reject every delivery (Stripe
-  // will retry) instead of writing entitlement records that were never
-  // proven durable.
+  // that path is not verified end-to-end yet. Reject every delivery with 503
+  // `feature_restricted` (Stripe will retry) instead of writing entitlement
+  // records that were never proven durable. This check stays FIRST: it runs
+  // before signature verification, Stripe client construction, or any DB work.
   if (RESTRICTED_FEATURES.checkoutProActivation) {
     return json(
-      { error: TEMP_UNAVAILABLE_MESSAGE, code: "temporarily_unavailable" },
+      { error: TEMP_UNAVAILABLE_MESSAGE, code: "feature_restricted" },
       { status: TEMP_UNAVAILABLE_STATUS },
     );
   }
