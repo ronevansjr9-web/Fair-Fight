@@ -65,7 +65,7 @@ export const Route = createRootRoute({
           "@type": "Organization",
           name: "Fair Fight",
           description:
-            "Fair Fight helps you understand your legal situation with plain-English explanations, evidence organization, and AI-powered case preparation tools. Free legal research access — no paywall.",
+            "Fair Fight helps you understand your legal situation with plain-English explanations, case organization, and AI-powered legal education tools. Free legal research access — no paywall.",
           url: "https://fairfight.ctonew.app",
           sameAs: [
             "https://twitter.com/fairfightai",
@@ -84,7 +84,7 @@ export const Route = createRootRoute({
               "name": "What is Fair Fight?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Fair Fight is an AI-powered legal education platform that helps you understand your legal situation in plain English. It provides case law research, statute explanations, evidence organization tools, and court deadline tracking. Fair Fight is not a law firm and does not provide legal advice — it is an educational tool to help you prepare before meeting with an attorney."
+                "text": "Fair Fight is an AI-powered legal education platform that helps you understand your legal situation in plain English. It provides case law research, statute explanations, case organization tools, and court deadline tracking. Fair Fight is not a law firm and does not provide legal advice — it is an educational tool to help you prepare before meeting with an attorney."
               }
             },
             {
@@ -100,7 +100,7 @@ export const Route = createRootRoute({
               "name": "How much does Fair Fight cost?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Fair Fight has a generous free tier that includes AI analysis, document uploads, full legal research access, case summaries, and court calendar tools. The Pro tier costs $99 per case and includes unlimited AI analyses, unlimited document uploads, advanced document generation, timeline builder, and priority AI processing."
+                "text": "Fair Fight's free legal education — including legal research, statutes, case law, court rules, and plain-English guides — is free and never paywalled. Paid Pro features are temporarily unavailable while we finish safety verification, and no payments are being accepted right now. We will update this page when paid features reopen."
               }
             },
             {
@@ -128,36 +128,6 @@ export const Route = createRootRoute({
               }
             }
           ]
-        }),
-      },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "HowTo",
-          "name": "How to Prepare a Legal Argument with Fair Fight",
-          "description": "Use Fair Fight's AI-powered platform to prepare a legal argument template with jurisdiction-specific case law citations in three steps.",
-          "step": [
-            {
-              "@type": "HowToStep",
-              "position": 1,
-              "name": "Describe Your Legal Situation",
-              "text": "Create a case on Fair Fight and describe your legal situation in plain English. Upload any documents, evidence, or court papers you have. The more detail you provide, the better the analysis."
-            },
-            {
-              "@type": "HowToStep",
-              "position": 2,
-              "name": "AI Analyzes Your Case",
-              "text": "Fair Fight's AI identifies relevant statutes, case law, and legal principles from your jurisdiction. It generates plain-English summaries, relevant legal concepts, and potential arguments based on the law."
-            },
-            {
-              "@type": "HowToStep",
-              "position": 3,
-              "name": "Review and Refine Your Argument",
-              "text": "Review the AI-generated legal argument template. The platform provides jurisdiction-specific case citations, best possible arguments, counter-arguments to anticipate, and a detailed strategy outline. Use this to prepare for meetings with your attorney."
-            }
-          ],
-          "totalTime": "PT15M"
         }),
       },
     ],

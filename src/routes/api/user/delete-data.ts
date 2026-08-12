@@ -2,8 +2,22 @@ import { json } from "@tanstack/react-start";
 import { getCurrentAuth } from "~/lib/auth";
 import { sql } from "~/db";
 import { logDataDeleted } from "~/lib/audit";
+import {
+  RESTRICTED_FEATURES,
+  TEMP_UNAVAILABLE_MESSAGE,
+  TEMP_UNAVAILABLE_STATUS,
+} from "~/lib/restrictedFeatures";
 
 export async function POST({ request }: { request: Request }) {
+  // P0 fail-closed gate: self-serve deletion is not verified to cover
+  // uploaded files and payment/subscription records, and is not transactional.
+  if (RESTRICTED_FEATURES.deleteUserData) {
+    return json(
+      { error: TEMP_UNAVAILABLE_MESSAGE, code: "temporarily_unavailable" },
+      { status: TEMP_UNAVAILABLE_STATUS },
+    );
+  }
+
   const auth = await getCurrentAuth(request);
   if (!auth.userId) {
     return json({ error: "Unauthorized" }, { status: 401 });

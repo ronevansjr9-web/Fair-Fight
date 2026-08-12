@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   SignInButton,
   SignUpButton,
@@ -7,16 +7,11 @@ import {
   useAuth,
 } from "@clerk/tanstack-start";
 import { createServerFn } from "@tanstack/react-start";
-import { getCurrentAuth, getPrimaryEmail } from "~/lib/auth";
+import { getCurrentAuth } from "~/lib/auth";
 import { askAI } from "~/lib/ai";
 import { sanitizeInput } from "~/lib/sanitize";
 import { checkRateLimit } from "~/lib/rate-limit";
 import { logAIAnalysisGenerated } from "~/lib/audit";
-import {
-  createCheckoutSession,
-  createCustomerPortalSession,
-  getSubscriptionStatus,
-} from "~/lib/stripe";
 import { getReferrerInfo } from "~/lib/referral";
 
 export const Route = createFileRoute("/")({
@@ -60,7 +55,7 @@ Provide 2-3 practical next steps. Be concrete but brief.
 ## Questions for Your Attorney
 List 2-3 smart questions tailored to the situation.
 
-Keep it short — this is a free preview of what Fair Fight Pro can do. Never say you are giving legal advice.`;
+Keep it short — this is a free educational preview. Never say you are giving legal advice.`;
 
     const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
       { role: "system", content: SYSTEM_PROMPT },
@@ -109,37 +104,6 @@ Keep it short — this is a free preview of what Fair Fight Pro can do. Never sa
   });
 
 /* ────────────────────────────────────────────
-   Server function — get user pro status
-   ──────────────────────────────────────────── */
-const getUserProStatus = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const auth = await getCurrentAuth();
-    if (!auth.userId) return { pro: false };
-    const status = await getSubscriptionStatus(auth.userId);
-    return { pro: status.active };
-  } catch {
-    return { pro: false };
-  }
-});
-
-/* ────────────────────────────────────────────
-   Server function — start pro checkout
-   ──────────────────────────────────────────── */
-const startProCheckout = createServerFn({ method: "POST" }).handler(async () => {
-  const auth = await getCurrentAuth();
-  if (!auth.userId) return { error: "Please sign in first." };
-
-  // AuthObject has no `user` property — resolve email via Clerk Backend API.
-  // `null` (lookup failure) is passed as undefined so Stripe omits customer_email
-  // instead of receiving an empty string.
-  const email = (await getPrimaryEmail(auth.userId)) ?? undefined;
-  const result = await createCheckoutSession(auth.userId, email);
-
-  if ("error" in result) return { error: result.error };
-  return { url: result.url };
-});
-
-/* ────────────────────────────────────────────
    Home Component
    ──────────────────────────────────────────── */
 function Home() {
@@ -154,25 +118,6 @@ function Home() {
     questions: string;
   } | null>(null);
   const [error, setError] = useState("");
-  const [proStatus, setProStatus] = useState(false);
-
-  useEffect(() => {
-    getUserProStatus().then((r) => setProStatus(r.pro));
-
-    // Continue checkout only when this browser explicitly initiated the
-    // homepage upgrade CTA before authentication. A bare query string (or a
-    // return from another gated feature) must never trigger a purchase.
-    const upgradeIntent = window.sessionStorage.getItem("fairfight:homepage-upgrade-intent");
-    if (
-      auth.isSignedIn &&
-      upgradeIntent === "1" &&
-      new URLSearchParams(window.location.search).get("upgrade") === "1"
-    ) {
-      window.sessionStorage.removeItem("fairfight:homepage-upgrade-intent");
-      window.history.replaceState({}, "", window.location.pathname);
-      void handleUpgrade();
-    }
-  }, [auth.isSignedIn]);
 
   const handleAnalyze = async () => {
     if (!situation.trim()) return;
@@ -188,39 +133,6 @@ function Home() {
     }
     setIsAnalyzing(false);
   };
-
-  const handleUpgrade = async () => {
-    setError("");
-    try {
-      const result = await startProCheckout();
-      if ("error" in result) {
-        setError(result.error || "Unable to start checkout. Please try again.");
-      } else if (result.url) {
-        // This records only a successful redirect to Checkout, never payment completion.
-        await import("~/lib/analytics").then(({ trackEvent, AnalyticsEvents, withUTM }) =>
-          trackEvent(AnalyticsEvents.CHECKOUT_STARTED, withUTM({ source: "homepage" })),
-        );
-        window.location.href = result.url;
-      }
-    } catch {
-      setError("Unable to start checkout. Please try again.");
-    }
-  };
-
-  const upgradeButton = auth.isSignedIn ? (
-    <button onClick={handleUpgrade} className="gold-gradient rounded-full px-6 py-2 text-sm font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)]">
-      Upgrade to Pro — $99
-    </button>
-  ) : (
-    <SignInButton mode="modal" forceRedirectUrl="/?upgrade=1" fallbackRedirectUrl="/?upgrade=1">
-      <button
-        onClick={() => window.sessionStorage.setItem("fairfight:homepage-upgrade-intent", "1")}
-        className="gold-gradient rounded-full px-6 py-2 text-sm font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)]"
-      >
-        Sign in to upgrade — $99
-      </button>
-    </SignInButton>
-  );
 
   return (
     <main className="min-h-screen">
@@ -301,7 +213,7 @@ function Home() {
               },
               {
                 title: "Evidence Manager",
-                desc: "Upload, organize, and tag evidence. Build timelines. Never lose track of a document or deadline.",
+                desc: "Organizing and uploading case evidence is temporarily unavailable while we verify durable file storage.",
                 icon: "📎",
               },
               {
@@ -316,7 +228,7 @@ function Home() {
               },
               {
                 title: "Legal Argument Builder",
-                desc: "AI-powered argument templates with jurisdiction-specific case law. For Pro users.",
+                desc: "Structure legal arguments with jurisdiction-specific case law. Temporarily unavailable while Pro activation is verified.",
                 icon: "⚖️",
               },
             ].map((feature) => (
@@ -394,14 +306,6 @@ function Home() {
                   <div>
                     <h4 className="mb-1 font-semibold text-gold">Questions for Your Attorney</h4>
                     <p className="text-sm text-white/70">{analysis.questions}</p>
-                  </div>
-                )}
-                {!proStatus && (
-                  <div className="rounded-lg border border-gold/20 bg-navy-light/50 p-4 text-center">
-                    <p className="mb-2 text-sm text-white/80">
-                      This was a free preview. Upgrade to Pro for unlimited AI analyses per case.
-                    </p>
-                    {upgradeButton}
                   </div>
                 )}
                 <p className="text-xs text-white/40">

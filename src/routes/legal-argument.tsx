@@ -6,14 +6,18 @@ import { generateArgumentTemplate } from "~/lib/argument-template";
 import { sanitizeInput } from "~/lib/sanitize";
 import { hasOwnedCaseEntitlement } from "~/lib/argumentAccess";
 import { ProGate } from "~/components/ProGate";
+import {
+  RESTRICTED_FEATURES,
+  TEMP_UNAVAILABLE_MESSAGE,
+} from "~/lib/restrictedFeatures";
 import { sql } from "~/db";
 
 export const Route = createFileRoute("/legal-argument")({
   component: LegalArgumentPage,
   head: () => ({
     meta: [
-      { title: "Legal Argument Generator — AI-Powered Case Law Citations | Fair Fight Pro" },
-      { name: "description", content: "Generate AI-powered legal argument templates with jurisdiction-specific case law citations. Pro feature — educational purposes only." },
+      { title: "Legal Argument Generator — AI-Powered Case Law Citations | Fair Fight" },
+      { name: "description", content: "Generate AI-powered legal argument templates with jurisdiction-specific case law citations. Temporarily unavailable while Pro activation is verified. Educational purposes only — not legal advice." },
     ],
   }),
 });
@@ -64,6 +68,13 @@ const generateArgument = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const auth = await getCurrentAuth();
     if (!auth.userId) return { error: "Sign in required" };
+
+    // P0 fail-closed gate: this Pro-activated flow depends on a durable Pro
+    // entitlement, which is not verified yet. Fail closed instead of serving
+    // it behind an unproven entitlement path.
+    if (RESTRICTED_FEATURES.checkoutProActivation) {
+      return { error: TEMP_UNAVAILABLE_MESSAGE };
+    }
 
     if (!(await hasOwnedCaseEntitlement(auth.userId, data.caseId))) return { error: "This case is not eligible for Pro access" };
 

@@ -1,5 +1,9 @@
 import Stripe from "stripe";
 import { checkoutReturnUrls } from "~/lib/payment";
+import {
+  RESTRICTED_FEATURES,
+  TEMP_UNAVAILABLE_MESSAGE,
+} from "~/lib/restrictedFeatures";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "";
@@ -24,6 +28,11 @@ export async function createCheckoutSession(
   email?: string,
   caseId?: string
 ): Promise<{ url: string } | { error: string }> {
+  // P0 fail-closed gate: Pro activation is not yet verified end-to-end.
+  if (RESTRICTED_FEATURES.checkoutProActivation) {
+    return { error: TEMP_UNAVAILABLE_MESSAGE };
+  }
+
   if (!caseId) return { error: "Select a case before purchasing Pro." };
 
   if (!STRIPE_PRO_PRICE_ID) {
@@ -63,6 +72,11 @@ export async function createCheckoutSession(
 export async function createCustomerPortalSession(
   customerId: string
 ): Promise<{ url: string } | { error: string }> {
+  // P0 fail-closed gate: billing/portal is part of the unverified paid flow.
+  if (RESTRICTED_FEATURES.checkoutProActivation) {
+    return { error: TEMP_UNAVAILABLE_MESSAGE };
+  }
+
   try {
     const stripe = getStripe();
     const session = await stripe.billingPortal.sessions.create({

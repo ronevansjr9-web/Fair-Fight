@@ -58,7 +58,7 @@ mock.module("@tanstack/react-start", () => ({
 // Imports must come after mock.module so the mocked modules are used.
 const { hasOwnedCaseEntitlement, isCaseOwner } = await import("./argumentAccess");
 const { fetchUserCases } = await import("../routes/legal-argument");
-const { startCheckout } = await import("../components/ProGate");
+const { checkProAccess } = await import("../components/ProGate");
 
 describe("hasOwnedCaseEntitlement", () => {
   test("denies access when the case is not owned by the user", async () => {
@@ -105,32 +105,21 @@ describe("isCaseOwner", () => {
   });
 });
 
-describe("startCheckout server-side ownership gating", () => {
-  test("rejects checkout initiation if caseId is missing", async () => {
-    createCheckoutSessionCalled = false;
-    const res = await startCheckout({ data: {} });
-    expect(res).toEqual({ error: "Select a case before purchasing Pro." });
-    expect(createCheckoutSessionCalled).toBe(false);
+describe("ProGate access check fails closed while checkout is restricted", () => {
+  test("checkProAccess denies access for authenticated users without touching the database", async () => {
+    results = [];
+    const res = await checkProAccess({ data: { caseId: "case_owned" } });
+    expect(res).toEqual({ hasAccess: false, isAuthenticated: true });
+    expect(results.length).toBe(0);
   });
-
-  test("rejects checkout initiation if case is not owned by the user", async () => {
-    createCheckoutSessionCalled = false;
-    results = [[]];
-    const res = await startCheckout({ data: { caseId: "case_unowned" } });
-    expect(res).toEqual({ error: "This case does not exist or you do not have permission to access it" });
-    expect(createCheckoutSessionCalled).toBe(false);
-  });
-
-  test("allows checkout initiation and creates Stripe session if case is owned by user", async () => {
-    createCheckoutSessionCalled = false;
-    results = [[{ id: 1 }]];
-    const res = await startCheckout({ data: { caseId: "case_owned" } });
-    expect(res).toEqual({ url: "https://stripe.example.com/mock-checkout" });
-    expect(createCheckoutSessionCalled).toBe(true);
-    expect(checkoutSessionArgs).toEqual(["user_1", "user@example.com", "case_owned"]);
+  test("ProGate no longer exposes the startCheckout server function", () => {
+    const source = readFileSync(
+      fileURLToPath(new URL("../components/ProGate.tsx", import.meta.url)),
+      "utf8",
+    );
+    expect(source).not.toMatch(/export const startCheckout/);
   });
 });
-
 describe("fetchUserCases inner auth logic", () => {
   test("returns cases for authenticated user", async () => {
     results = [[{ id: "case_1", title: "My Case" }]];
