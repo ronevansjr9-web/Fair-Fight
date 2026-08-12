@@ -88,7 +88,7 @@ function DashboardPage() {
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-extrabold text-white">Dashboard</h1>
-              <p className="mt-1 text-white/60">Manage your cases, evidence, and legal education</p>
+              <p className="mt-1 text-white/60">Manage your cases and legal education tools</p>
             </div>
             <Link
               to="/cases/new"

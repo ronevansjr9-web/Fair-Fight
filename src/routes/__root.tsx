@@ -65,7 +65,7 @@ export const Route = createRootRoute({
           "@type": "Organization",
           name: "Fair Fight",
           description:
-            "Fair Fight helps you understand your legal situation with plain-English explanations, evidence organization, and AI-powered case preparation tools. Free legal research access — no paywall.",
+            "Fair Fight helps you understand your legal situation with plain-English explanations, case organization, and AI-powered legal education tools. Free legal research access — no paywall.",
           url: "https://fairfight.ctonew.app",
           sameAs: [
             "https://twitter.com/fairfightai",
@@ -84,7 +84,7 @@ export const Route = createRootRoute({
               "name": "What is Fair Fight?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Fair Fight is an AI-powered legal education platform that helps you understand your legal situation in plain English. It provides case law research, statute explanations, evidence organization tools, and court deadline tracking. Fair Fight is not a law firm and does not provide legal advice — it is an educational tool to help you prepare before meeting with an attorney."
+                "text": "Fair Fight is an AI-powered legal education platform that helps you understand your legal situation in plain English. It provides case law research, statute explanations, case organization tools, and court deadline tracking. Fair Fight is not a law firm and does not provide legal advice — it is an educational tool to help you prepare before meeting with an attorney."
               }
             },
             {
@@ -100,7 +100,7 @@ export const Route = createRootRoute({
               "name": "How much does Fair Fight cost?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Fair Fight has a generous free tier that includes AI analysis, document uploads, full legal research access, case summaries, and court calendar tools. The Pro tier costs $99 per case and includes unlimited AI analyses, unlimited document uploads, advanced document generation, timeline builder, and priority AI processing."
+                "text": "Fair Fight's free legal education — including legal research, statutes, case law, court rules, and plain-English guides — is free and never paywalled. Paid Pro features are temporarily unavailable while we finish safety verification, and no payments are being accepted right now. We will update this page when paid features reopen."
               }
             },
             {
@@ -142,7 +142,7 @@ export const Route = createRootRoute({
               "@type": "HowToStep",
               "position": 1,
               "name": "Describe Your Legal Situation",
-              "text": "Create a case on Fair Fight and describe your legal situation in plain English. Upload any documents, evidence, or court papers you have. The more detail you provide, the better the analysis."
+              "text": "Create a case on Fair Fight and describe your legal situation in plain English. Gather any documents, evidence, or court papers you have. The more detail you provide, the better the analysis."
             },
             {
               "@type": "HowToStep",

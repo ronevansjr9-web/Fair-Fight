@@ -83,7 +83,7 @@ const getCase = createServerFn({ method: "GET" })
 const TOOL_LINKS = [
   { href: "/chat", icon: "💬", label: "AI Legal Chat", desc: "Ask plain-English questions about your legal situation" },
   { href: "/research", icon: "📚", label: "Legal Research", desc: "Find case law and statutes" },
-  { href: "/evidence", icon: "📎", label: "Evidence Manager", desc: "Upload and organize evidence" },
+  { href: "/evidence", icon: "📎", label: "Evidence Manager", desc: "Organize case evidence (uploads temporarily unavailable)" },
   { href: "/timeline", icon: "🕐", label: "Timeline Builder", desc: "Build a chronological case timeline" },
   { href: "/calendar", icon: "📅", label: "Court Calendar", desc: "Track court dates and deadlines" },
   { href: "/documents", icon: "📝", label: "Document Generator", desc: "Generate legal document drafts" },

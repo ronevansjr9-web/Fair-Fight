@@ -1,17 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import { createServerFn } from "@tanstack/react-start";
-import { getCurrentAuth, getPrimaryEmail } from "~/lib/auth";
-import { sql } from "~/db";
-import { logDataExported, logDataDeleted } from "~/lib/audit";
+import { getCurrentAuth } from "~/lib/auth";
+import {
+  RESTRICTED_FEATURES,
+  TEMP_UNAVAILABLE_MESSAGE,
+  tempUnavailableError,
+} from "~/lib/restrictedFeatures";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 
 export const Route = createFileRoute("/data-request")({
   component: DataRequestPage,
   head: () => ({
     meta: [
-      { title: "Data Request — Export or Delete Your Data | Fair Fight" },
-      { name: "description", content: "Request a copy of your data or delete your Fair Fight account and associated data." },
+      { title: "Data Request — Fair Fight" },
+      { name: "description", content: "Request a copy of your data or ask about deleting your Fair Fight data. Self-serve export and deletion are temporarily unavailable while we verify they cover all data." },
     ],
   }),
 });
@@ -20,197 +22,64 @@ const exportUserData = createServerFn({ method: "POST" }).handler(async () => {
   const auth = await getCurrentAuth();
   if (!auth.userId) return { error: "Sign in required" };
 
-  try {
-    const cases = await sql()`SELECT * FROM cases WHERE user_id = ${auth.userId}`;
-    const auditLogs = await sql()`SELECT * FROM audit_logs WHERE user_id = ${auth.userId} ORDER BY created_at DESC LIMIT 1000`;
-
-    await logDataExported(auth.userId);
-
-    return {
-      success: true,
-      data: {
-        userId: auth.userId,
-        // AuthObject has no `user` property; resolve email via Clerk Backend API.
-        // null (lookup failure) is explicit — never silently empty.
-        email: await getPrimaryEmail(auth.userId),
-        cases: cases.map((c: Record<string, unknown>) => ({
-          id: c.id, title: c.title, caseType: c.case_type,
-          status: c.status, jurisdiction: c.jurisdiction,
-          description: c.description, createdAt: c.created_at,
-        })),
-        auditLogs: auditLogs.map((l: Record<string, unknown>) => ({
-          action: l.action, resource: l.resource, createdAt: l.created_at,
-        })),
-        exportedAt: new Date().toISOString(),
-      },
-    };
-  } catch (error) {
-    console.error("Export error:", error);
-    return { error: "Failed to export data. Please try again." };
+  // P0 fail-closed gate: self-serve export is not verified to include
+  // uploaded files and payment/subscription records.
+  if (RESTRICTED_FEATURES.exportUserData) {
+    return tempUnavailableError();
   }
+
+  return { error: TEMP_UNAVAILABLE_MESSAGE };
 });
 
 const deleteUserData = createServerFn({ method: "POST" }).handler(async () => {
   const auth = await getCurrentAuth();
   if (!auth.userId) return { error: "Sign in required" };
 
-  try {
-    await sql()`DELETE FROM evidence WHERE user_id = ${auth.userId}`;
-    await sql()`DELETE FROM timeline_events WHERE user_id = ${auth.userId}`;
-    await sql()`DELETE FROM calendar_events WHERE user_id = ${auth.userId}`;
-    await sql()`DELETE FROM cases WHERE user_id = ${auth.userId}`;
-    await sql()`DELETE FROM audit_logs WHERE user_id = ${auth.userId}`;
-    await sql()`DELETE FROM referral_codes WHERE user_id = ${auth.userId}`;
-    await sql()`DELETE FROM referral_tracking WHERE referrer_id = ${auth.userId} OR referred_user_id = ${auth.userId}`;
-
-    await logDataDeleted(auth.userId);
-
-    return { success: true };
-  } catch (error) {
-    console.error("Deletion error:", error);
-    return { error: "Failed to delete data. Please try again." };
+  // P0 fail-closed gate: self-serve deletion is not verified to cover
+  // uploaded files and payment/subscription records, and is not transactional.
+  if (RESTRICTED_FEATURES.deleteUserData) {
+    return tempUnavailableError();
   }
+
+  return { error: TEMP_UNAVAILABLE_MESSAGE };
 });
 
 function DataRequestPage() {
-  const [exportedData, setExportedData] = useState<string>("");
-  const [isExporting, setIsExporting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [confirmDelete, setConfirmDelete] = useState(false);
-
-  const handleExport = async () => {
-    setIsExporting(true);
-    setError("");
-    setMessage("");
-
-    const result = await exportUserData();
-    if (result.success) {
-      setExportedData(JSON.stringify(result.data, null, 2));
-      setMessage("Data export complete. You can copy the data below.");
-    } else if (result.error) {
-      setError(result.error);
-    }
-    setIsExporting(false);
-  };
-
-  const handleDelete = async () => {
-    if (!confirmDelete) {
-      setConfirmDelete(true);
-      return;
-    }
-
-    setIsDeleting(true);
-    setError("");
-    setMessage("");
-
-    const result = await deleteUserData();
-    if (result.success) {
-      setMessage("All your data has been deleted. You will be redirected...");
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 3000);
-    } else if (result.error) {
-      setError(result.error);
-    }
-    setIsDeleting(false);
-    setConfirmDelete(false);
-  };
-
-  const handleDownload = () => {
-    const blob = new Blob([exportedData], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `fairfight-data-export-${new Date().toISOString().split("T")[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <AuthenticatedGuard>
       <main className="min-h-screen bg-navy px-4 py-12">
         <div className="mx-auto max-w-3xl">
           <h1 className="mb-2 text-3xl font-extrabold text-white">Data Request</h1>
-          <p className="mb-8 text-white/70">Export your data or request deletion of your account and associated data.</p>
+          <p className="mb-8 text-white/70">
+            We're committed to protecting your data and your right to access, export, and delete it.
+          </p>
 
-          <div className="space-y-6">
-            {/* Export Section */}
-            <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
-              <h2 className="mb-4 text-xl font-bold text-white">
-                <span className="mr-2">📥</span>Export Your Data
-              </h2>
-              <p className="mb-4 text-sm text-white/70">
-                Download a copy of all your data, including case information, evidence, calendar events, and activity logs.
-              </p>
-              <button
-                onClick={handleExport}
-                disabled={isExporting}
-                className="gold-gradient rounded-full px-6 py-2.5 font-semibold text-navy shadow-md transition-all hover:shadow-lg disabled:opacity-50"
-              >
-                {isExporting ? "Exporting..." : "Export My Data"}
-              </button>
-
-              {exportedData && (
-                <div className="mt-6">
-                  <div className="mb-3 flex items-center justify-between">
-                    <h3 className="font-semibold text-white">Exported Data</h3>
-                    <button onClick={handleDownload} className="rounded-lg bg-white/10 px-4 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/10">
-                      Download JSON
-                    </button>
-                  </div>
-                  <pre className="max-h-96 overflow-y-auto rounded-lg bg-white/5 p-4 text-xs text-white/80">
-                    {exportedData}
-                  </pre>
-                </div>
-              )}
+          <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold/10">
+              <svg className="h-8 w-8 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
             </div>
-
-            {/* Delete Section */}
-            <div className="rounded-2xl border-2 border-red-800 bg-red-900/10 backdrop-blur-sm p-8">
-              <h2 className="mb-4 text-xl font-bold text-red-600">
-                <span className="mr-2">🗑️</span>Delete Your Data
-              </h2>
-              <p className="mb-4 text-sm text-white/70">
-                Permanently delete all your Fair Fight data, including cases, evidence, calendar events, timeline entries, audit logs, and referral information. This action cannot be undone.
-              </p>
-
-              {confirmDelete && (
-                <div className="mb-4 rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-300">
-                  <strong>⚠️ Are you sure?</strong> This will permanently delete ALL your data. This action cannot be reversed. Click the button again to confirm.
-                </div>
-              )}
-
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="rounded-full bg-red-600 px-6 py-2.5 font-semibold text-white shadow-md transition-all hover:bg-red-700 disabled:opacity-50"
-              >
-                {isDeleting ? "Deleting..." : confirmDelete ? "Yes, Delete Everything" : "Delete My Data"}
-              </button>
-
-              {confirmDelete && (
-                <button
-                  onClick={() => setConfirmDelete(false)}
-                  className="ml-3 rounded-full bg-white/10 px-6 py-2.5 font-semibold text-white/70"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-
-            {/* Messages */}
-            {message && (
-              <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-300">
-                {message}
-              </div>
-            )}
-            {error && (
-              <div className="rounded-xl border border-red-800 bg-red-900/20 p-4 text-sm text-red-300">
-                {error}
-              </div>
-            )}
+            <h2 className="mb-2 text-center text-xl font-bold text-white">
+              Export and deletion are temporarily unavailable
+            </h2>
+            <p className="mx-auto mb-6 max-w-xl text-center text-sm text-white/70">
+              {TEMP_UNAVAILABLE_MESSAGE}
+            </p>
+            <p className="mx-auto max-w-xl text-center text-sm text-white/60">
+              We are verifying that export and deletion cover every category of
+              data we hold — including uploaded files and payment records —
+              before we re-enable them. In the meantime you can contact us
+              directly at{" "}
+              <a href="mailto:privacy@fairfight.ctonew.app" className="font-semibold text-gold underline hover:text-gold-dark">
+                privacy@fairfight.ctonew.app
+              </a>{" "}
+              and we will assist with access, export, or deletion requests.
+            </p>
+            <p className="mx-auto mt-6 max-w-xl text-center text-xs text-white/40">
+              For details on how we handle your data, see our{" "}
+              <a href="/privacy" className="text-gold underline hover:text-gold-dark">Privacy Policy</a>.
+            </p>
           </div>
         </div>
       </main>

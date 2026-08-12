@@ -2,8 +2,22 @@ import { json } from "@tanstack/react-start";
 import { getCurrentAuth, getPrimaryEmail } from "~/lib/auth";
 import { sql } from "~/db";
 import { logDataExported } from "~/lib/audit";
+import {
+  RESTRICTED_FEATURES,
+  TEMP_UNAVAILABLE_MESSAGE,
+  TEMP_UNAVAILABLE_STATUS,
+} from "~/lib/restrictedFeatures";
 
 export async function POST({ request }: { request: Request }) {
+  // P0 fail-closed gate: self-serve export is not verified to include
+  // uploaded files and payment/subscription records.
+  if (RESTRICTED_FEATURES.exportUserData) {
+    return json(
+      { error: TEMP_UNAVAILABLE_MESSAGE, code: "temporarily_unavailable" },
+      { status: TEMP_UNAVAILABLE_STATUS },
+    );
+  }
+
   const auth = await getCurrentAuth(request);
   if (!auth.userId) {
     return json({ error: "Unauthorized" }, { status: 401 });

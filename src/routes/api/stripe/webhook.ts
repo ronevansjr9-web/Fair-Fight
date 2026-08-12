@@ -4,11 +4,27 @@ import { paymentFromCheckoutSession, recordSuccessfulPayment } from "~/lib/payme
 import Stripe from "stripe";
 import { sql } from "~/db";
 import { logPaymentCompleted } from "~/lib/audit";
+import {
+  RESTRICTED_FEATURES,
+  TEMP_UNAVAILABLE_MESSAGE,
+  TEMP_UNAVAILABLE_STATUS,
+} from "~/lib/restrictedFeatures";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 
 async function handlePost(request: Request) {
+  // P0 fail-closed gate: the webhook records the durable Pro entitlement, and
+  // that path is not verified end-to-end yet. Reject every delivery (Stripe
+  // will retry) instead of writing entitlement records that were never
+  // proven durable.
+  if (RESTRICTED_FEATURES.checkoutProActivation) {
+    return json(
+      { error: TEMP_UNAVAILABLE_MESSAGE, code: "temporarily_unavailable" },
+      { status: TEMP_UNAVAILABLE_STATUS },
+    );
+  }
+
   if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
     return json({ error: "Stripe not configured" }, { status: 500 });
   }

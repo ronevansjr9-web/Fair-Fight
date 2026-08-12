@@ -12,6 +12,10 @@
  */
 
 import { sql } from "~/db";
+import {
+  RESTRICTED_FEATURES,
+  TEMP_UNAVAILABLE_MESSAGE,
+} from "~/lib/restrictedFeatures";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_FILES_PER_USER = 25;
@@ -61,6 +65,12 @@ export async function uploadFile(params: {
   sizeBytes: number;
 }): Promise<{ success: true; file: FileRecord } | { success: false; error: string }> {
   const { userId, caseId, filename, mimeType, dataBase64, sizeBytes } = params;
+
+  // P0 fail-closed gate: evidence uploads are not durable (no `files`
+  // migration on master; /api/upload is not a registered route).
+  if (RESTRICTED_FEATURES.evidenceUploads) {
+    return { success: false, error: TEMP_UNAVAILABLE_MESSAGE };
+  }
 
   // Validate size
   if (sizeBytes > MAX_FILE_SIZE) {

@@ -2,6 +2,11 @@ import { json } from "@tanstack/react-start";
 import { getCurrentAuth } from "~/lib/auth";
 import { uploadFile, listFiles } from "~/lib/storage";
 import { checkRateLimit } from "~/lib/rate-limit";
+import {
+  RESTRICTED_FEATURES,
+  TEMP_UNAVAILABLE_MESSAGE,
+  TEMP_UNAVAILABLE_STATUS,
+} from "~/lib/restrictedFeatures";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
@@ -16,6 +21,15 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
  *   Query: ?caseId=<id> (optional)
  */
 export async function POST({ request }: { request: Request }) {
+  // P0 fail-closed gate: evidence uploads are not durable (no `files`
+  // migration on master; this route is not registered in the route tree).
+  if (RESTRICTED_FEATURES.evidenceUploads) {
+    return json(
+      { error: TEMP_UNAVAILABLE_MESSAGE, code: "temporarily_unavailable" },
+      { status: TEMP_UNAVAILABLE_STATUS },
+    );
+  }
+
   const auth = await getCurrentAuth(request);
   if (!auth.userId) {
     return json({ error: "Unauthorized" }, { status: 401 });
@@ -70,6 +84,15 @@ export async function POST({ request }: { request: Request }) {
 }
 
 export async function GET({ request }: { request: Request }) {
+  // P0 fail-closed gate: same restriction as POST — do not present the
+  // unverified upload/storage surface as operational.
+  if (RESTRICTED_FEATURES.evidenceUploads) {
+    return json(
+      { error: TEMP_UNAVAILABLE_MESSAGE, code: "temporarily_unavailable" },
+      { status: TEMP_UNAVAILABLE_STATUS },
+    );
+  }
+
   const auth = await getCurrentAuth(request);
   if (!auth.userId) {
     return json({ error: "Unauthorized" }, { status: 401 });

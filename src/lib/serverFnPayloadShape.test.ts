@@ -85,7 +85,6 @@ describe("validator-backed server fn client payload shape", () => {
     "legalResearch",
     "removeFile",
     "sendMessage",
-    "startCheckout",
     "listTimeline",
     "addTimeline",
     "deleteTimeline",
