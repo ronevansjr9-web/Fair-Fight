@@ -73,8 +73,8 @@ describe("parseAnalysisResponse", () => {
     });
     const analysis = parseAnalysisResponse(raw);
     expect(analysis.sources).toEqual([
-      { title: "Good", url: "https://ok.example", type: "statute" },
-      { title: "Bad2", url: "https://ok2.example", type: "other" },
+      { title: "Good", url: "https://ok.example/", type: "statute" },
+      { title: "Bad2", url: "https://ok2.example/", type: "other" },
     ]);
   });
 
