@@ -34,7 +34,7 @@ export async function validateConfiguredProPrice(): Promise<string | null> {
   try {
     const price = await getStripe().prices.retrieve(STRIPE_PRO_PRICE_ID);
     if (price.type !== "one_time") return "Configured price is not a one-time purchase";
-    if (price.unit_amount !== FAIR_FIGHT_PRICE_CENTS) return `Configured price is not ${FAIR_FIGHT_PRICE_CENTS / 100} USD`;
+    if (price.unit_amount !== FAIR_FIGHT_PRICE_CENTS) return "Configured price is not the $99 USD Pro price";
     if (price.currency !== FAIR_FIGHT_CURRENCY) return "Configured price is not USD";
     return null;
   } catch (error) {
