@@ -46,7 +46,7 @@ mock.module("~/db", () => ({
   },
 }));
 
-const { createCheckoutSession, createCheckoutSessionCore, validateConfiguredProPrice } = await import("./stripe");
+const { createCheckoutSession, createCheckoutSessionCore, validateConfiguredProPrice } = await import("~/lib/stripe");
 const { TEMP_UNAVAILABLE_MESSAGE } = await import("~/lib/restrictedFeatures");
 
 function reset() {
