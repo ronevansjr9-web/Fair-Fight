@@ -1,9 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { json } from "@tanstack/react-start";
-import { paymentFromCheckoutSession, recordSuccessfulPayment } from "~/lib/payment";
 import Stripe from "stripe";
-import { sql } from "~/db";
-import { logPaymentCompleted } from "~/lib/audit";
+import {
+  recordSuccessfulPayment,
+  recordWebhookEvent,
+  hasWebhookEvent,
+  markPaymentRefunded,
+} from "~/lib/payment";
+import { isCaseOwner } from "~/lib/argumentAccess";
+import { processCheckoutCompleted, processRefundEvent } from "~/lib/webhookProcessor";
 import {
   RESTRICTED_FEATURES,
   TEMP_UNAVAILABLE_MESSAGE,
@@ -12,13 +17,19 @@ import {
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
+const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "";
 
 async function handlePost(request: Request) {
   // P0 fail-closed gate: the webhook records the durable Pro entitlement, and
-  // that path is not verified end-to-end yet. Reject every delivery with 503
-  // `feature_restricted` (Stripe will retry) instead of writing entitlement
-  // records that were never proven durable. This check stays FIRST: it runs
-  // before signature verification, Stripe client construction, or any DB work.
+  // that path is not yet verified against the real Stripe endpoint and real
+  // database (no DATABASE_URL in the build sandbox; migrations not applied).
+  // Reject every delivery with 503 `feature_restricted` (Stripe will retry)
+  // instead of writing entitlement records that were never proven durable.
+  // This check stays FIRST: it runs before signature verification, Stripe
+  // client construction, or any DB work. The full processing path lives in
+  // src/lib/webhookProcessor.ts and is covered by unit tests; clearing this
+  // gate is the LAST step of a controlled deploy after real verification
+  // (see src/lib/restrictedFeatures.ts).
   if (RESTRICTED_FEATURES.checkoutProActivation) {
     return json(
       { error: TEMP_UNAVAILABLE_MESSAGE, code: "feature_restricted" },
@@ -52,58 +63,59 @@ async function handlePost(request: Request) {
     return json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  const deps = {
+    isCaseOwner,
+    payment: {
+      recordSuccessfulPayment,
+      recordWebhookEvent,
+      hasWebhookEvent,
+      markPaymentRefunded,
+    },
+    stripe: {
+      async retrieveCheckoutLineItemPriceId(sessionId: string): Promise<string | null> {
+        try {
+          const session = await stripe.checkout.sessions.retrieve(sessionId, {
+            expand: ["line_items"],
+          });
+          return session.line_items?.data?.[0]?.price?.id ?? null;
+        } catch (error) {
+          console.error("Webhook line-item retrieval failed:", error);
+          return null;
+        }
+      },
+    },
+    env: { STRIPE_PRO_PRICE_ID },
+  };
+
   try {
     switch (event.type) {
       case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.metadata?.userId;
-        const caseId = session.metadata?.caseId;
-
-        if (userId) {
-          const payment = paymentFromCheckoutSession(session);
-          if (!payment) break;
-          await recordSuccessfulPayment(payment);
-          await logPaymentCompleted(userId, caseId);
+        const outcome = await processCheckoutCompleted(event, deps);
+        if (!outcome.recorded) {
+          // Rejected but handled (replay, wrong product, unowned case, ...).
+          // Returning 200 tells Stripe the delivery was consumed; nothing was
+          // written. Log for observability.
+          console.warn(`Webhook ${event.id} not recorded: ${outcome.skippedReason ?? "unknown"}`);
         }
         break;
       }
 
-      case "customer.subscription.created":
-      case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription;
-        const customerId = subscription.customer as string;
-
-        // Update subscription status
-        if (subscription.status === "active") {
-          const customer = await stripe.customers.retrieve(customerId);
-          if (!("deleted" in customer)) {
-            const userId = customer.metadata?.userId;
-            if (userId) {
-              await sql()`
-                INSERT INTO subscriptions (user_id, stripe_customer_id, stripe_subscription_id, status, created_at, updated_at)
-                VALUES (${userId}, ${customerId}, ${subscription.id}, ${subscription.status}, NOW(), NOW())
-                ON CONFLICT (stripe_subscription_id)
-                DO UPDATE SET status = ${subscription.status}, updated_at = NOW()
-              `;
-            }
-          }
-        }
+      case "charge.refunded":
+      case "charge.refund.updated": {
+        await processRefundEvent(event, deps);
         break;
       }
 
-      case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
-        await sql()`
-          UPDATE subscriptions SET status = 'cancelled', updated_at = NOW()
-          WHERE stripe_subscription_id = ${subscription.id}
-        `;
+      default:
+        // Unknown/irrelevant event types are acknowledged but ignored.
         break;
-      }
     }
 
     return json({ received: true });
   } catch (error) {
     console.error("Webhook processing error:", error);
+    // Non-2xx so Stripe redelivers; the event-id ledger makes the retry a no-op
+    // once the interrupted work completes.
     return json({ error: "Processing error" }, { status: 500 });
   }
 }
