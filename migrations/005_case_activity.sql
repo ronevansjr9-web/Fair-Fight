@@ -1,4 +1,5 @@
--- Durable per-case timeline and calendar records. Run against the same database as cases.
+-- Durable per-case timeline and calendar records. Depends on `cases` (001):
+-- both tables FK to cases(id) ON DELETE CASCADE.
 CREATE TABLE IF NOT EXISTS timeline_entries (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,

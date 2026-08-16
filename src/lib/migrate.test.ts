@@ -20,7 +20,7 @@ function fakeSql(log: { calls: unknown[] }) {
   const fn = (async () => []) as unknown as MigrationSql;
   const sql = Object.assign(fn, {
     transaction: async (queriesOrFn: (txn: { unsafe(rawSQL: string): unknown }) => unknown[]) => {
-      const queries = queriesOrFn({ unsafe: (rawSQL: string) => rawSQL });
+      const queries = queriesOrFn({ query: (rawSQL: string) => rawSQL });
       log.calls.push(queries);
       return queries;
     },
@@ -58,11 +58,11 @@ describe("loadMigrations", () => {
       expect(f.statements.length).toBeGreaterThan(0);
     }
     // The base cases table and paid-analysis schema are present.
-    const cases = files.find((f) => f.version === "003")!;
+    const cases = files.find((f) => f.version === "001")!;
     expect(cases.statements.join("\n")).toContain("CREATE TABLE IF NOT EXISTS cases");
-    const analyses = files.find((f) => f.version === "004")!;
+    const analyses = files.find((f) => f.version === "003")!;
     expect(analyses.statements.join("\n")).toContain("CREATE TABLE IF NOT EXISTS case_analyses");
-    const ledger = files.find((f) => f.version === "005")!;
+    const ledger = files.find((f) => f.version === "004")!;
     expect(ledger.statements.join("\n")).toContain("CREATE TABLE IF NOT EXISTS webhook_events");
   });
 });
@@ -107,7 +107,7 @@ describe("runMigrations", () => {
       throw new Error("schema_migrations does not exist");
     }, {
       transaction: async (queriesOrFn: (txn: { unsafe(rawSQL: string): unknown }) => unknown[]) => {
-        const queries = queriesOrFn({ unsafe: (rawSQL: string) => rawSQL });
+        const queries = queriesOrFn({ query: (rawSQL: string) => rawSQL });
         log.calls.push(queries);
         return queries;
       },
@@ -116,8 +116,10 @@ describe("runMigrations", () => {
     expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005"]);
     expect(log.calls.length).toBe(1);
     const batch = log.calls[0] as string[];
-    expect(batch[0]).toContain("CREATE TABLE IF NOT EXISTS schema_migrations");
-    expect(batch[1]).toBe(`SELECT pg_advisory_xact_lock(${MIGRATION_LOCK_KEY})`);
+    // The advisory xact lock MUST be first so concurrent runners serialize
+    // before any catalog/schema creation.
+    expect(batch[0]).toBe(`SELECT pg_advisory_xact_lock(${MIGRATION_LOCK_KEY})`);
+    expect(batch[1]).toContain("CREATE TABLE IF NOT EXISTS schema_migrations");
     // All migration statements in the middle.
     expect(batch.join("\n")).toContain("CREATE TABLE IF NOT EXISTS cases");
     expect(batch.join("\n")).toContain("CREATE TABLE IF NOT EXISTS case_analyses");

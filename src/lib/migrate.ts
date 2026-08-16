@@ -107,7 +107,7 @@ export function planMigrations(files: MigrationFile[], applied: AppliedMigration
 export interface MigrationSql {
   (strings: TemplateStringsArray, ...params: unknown[]): Promise<Record<string, unknown>[]>;
   transaction: (
-    queriesOrFn: (txn: { unsafe(rawSQL: string): unknown }) => unknown[],
+    queriesOrFn: (txn: { query(rawSQL: string): unknown }) => unknown[],
   ) => Promise<unknown[]>;
 }
 
@@ -128,10 +128,17 @@ export async function runMigrations(deps: MigrationDeps): Promise<MigrationPlan>
       checksum: string;
     }[];
     ledger = (rows ?? []).map((r) => ({ version: String(r.version), checksum: String(r.checksum) }));
-  } catch {
-    // Ledger table does not exist yet (brand-new database). It is created
-    // idempotently inside the apply transaction; an empty ledger means every
-    // file is pending.
+  } catch (error) {
+    // Only a missing ledger table (brand-new database) falls through to the
+    // empty-ledger path. The ledger is created idempotently inside the apply
+    // transaction; an empty ledger means every file is pending. Any OTHER
+    // error (connection failure, permission, ...) is rethrown instead of being
+    // silently misread as "fresh database".
+    const code = (error as { code?: string } | undefined)?.code;
+    const message = String((error as Error | undefined)?.message ?? error);
+    const ledgerMissing =
+      code === "42P01" || /schema_migrations.*does not exist|does not exist.*schema_migrations/i.test(message);
+    if (!ledgerMissing) throw error;
     ledger = [];
   }
 
@@ -145,9 +152,16 @@ export async function runMigrations(deps: MigrationDeps): Promise<MigrationPlan>
   }
   if (plan.toApply.length === 0) return plan;
 
+  // Order matters for concurrency: the advisory xact lock MUST be the first
+  // statement in the transaction. Two concurrent runners otherwise race to
+  // create schema_migrations / the app tables before either takes the lock
+  // (Postgres `CREATE TABLE IF NOT EXISTS` is not race-free against a second
+  // concurrent creator — duplicate key on pg_type). With the lock first, the
+  // second runner blocks until the first commits, then its IF NOT EXISTS /
+  // ON CONFLICT statements become no-ops.
   const queries: string[] = [
-    "CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, checksum TEXT NOT NULL, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())",
     `SELECT pg_advisory_xact_lock(${MIGRATION_LOCK_KEY})`,
+    "CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, checksum TEXT NOT NULL, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())",
   ];
   for (const file of plan.toApply) {
     queries.push(...file.statements);
@@ -157,6 +171,10 @@ export async function runMigrations(deps: MigrationDeps): Promise<MigrationPlan>
       `INSERT INTO schema_migrations (version, checksum) VALUES ('${file.version}', '${file.checksum}') ON CONFLICT (version) DO NOTHING`,
     );
   }
-  await deps.sql.transaction((txn) => queries.map((q) => txn.unsafe(q)));
+  // NOTE: use `txn.query(rawSQL)`, NOT `txn.unsafe(rawSQL)`, inside the
+  // transaction: the Neon serverless driver only accepts query objects
+  // (txn.unsafe returns an UnsafeRawSql wrapper that transaction() rejects
+  // with "expects an array of queries").
+  await deps.sql.transaction((txn) => queries.map((q) => txn.query(q)));
   return plan;
 }
