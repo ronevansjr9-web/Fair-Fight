@@ -76,6 +76,16 @@ export async function processCheckoutCompleted(
   // Exact-product validation. The session in the event does not carry line
   // items, so fetch them (expanded) and check the price id server-side.
   const lineItemPriceId = await deps.stripe.retrieveCheckoutLineItemPriceId(session.id);
+  if (lineItemPriceId === null) {
+    // A null result means the line-item lookup itself failed (network/rate
+    // limit/API error), NOT that the price was a mismatch. Treating this as a
+    // policy rejection would make the route return 200, which tells Stripe the
+    // delivery was consumed — the customer keeps being charged and no
+    // entitlement is ever recorded, with no retry. Throw so the route returns
+    // non-2xx and Stripe redelivers; the event-id ledger keeps the retry a
+    // no-op once the work completes.
+    throw new Error("webhook: unable to retrieve checkout line-item price; will retry");
+  }
   const policy = checkoutPolicy({
     amountTotal: session.amount_total,
     currency: session.currency,

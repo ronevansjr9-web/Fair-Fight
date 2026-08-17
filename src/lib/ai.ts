@@ -1,6 +1,16 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+/**
+ * Resolve the Gemini API key. The platform injects it as GOOGLE_API_KEY;
+ * GEMINI_API_KEY is accepted first for compatibility with other hosts. A
+ * missing key fails closed inside askAI/askAIStreaming (they return an honest
+ * unavailable message instead of throwing).
+ */
+export function resolveGeminiApiKey(env: Record<string, string | undefined> = process.env): string {
+  return env.GEMINI_API_KEY || env.GOOGLE_API_KEY || "";
+}
+
+const GEMINI_API_KEY = resolveGeminiApiKey();
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 

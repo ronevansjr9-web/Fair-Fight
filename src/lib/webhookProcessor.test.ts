@@ -148,13 +148,36 @@ describe("processCheckoutCompleted", () => {
     expect(deps.calls.events).toEqual([]);
   });
 
-  test("line-item retrieval failure rejects (fail closed)", async () => {
+  test("line-item retrieval failure throws so Stripe redelivers (never a silent 200)", async () => {
     const deps = makeDeps({
       stripe: { retrieveCheckoutLineItemPriceId: async () => null },
     });
-    const outcome = await processCheckoutCompleted(checkoutEvent(), deps);
-    expect(outcome.recorded).toBe(false);
+    await expect(processCheckoutCompleted(checkoutEvent(), deps)).rejects.toThrow(
+      "unable to retrieve checkout line-item price",
+    );
     expect(deps.calls.recorded).toBe(0);
+    expect(deps.calls.events).toEqual([]);
+  });
+
+  test("a failed line-item lookup followed by a successful retry records exactly once", async () => {
+    let attempts = 0;
+    const deps = makeDeps({
+      stripe: {
+        retrieveCheckoutLineItemPriceId: async () => {
+          attempts += 1;
+          if (attempts === 1) return null; // first delivery: transient failure
+          return CONFIGURED_PRICE_ID; // Stripe redelivery: succeeds
+        },
+      },
+    });
+    await expect(processCheckoutCompleted(checkoutEvent(), deps)).rejects.toThrow(
+      "unable to retrieve checkout line-item price",
+    );
+    expect(deps.calls.recorded).toBe(0);
+    const outcome = await processCheckoutCompleted(checkoutEvent(), deps);
+    expect(outcome).toEqual({ handled: true, recorded: true });
+    expect(deps.calls.recorded).toBe(1);
+    expect(deps.calls.events).toEqual(["evt_test_1"]);
   });
 });
 
@@ -185,6 +208,27 @@ describe("processRefundEvent", () => {
     const outcome = await processRefundEvent(refundEvent(), deps);
     expect(outcome.skippedReason).toBe("replay");
     expect(deps.calls.refunded).toEqual([]);
+  });
+
+  test("charge.refund.updated (refund object) also revokes the entitlement", async () => {
+    const deps = makeDeps();
+    const event = {
+      id: "evt_refund_updated_1",
+      object: "event",
+      type: "charge.refund.updated",
+      data: {
+        object: {
+          id: "re_1",
+          object: "refund",
+          status: "succeeded",
+          payment_intent: "pi_test_1",
+        },
+      },
+    } as unknown as Stripe.Event;
+    const outcome = await processRefundEvent(event, deps);
+    expect(outcome).toEqual({ handled: true, recorded: true });
+    expect(deps.calls.refunded).toEqual(["pi_test_1"]);
+    expect(deps.calls.events).toEqual(["evt_refund_updated_1"]);
   });
 
   test("refund without a payment intent is acknowledged but does nothing", async () => {
