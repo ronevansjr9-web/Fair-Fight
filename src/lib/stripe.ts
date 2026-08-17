@@ -1,5 +1,6 @@
 import Stripe from "stripe";
-import { checkoutReturnUrls } from "~/lib/payment";
+import { checkoutReturnUrls, FAIR_FIGHT_CURRENCY, FAIR_FIGHT_PRICE_CENTS } from "~/lib/payment";
+import { isCaseOwner } from "~/lib/argumentAccess";
 import {
   RESTRICTED_FEATURES,
   TEMP_UNAVAILABLE_MESSAGE,
@@ -23,42 +24,72 @@ function getStripe(): Stripe {
   return _stripe;
 }
 
-export async function createCheckoutSession(
+/**
+ * Server-side product validation: the configured Stripe price must be the
+ * Fair Fight Pro Case Analysis one-time $99.00 USD product. Returns an error
+ * string when the price is missing or does not match; null when valid.
+ */
+export async function validateConfiguredProPrice(): Promise<string | null> {
+  if (!STRIPE_PRO_PRICE_ID) return "STRIPE_PRO_PRICE_ID environment variable is not configured";
+  try {
+    const price = await getStripe().prices.retrieve(STRIPE_PRO_PRICE_ID);
+    if (price.type !== "one_time") return "Configured price is not a one-time purchase";
+    if (price.unit_amount !== FAIR_FIGHT_PRICE_CENTS) return "Configured price is not the $99 USD Pro price";
+    if (price.currency !== FAIR_FIGHT_CURRENCY) return "Configured price is not USD";
+    return null;
+  } catch (error) {
+    console.error("Stripe price validation failed:", error);
+    return "Failed to validate the configured Stripe price";
+  }
+}
+
+/**
+ * The un-gated core of checkout: ownership verification, configured-price
+ * validation, and session creation with exact server-derived metadata.
+ * Exported separately so the full decision tree is unit-testable with mocks
+ * without tripping the fail-closed gate.
+ */
+export async function createCheckoutSessionCore(
   userId: string,
-  email?: string,
-  caseId?: string
+  caseId: string
 ): Promise<{ url: string } | { error: string }> {
-  // P0 fail-closed gate: Pro activation is not yet verified end-to-end.
-  if (RESTRICTED_FEATURES.checkoutProActivation) {
-    return { error: TEMP_UNAVAILABLE_MESSAGE };
+  if (!userId || !caseId || !/^[A-Za-z0-9_-]{1,64}$/.test(caseId)) {
+    return { error: "Select a valid case before purchasing Pro." };
   }
 
-  if (!caseId) return { error: "Select a case before purchasing Pro." };
-
-  if (!STRIPE_PRO_PRICE_ID) {
-    return { error: "STRIPE_PRO_PRICE_ID environment variable is not configured" };
+  // Exact ownership: a user may only buy analysis for their OWN case. The
+  // server derives the userId from the Clerk session and verifies the case
+  // belongs to them before any Stripe session is created.
+  let owned = false;
+  try {
+    owned = await isCaseOwner(userId, caseId);
+  } catch {
+    owned = false;
   }
+  if (!owned) return { error: "Case not found or not owned by you." };
+
+  const priceError = await validateConfiguredProPrice();
+  if (priceError) return { error: priceError };
 
   try {
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-      // Only attach an email when we actually resolved one server-side. Stripe
-      // rejects an empty string, and we must never fabricate customer data.
-      ...(email ? { customer_email: email } : {}),
       line_items: [
         {
           price: STRIPE_PRO_PRICE_ID,
           quantity: 1,
         },
       ],
+      // userId is ALWAYS server-derived (never read from the client). caseId
+      // is validated and ownership-checked above.
       metadata: {
         userId,
-        ...(caseId ? { caseId } : {}),
+        caseId,
       },
       ...checkoutReturnUrls(),
-      allow_promotion_codes: true,
+      allow_promotion_codes: false,
       billing_address_collection: "auto",
     });
 
@@ -67,6 +98,20 @@ export async function createCheckoutSession(
     console.error("Stripe checkout error:", error);
     return { error: "Failed to create checkout session" };
   }
+}
+
+export async function createCheckoutSession(
+  userId: string,
+  caseId: string
+): Promise<{ url: string } | { error: string }> {
+  // P0 fail-closed gate: Pro activation is not yet verified end-to-end
+  // (real Stripe webhook + real database verification are blocked). The
+  // complete, unit-tested path is implemented behind this gate; clearing it
+  // is the LAST step of a controlled deploy (see lib/restrictedFeatures.ts).
+  if (RESTRICTED_FEATURES.checkoutProActivation) {
+    return { error: TEMP_UNAVAILABLE_MESSAGE };
+  }
+  return createCheckoutSessionCore(userId, caseId);
 }
 
 export async function createCustomerPortalSession(

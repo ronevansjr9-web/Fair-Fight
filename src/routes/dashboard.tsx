@@ -23,7 +23,7 @@ export const Route = createFileRoute("/dashboard")({
 
 const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
   const auth = await getCurrentAuth();
-  if (!auth.userId) return { cases: [], stats: { total: 0, active: 0, resolved: 0 } };
+  if (!auth.userId) return { cases: [], stats: { total: 0, active: 0, resolved: 0 }, entitledCaseIds: [] };
 
   try {
     const cases = await sql()`
@@ -41,6 +41,19 @@ const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
       FROM cases
       WHERE user_id = ${auth.userId}
     `;
+    // Separate, best-effort entitlement lookup: a missing/unmigrated payments
+    // table must never blank the case list, and only succeeded payments count
+    // (a refunded payment automatically loses its badge).
+    let entitledCaseIds: string[] = [];
+    try {
+      const payments = await sql()`
+        SELECT case_id FROM payments
+        WHERE user_id = ${auth.userId} AND status = 'succeeded'
+      `;
+      entitledCaseIds = (payments ?? []).map((p: Record<string, unknown>) => String(p.case_id));
+    } catch (error) {
+      console.error("Entitlement lookup failed:", error);
+    }
     return {
       cases: cases.map((c: Record<string, unknown>) => ({
         id: String(c.id),
@@ -56,9 +69,10 @@ const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
         active: Number(stats[0]?.active || 0),
         resolved: Number(stats[0]?.resolved || 0),
       },
+      entitledCaseIds,
     };
   } catch {
-    return { cases: [], stats: { total: 0, active: 0, resolved: 0 } };
+    return { cases: [], stats: { total: 0, active: 0, resolved: 0 }, entitledCaseIds: [] };
   }
 });
 
@@ -67,7 +81,8 @@ function DashboardPage() {
   const [data, setData] = useState<{
     cases: { id: string; title: string; caseType: string; status: string; jurisdiction: string; createdAt: string; updatedAt: string }[];
     stats: { total: number; active: number; resolved: number };
-  }>({ cases: [], stats: { total: 0, active: 0, resolved: 0 } });
+    entitledCaseIds: string[];
+  }>({ cases: [], stats: { total: 0, active: 0, resolved: 0 }, entitledCaseIds: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -179,7 +194,7 @@ function DashboardPage() {
                   >
                     <div>
                       <h3 className="font-semibold text-white">{c.title}</h3>
-                      <div className="mt-1 flex items-center gap-2">
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
                         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           c.status === "active" ? "bg-green-900/30 text-green-300" :
                           c.status === "resolved" ? "bg-white/10 text-white/70" :
@@ -187,6 +202,18 @@ function DashboardPage() {
                         }`}>
                           {c.status}
                         </span>
+                        {data.entitledCaseIds.includes(c.id) ? (
+                          <span className="rounded-full bg-gold/15 px-2 py-0.5 text-xs font-medium text-gold" title="Pro Case Analysis unlocked for this case">
+                            ✓ Pro Analysis
+                          </span>
+                        ) : (
+                          <a
+                            href={`/analysis?caseId=${encodeURIComponent(c.id)}`}
+                            className="rounded-full border border-gold/40 px-2 py-0.5 text-xs font-medium text-gold transition-colors hover:bg-gold/10"
+                          >
+                            Unlock $99
+                          </a>
+                        )}
                         <span className="text-xs text-white/40">{c.caseType}</span>
                         <span className="text-xs text-white/40">{c.jurisdiction}</span>
                       </div>

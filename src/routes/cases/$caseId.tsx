@@ -81,6 +81,7 @@ const getCase = createServerFn({ method: "GET" })
   });
 
 const TOOL_LINKS = [
+  { href: "/analysis", icon: "🧠", label: "Pro Case Analysis", desc: "Paid $99 one-time: plain-English summary, possible issues, candidate arguments, and sources" },
   { href: "/chat", icon: "💬", label: "AI Legal Chat", desc: "Ask plain-English questions about your legal situation" },
   { href: "/research", icon: "📚", label: "Legal Research", desc: "Find case law and statutes" },
   { href: "/evidence", icon: "📎", label: "Evidence Manager", desc: "Temporarily unavailable — organizing and uploading case evidence" },
