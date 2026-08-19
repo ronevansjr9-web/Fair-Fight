@@ -2,16 +2,12 @@
  * Regression guard: Clerk `getAuth` MUST receive the actual Request.
  *
  * Framework evidence (installed node_modules, not docs):
- * - `@clerk/tanstack-start@0.11.5` (dist/server/getAuth.d.ts):
- *     `declare function getAuth(request: Request, opts?: GetAuthOptions): Promise<AuthObject>`
- *   and dist/server/getAuth.js THROWS when `!request`
- *   ("noFetchFnCtxPassedInGetAuth").
+ * - `src/lib/auth.ts` authenticates via `@clerk/backend` `authenticateRequest`
+ *   (no Vinxi / `@clerk/tanstack-start/server`); its `getCurrentAuth` MUST be
+ *   given the actual Request, either pulled from the request lifecycle via
+ *   `getRequest()` (server fn handlers) or passed explicitly (API routes).
  * - TanStack Start server-fn handlers receive a `ServerFnCtx` with
- *   `{ data, serverFnMeta, context, method }` — there is NO Request on it, so
- *   `getAuth(ctx)` in a handler was always wrong.
- * - The supported way to obtain the Request inside a server fn handler is
- *   `getRequest()` from `@tanstack/react-start/server` (AsyncLocalStorage
- *   backed). API route handlers receive `{ request }` directly.
+ *   `{ data, serverFnMeta, context, method }` — there is NO Request on it.
  *
  * This test statically scans `src` and fails if any direct `getAuth(...)` call
  * exists outside the single helper `src/lib/auth.ts`, or if any code reads

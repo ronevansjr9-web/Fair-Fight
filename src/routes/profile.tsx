@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/tanstack-start";
+import { useUser } from "@clerk/tanstack-react-start";
 import { createServerFn } from "@tanstack/react-start";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { getCurrentAuth } from "~/lib/auth";

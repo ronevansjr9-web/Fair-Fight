@@ -5,7 +5,7 @@ import {
   SignUpButton,
   UserButton,
   useAuth,
-} from "@clerk/tanstack-start";
+} from "@clerk/tanstack-react-start";
 import { getReferrerInfo } from "~/lib/referral";
 
 export const Route = createFileRoute("/")({

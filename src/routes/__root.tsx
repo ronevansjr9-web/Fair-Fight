@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
-import { ClerkProvider, UserButton, SignInButton, SignUpButton, useAuth } from "@clerk/tanstack-start";
+import { ClerkProvider, UserButton, SignInButton, SignUpButton, useAuth } from "@clerk/tanstack-react-start";
 import { Analytics } from "@vercel/analytics/react";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { SECURITY_HEADERS } from "~/lib/security-headers";

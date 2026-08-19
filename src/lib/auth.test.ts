@@ -3,26 +3,35 @@
  *
  * Verifies the two behaviors the P0 fix depends on:
  * - `getCurrentAuth()` pulls the Request from the request lifecycle and passes
- *   it to Clerk's `getAuth` (which throws when given no Request).
+ *   it to `@clerk/backend`'s `authenticateRequest`.
  * - `getCurrentAuth(request)` passes an explicitly provided Request through
  *   (API route handlers).
  * - `getPrimaryEmail()` resolves email via the Clerk Backend API and fails
  *   safely (returns null) instead of silently yielding an empty string.
  *
- * Uses bun's mock.module to replace the Clerk / TanStack server modules.
+ * The helpers authenticate through `@clerk/backend` directly (no Vinxi /
+ * `@clerk/tanstack-start/server`), so the mocks target `@clerk/backend` and
+ * `@clerk/backend/internal`.
  */
 import { describe, expect, test, mock } from "bun:test";
 
-const getAuthMock = mock((req: Request) =>
-  Promise.resolve({ userId: req.headers.get("x-user") }),
-);
+const authenticateRequestMock = mock((req: Request) => ({
+  headers: new Headers(),
+  status: "signed-in",
+  toAuth: () => ({ userId: req.headers.get("x-user") }),
+}));
 const clerkUsersGetUserMock = mock(() => Promise.resolve({}));
 
-mock.module("@clerk/tanstack-start/server", () => ({
-  getAuth: getAuthMock,
-  clerkClient: () => ({
+mock.module("@clerk/backend", () => ({
+  createClerkClient: () => ({
+    authenticateRequest: authenticateRequestMock,
     users: { getUser: clerkUsersGetUserMock },
   }),
+}));
+
+mock.module("@clerk/backend/internal", () => ({
+  AuthStatus: { Handshake: "handshake" },
+  stripPrivateDataFromObject: (x: unknown) => x,
 }));
 
 mock.module("@tanstack/react-start/server", () => ({
@@ -35,22 +44,22 @@ const { getCurrentAuth, getPrimaryEmail } = await import("./auth");
 
 describe("getCurrentAuth", () => {
   test("passes the request from the request lifecycle (server fn handlers)", async () => {
-    getAuthMock.mockClear();
+    authenticateRequestMock.mockClear();
     const auth = await getCurrentAuth();
-    expect(getAuthMock).toHaveBeenCalledTimes(1);
-    const requestArg = getAuthMock.mock.calls[0]?.[0] as Request;
+    expect(authenticateRequestMock).toHaveBeenCalledTimes(1);
+    const requestArg = authenticateRequestMock.mock.calls[0]?.[0] as Request;
     expect(requestArg.url).toBe("http://localhost/current");
     expect((auth as { userId: string | null }).userId).toBe("user_ctx");
   });
 
   test("passes an explicit request through (API route handlers)", async () => {
-    getAuthMock.mockClear();
+    authenticateRequestMock.mockClear();
     const explicit = new Request("http://localhost/api", {
       headers: { "x-user": "user_api" },
     });
     const auth = await getCurrentAuth(explicit);
-    expect(getAuthMock).toHaveBeenCalledTimes(1);
-    expect(getAuthMock.mock.calls[0]?.[0]).toBe(explicit);
+    expect(authenticateRequestMock).toHaveBeenCalledTimes(1);
+    expect(authenticateRequestMock.mock.calls[0]?.[0]).toBe(explicit);
     expect((auth as { userId: string | null }).userId).toBe("user_api");
   });
 });

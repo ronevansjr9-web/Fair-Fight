@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { createServerFn } from "@tanstack/react-start";
-import { useAuth } from "@clerk/tanstack-start";
+import { useAuth } from "@clerk/tanstack-react-start";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { getCurrentAuth } from "~/lib/auth";
 import { shouldFetchForSignedInUser } from "~/lib/caseFetchGate";
