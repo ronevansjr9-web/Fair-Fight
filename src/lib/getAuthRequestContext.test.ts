@@ -57,7 +57,7 @@ describe("Clerk getAuth request-context regression guard", () => {
     expect(violations).toEqual([]);
   });
 
-  test("src/lib/auth.ts passes the Request (request ?? getRequest()) to getAuth", () => {
+  test("src/lib/auth.ts passes the Request (request ?? getRequest()) to Clerk auth", () => {
     expect(authHelper, "src/lib/auth.ts must exist").toBeTruthy();
     const raw = readFileSync(authHelper!, "utf8");
     // Strip comments so documentation of the API shape is not scanned as code.
@@ -65,20 +65,17 @@ describe("Clerk getAuth request-context regression guard", () => {
       .split("\n")
       .filter((l) => !/^\s*(\/\/|\*)/.test(l))
       .join("\n");
-    const callRe = /\bgetAuth\s*\(/g;
-    const calls: string[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = callRe.exec(content)) !== null) {
-      const args = extractArgs(content, m.index + m[0].lastIndexOf("("));
-      calls.push(args);
-    }
-    expect(calls.length).toBeGreaterThan(0);
-    for (const args of calls) {
-      expect(
-        /request\s*\?\?\s*getRequest\(\)/.test(args),
-        `getAuth must receive the actual Request, got: getAuth(${args})`,
-      ).toBe(true);
-    }
+    // Auth is resolved via @clerk/backend authenticateRequest (no Vinxi event
+    // context / legacy getAuth). The actual Request is normalized once via
+    // `request ?? getRequest()` and passed into authenticateRequest.
+    expect(
+      /request\s*\?\?\s*getRequest\(\)/.test(content),
+      "getCurrentAuth must pull the actual Request via request ?? getRequest()",
+    ).toBe(true);
+    expect(
+      /\bauthenticateRequest\s*\(\s*req\b/.test(content),
+      "getCurrentAuth must pass the Request to @clerk/backend authenticateRequest",
+    ).toBe(true);
   });
 
   test("no code reads auth.user (AuthObject has no user property)", () => {
