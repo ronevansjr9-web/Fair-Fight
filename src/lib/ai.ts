@@ -1,6 +1,17 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /**
+ * Canonical Gemini model used by all Fair Fight AI surfaces (askAI,
+ * askAIStreaming, Pro Case Analysis). Single source of truth.
+ *
+ * NOTE (2026-08-20): gemini-2.0-flash was RETIRED by Google and now returns
+ * 404 "no longer available"; the Generative AI API's own guidance and the
+ * /v1beta/models list point to gemini-3.6-flash as the current flash model.
+ * Keep this value current — the Pro analysis durable-save path depends on it.
+ */
+export const ANALYSIS_MODEL = "gemini-3.6-flash";
+
+/**
  * Resolve the Gemini API key. The platform injects it as GOOGLE_API_KEY;
  * GEMINI_API_KEY is accepted first for compatibility with other hosts. A
  * missing key fails closed inside askAI/askAIStreaming (they return an honest
@@ -43,7 +54,7 @@ export async function askAI(
 
   try {
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: ANALYSIS_MODEL,
       generationConfig: {
         maxOutputTokens: options?.maxTokens ?? 1024,
         temperature: options?.temperature ?? 0.3,
@@ -89,7 +100,7 @@ export async function askAIStreaming(
 
   try {
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: ANALYSIS_MODEL,
       generationConfig: {
         maxOutputTokens: options?.maxTokens ?? 1024,
         temperature: options?.temperature ?? 0.3,

@@ -17,6 +17,9 @@
  *   prove durable save + reopen without a real database.
  */
 import { sanitizeUrl } from "~/lib/sanitize";
+// Single canonical model for the Pro analysis — re-exported from the AI layer
+// so a model bump can never leave this parser/route on a stale hardcoded name.
+export { ANALYSIS_MODEL } from "~/lib/ai";
 
 export interface LegalSource {
   title: string;
@@ -37,8 +40,6 @@ export interface CaseAnalysisInput {
   jurisdiction: string;
   caseType: string;
 }
-
-export const ANALYSIS_MODEL = "gemini-2.0-flash";
 
 export const ANALYSIS_SYSTEM_PROMPT = `You are the Fair Fight legal EDUCATION engine. You help self-represented people understand their situation so they can prepare for an attorney conversation. You never give legal advice, never predict outcomes, never recommend a course of action, and never claim an argument is "best" or guaranteed, or that any output is filing-ready.
 

@@ -6,7 +6,7 @@ import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { getCurrentAuth } from "~/lib/auth";
 import { isCaseOwner, hasOwnedCaseEntitlement } from "~/lib/argumentAccess";
 import { hasCaseEntitlement } from "~/lib/payment";
-import { generateCaseAnalysis, type CaseAnalysis, type LegalSource } from "~/lib/caseAnalysis";
+import { generateCaseAnalysis, ANALYSIS_MODEL, type CaseAnalysis, type LegalSource } from "~/lib/caseAnalysis";
 import { saveCaseAnalysis, loadCaseAnalysis, type CaseAnalysisRow } from "~/lib/caseAnalysisStore";
 import { createCheckoutSession } from "~/lib/stripe";
 import { askAI } from "~/lib/ai";
@@ -118,7 +118,7 @@ const runAnalysis = createServerFn({ method: "POST" })
         facts,
         jurisdiction,
         analysis,
-        model: "gemini-2.0-flash",
+        model: ANALYSIS_MODEL,
       });
       return { success: true, analysis };
     } catch (error) {
