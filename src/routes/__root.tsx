@@ -11,6 +11,7 @@ import { ClerkProvider, UserButton, SignInButton, SignUpButton, useAuth } from "
 import { Analytics } from "@vercel/analytics/react";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { SECURITY_HEADERS } from "~/lib/security-headers";
+import { SignInTicketHandler } from "~/components/SignInTicketHandler";
 
 import appCss from "~/styles/app.css?url";
 
@@ -147,6 +148,7 @@ function RootComponent() {
   return (
     <RootDocument>
       <AuthTracker />
+      <SignInTicketHandler />
       <SiteHeader />
       <Outlet />
     </RootDocument>
