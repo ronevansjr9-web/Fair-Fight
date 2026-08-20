@@ -17,7 +17,7 @@
  *     deletion/export, a subscription model, or functioning $99 Pro
  *     activation.
  *
- * Free legal education, legal research, statutes/case law/court rules,
+ * Public legal education, legal research, statutes/case law/court rules,
  * sign-in, and the durable case/timeline/calendar surfaces are deliberately
  * NOT gated and are not asserted here.
  */
@@ -436,7 +436,7 @@ describe("ungated flows are NOT gated (preservation)", () => {
   test("the restriction doc lists free education/research and core case flows as not gated", () => {
     const source = read("./restrictedFeatures.ts").toLowerCase();
     expect(source).toContain("not gated");
-    expect(source).toContain("free legal education");
+    expect(source).toContain("public legal education");
     // "the durable case / timeline / calendar surfaces" may wrap across lines.
     expect(source).toMatch(/case \/ timeline \/\s*\*?\s*calendar/);
   });
