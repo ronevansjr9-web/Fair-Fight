@@ -12,7 +12,7 @@ export const Route = createFileRoute("/calendar")({
       {
         name: "description",
         content:
-          "Track court dates, filing deadlines, statutes of limitations, and appointments. Never miss a legal deadline.",
+          "Court Calendar is temporarily unavailable while we verify deadline handling. Do not rely on Fair Fight for filing deadlines; confirm dates with the court or an attorney.",
       },
     ],
   }),

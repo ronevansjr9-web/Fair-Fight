@@ -200,9 +200,10 @@ describe("public copy no longer promises restricted flows", () => {
     expect(source).not.toContain("All your data has been deleted");
   });
 
-  test("structured data no longer promises $99 Pro or document uploads", () => {
+  test("structured data describes paid Pro Case Analysis without document-upload promises", () => {
     const source = read("../routes/__root.tsx");
-    expect(source).not.toContain("$99");
+    expect(source).toContain("$99");
+    expect(source).toMatch(/paid Pro Case Analysis/i);
     expect(source).not.toMatch(/Upload any documents, evidence/);
   });
 
@@ -396,7 +397,8 @@ describe("final review: case-creation copy and root structured data make no disa
     expect(source.toLowerCase()).toContain("legal education");
     expect(source).toContain("FAQPage");
     expect(source).toContain("not a law firm");
-    expect(source).toMatch(/never paywalled/i);
+    expect(source).not.toMatch(/never paywalled/i);
+    expect(source).toMatch(/paid Pro Case Analysis/i);
   });
 });
 

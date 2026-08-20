@@ -34,9 +34,7 @@ function Home() {
             <span className="text-gold">Fight Your Fair Fight.</span>
           </h1>
           <p className="mx-auto mb-8 max-w-2xl text-lg text-white/70 sm:text-xl">
-            The TurboTax of legal education — AI-powered plain-English explanations
-            of statutes, case law, and legal procedures to help you prepare before you
-            talk to an attorney.
+            Plain-English legal education, case organization, and AI-assisted analysis to help you prepare before you talk to an attorney. Not legal advice.
           </p>
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             {auth.isSignedIn ? (
@@ -94,7 +92,7 @@ function Home() {
               },
               {
                 title: "Legal Research",
-                desc: "Access to case law, statutes, and court rules. 56+ plain-English guides on court procedures and legal topics.",
+                desc: "Access to public case law, statutes, and court rules. 60 public plain-English guides on court procedures and legal topics.",
                 icon: "📚",
               },
               {
@@ -104,12 +102,12 @@ function Home() {
               },
               {
                 title: "Document Generator",
-                desc: "Generate motions, briefs, and legal documents with AI assistance. Educational templates with plain-English explanations.",
+                desc: "Document Generator is temporarily unavailable while we verify the workflow. When available, outputs will be educational templates only—not filing-ready documents or legal advice.",
                 icon: "📝",
               },
               {
                 title: "Court Calendar",
-                desc: "Track court dates, filing deadlines, and statutes of limitations. Never miss a deadline.",
+                desc: "Court Calendar is temporarily unavailable while we verify deadline handling. Do not rely on Fair Fight for filing deadlines; confirm dates with the court or an attorney.",
                 icon: "📅",
               },
               {
