@@ -40,7 +40,7 @@ type AnalysisStatus =
   | { ok: false; reason: "unauthorized" | "not_found" | "unavailable" }
   | { restricted: true };
 
-const getAnalysisStatus = createServerFn({ method: "GET" })
+const getAnalysisStatus = createServerFn({ method: "POST" })
   .validator((data: unknown) => {
     const d = data as Record<string, unknown>;
     if (typeof d.caseId !== "string" || !CASE_ID_PATTERN.test(d.caseId)) throw new Error("Invalid case id");

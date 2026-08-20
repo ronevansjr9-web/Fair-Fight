@@ -27,7 +27,7 @@ async function owner() {
   return auth.userId;
 }
 
-export const listTimeline = createServerFn({ method: "GET" })
+export const listTimeline = createServerFn({ method: "POST" })
   .validator(requireCaseId)
   .handler(async ({ data }) => {
     const userId = await owner();
@@ -88,7 +88,7 @@ export const deleteTimeline = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const listCalendar = createServerFn({ method: "GET" })
+export const listCalendar = createServerFn({ method: "POST" })
   .validator(requireCaseId)
   .handler(async ({ data }) => {
     const userId = await owner();
