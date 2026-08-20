@@ -1,4 +1,4 @@
-import { SignInButton, useAuth } from "@clerk/tanstack-start";
+import { SignInButton, useAuth } from "@clerk/tanstack-react-start";
 import type { ReactNode } from "react";
 
 interface AuthenticatedGuardProps {

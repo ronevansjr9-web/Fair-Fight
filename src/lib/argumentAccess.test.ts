@@ -28,15 +28,12 @@ mock.module("~/lib/auth", () => ({
   getPrimaryEmail: async () => "user@example.com",
 }));
 
-let createCheckoutSessionCalled = false;
-let checkoutSessionArgs: any[] = [];
-mock.module("~/lib/stripe", () => ({
-  createCheckoutSession: async (userId: string, email: string, caseId: string) => {
-    createCheckoutSessionCalled = true;
-    checkoutSessionArgs = [userId, email, caseId];
-    return { url: "https://stripe.example.com/mock-checkout" };
-  },
-}));
+// NOTE: do NOT mock "~/lib/stripe" here. Nothing in this file's import graph
+// (argumentAccess, legal-argument route, ProGate) imports it, and bun's
+// mock.module matches modules by resolved path across test files in the same
+// run — a stale mock here silently replaces the real module for
+// src/routes/api/stripe/checkout.test.ts too, breaking its
+// validateConfiguredProPrice/createCheckoutSessionCore/gate assertions.
 
 const originalReactStart = await import("@tanstack/react-start");
 

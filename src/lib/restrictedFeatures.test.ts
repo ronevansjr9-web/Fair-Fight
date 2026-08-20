@@ -159,10 +159,17 @@ describe("every restricted server function references the fail-closed gate", () 
 });
 
 describe("public copy no longer promises restricted flows", () => {
-  test("landing page has no $99 or upgrade CTA and no upload promise", () => {
+  test("landing page presents the honest paid product and no free-analysis or upload promise", () => {
     const source = read("../routes/index.tsx");
-    expect(source).not.toContain("$99");
-    expect(source).not.toContain("Upgrade to Pro");
+    // The public site may explain the paid product (one-time $99 per case),
+    // but must never promise the analysis flow works, never offer free
+    // analyses, and never promise uploads.
+    expect(source).toContain("$99");
+    expect(source).toContain("one-time $99 purchase per case");
+    expect(source).not.toContain("free for your first 3 analyses");
+    expect(source).not.toContain("Free for your first 3 analyses");
+    expect(source).not.toContain("analyzeCase");
+    expect(source).not.toContain("Try the AI Case Analyzer");
     expect(source).not.toMatch(/Upload, organize, and tag evidence/);
   });
 

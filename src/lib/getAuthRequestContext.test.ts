@@ -2,16 +2,12 @@
  * Regression guard: Clerk `getAuth` MUST receive the actual Request.
  *
  * Framework evidence (installed node_modules, not docs):
- * - `@clerk/tanstack-start@0.11.5` (dist/server/getAuth.d.ts):
- *     `declare function getAuth(request: Request, opts?: GetAuthOptions): Promise<AuthObject>`
- *   and dist/server/getAuth.js THROWS when `!request`
- *   ("noFetchFnCtxPassedInGetAuth").
+ * - `src/lib/auth.ts` authenticates via `@clerk/backend` `authenticateRequest`
+ *   (no Vinxi / `@clerk/tanstack-start/server`); its `getCurrentAuth` MUST be
+ *   given the actual Request, either pulled from the request lifecycle via
+ *   `getRequest()` (server fn handlers) or passed explicitly (API routes).
  * - TanStack Start server-fn handlers receive a `ServerFnCtx` with
- *   `{ data, serverFnMeta, context, method }` — there is NO Request on it, so
- *   `getAuth(ctx)` in a handler was always wrong.
- * - The supported way to obtain the Request inside a server fn handler is
- *   `getRequest()` from `@tanstack/react-start/server` (AsyncLocalStorage
- *   backed). API route handlers receive `{ request }` directly.
+ *   `{ data, serverFnMeta, context, method }` — there is NO Request on it.
  *
  * This test statically scans `src` and fails if any direct `getAuth(...)` call
  * exists outside the single helper `src/lib/auth.ts`, or if any code reads
@@ -61,7 +57,7 @@ describe("Clerk getAuth request-context regression guard", () => {
     expect(violations).toEqual([]);
   });
 
-  test("src/lib/auth.ts passes the Request (request ?? getRequest()) to getAuth", () => {
+  test("src/lib/auth.ts passes the Request (request ?? getRequest()) to Clerk auth", () => {
     expect(authHelper, "src/lib/auth.ts must exist").toBeTruthy();
     const raw = readFileSync(authHelper!, "utf8");
     // Strip comments so documentation of the API shape is not scanned as code.
@@ -69,20 +65,17 @@ describe("Clerk getAuth request-context regression guard", () => {
       .split("\n")
       .filter((l) => !/^\s*(\/\/|\*)/.test(l))
       .join("\n");
-    const callRe = /\bgetAuth\s*\(/g;
-    const calls: string[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = callRe.exec(content)) !== null) {
-      const args = extractArgs(content, m.index + m[0].lastIndexOf("("));
-      calls.push(args);
-    }
-    expect(calls.length).toBeGreaterThan(0);
-    for (const args of calls) {
-      expect(
-        /request\s*\?\?\s*getRequest\(\)/.test(args),
-        `getAuth must receive the actual Request, got: getAuth(${args})`,
-      ).toBe(true);
-    }
+    // Auth is resolved via @clerk/backend authenticateRequest (no Vinxi event
+    // context / legacy getAuth). The actual Request is normalized once via
+    // `request ?? getRequest()` and passed into authenticateRequest.
+    expect(
+      /request\s*\?\?\s*getRequest\(\)/.test(content),
+      "getCurrentAuth must pull the actual Request via request ?? getRequest()",
+    ).toBe(true);
+    expect(
+      /\bauthenticateRequest\s*\(\s*req\b/.test(content),
+      "getCurrentAuth must pass the Request to @clerk/backend authenticateRequest",
+    ).toBe(true);
   });
 
   test("no code reads auth.user (AuthObject has no user property)", () => {
