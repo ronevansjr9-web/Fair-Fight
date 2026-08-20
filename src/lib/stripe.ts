@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { checkoutReturnUrls, FAIR_FIGHT_CURRENCY, FAIR_FIGHT_PRICE_CENTS } from "~/lib/payment";
+import { checkoutReturnUrls, FAIR_FIGHT_CURRENCY, FAIR_FIGHT_PRICE_CENTS, hasCaseEntitlement } from "~/lib/payment";
 import { isCaseOwner } from "~/lib/argumentAccess";
 import {
   RESTRICTED_FEATURES,
@@ -67,6 +67,25 @@ export async function createCheckoutSessionCore(
     owned = false;
   }
   if (!owned) return { error: "Case not found or not owned by you." };
+
+  // Duplicate-checkout protection: this exact case is already paid and validly
+  // entitled, so the checkout entry point must not create another $99 session.
+  // Access is granted once by the webhook (first write wins on replay), and a
+  // second session for the same already-entitled case could lead to a second
+  // successful charge. We still reach the entitlement check BEFORE any Stripe
+  // call so an already-unlocked case never opens a redundant checkout.
+  let alreadyEntitled = false;
+  try {
+    alreadyEntitled = await hasCaseEntitlement(userId, caseId);
+  } catch {
+    // On a lookup failure we fail SAFE (do not open a redundant checkout that
+    // could double-charge): treat as entitled and refuse rather than risk a
+    // duplicate for a case we cannot confirm is unpaid.
+    alreadyEntitled = true;
+  }
+  if (alreadyEntitled) {
+    return { error: "Pro Case Analysis is already unlocked for this case. Open it from your dashboard." };
+  }
 
   const priceError = await validateConfiguredProPrice();
   if (priceError) return { error: priceError };
