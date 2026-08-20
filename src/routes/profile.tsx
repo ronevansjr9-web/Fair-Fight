@@ -35,9 +35,33 @@ const getProfileData = createServerFn({ method: "GET" }).handler(async () => {
   return { unavailable: true, pro: false };
 });
 
+/**
+ * Billing/membership copy is driven by the CURRENT gate state so it can never
+ * drift out of date:
+ *
+ *   - While `checkoutProActivation` is true (today), payments are NOT being
+ *     accepted, so the honest copy says exactly that.
+ *
+ *   - The moment the gate is cleared for real (non-test) payments, the
+ *     "no payments are being accepted" claims below would become FALSE. That
+ *     transition is a launch blocker and must be handled deliberately — see
+ *     `src/lib/restrictedFeatures.ts` for what clearing the flag does and does
+ *     NOT restore (the payment-history/entitlement lookups were REMOVED when the
+ *     flow was restricted and must be rebuilt and verified first).
+ *
+ * TODO(gate-open): when `checkoutProActivation` is cleared for real payments,
+ * revisit EVERY branch keyed off `paymentsAccepted` in this file, replace the
+ * "not being accepted" wording with the true live payment state, and restore the
+ * payment-history/entitlement lookups. Do NOT simply flip the flag and expect
+ * this copy to be valid — payments history is not yet shown.
+ */
 function ProfilePage() {
   const { user, isLoaded: userLoaded } = useUser();
   const [loading, setLoading] = useState(true);
+
+  // Truthful to the CURRENT gate state. Never claim payments are open while the
+  // checkout/Pro activation gate is still active.
+  const paymentsAccepted = !RESTRICTED_FEATURES.checkoutProActivation;
 
   useEffect(() => {
     getProfileData()
@@ -123,15 +147,18 @@ function ProfilePage() {
           {/* Membership & Billing */}
           <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
             <h2 className="mb-1 text-xl font-bold text-white">Membership & Billing</h2>
-            <p className="mb-6 text-sm text-white/60">Paid Pro activation is temporarily unavailable</p>
+            <p className="mb-6 text-sm text-white/60">
+              {paymentsAccepted
+                ? "Pro Case Analysis is available as a one-time $99 purchase per case"
+                : "Paid Pro activation is temporarily unavailable"}
+            </p>
 
             <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center">
               <div className="mx-auto mb-3 text-3xl">📋</div>
               <p className="text-sm text-white/70">
-                Legal education, legal research, statutes, case law, court rules,
-                and your core case tools remain available in your workspace. We're
-                verifying the paid Pro flow before re-enabling it; no Pro Case
-                Analysis payments are being accepted right now.
+                {paymentsAccepted
+                  ? "Pro Case Analysis is available as a one-time $99 purchase per case: a plain-English summary, possible issues, candidate arguments, and traceable public sources — educational only, not legal advice. Legal education and your core case tools remain available in your workspace."
+                  : "Legal education, legal research, statutes, case law, court rules, and your core case tools remain available in your workspace. We're verifying the paid Pro flow before re-enabling it; no Pro Case Analysis payments are being accepted right now."}
               </p>
             </div>
           </div>
@@ -139,12 +166,17 @@ function ProfilePage() {
           {/* Payment History */}
           <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
             <h2 className="mb-1 text-xl font-bold text-white">Payment History</h2>
-            <p className="mb-6 text-sm text-white/60">Payment history is temporarily unavailable</p>
+            <p className="mb-6 text-sm text-white/60">
+              {paymentsAccepted
+                ? "Payment history — temporarily unavailable"
+                : "Payment history is temporarily unavailable"}
+            </p>
             <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-center">
               <div className="mx-auto mb-3 text-3xl">🧾</div>
               <p className="text-sm text-white/60">
-                Payment history is temporarily unavailable while we finish safety
-                verification. No payments are being accepted right now.
+                {paymentsAccepted
+                  ? "Payment history will appear here once we finish restoring this view. Your Pro Case Analysis purchases are recorded on your account."
+                  : "Payment history is temporarily unavailable while we finish safety verification. No payments are being accepted right now."}
               </p>
             </div>
           </div>
