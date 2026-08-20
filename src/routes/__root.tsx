@@ -22,31 +22,31 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Fair Fight — AI-Powered Legal Education | Free Legal Research & Case Analysis" },
+      { title: "Fair Fight — Legal Education & Pro Case Analysis" },
       {
         name: "description",
         content:
-          "Fair Fight is the TurboTax of legal education — AI-powered plain-English explanations of statutes, case law, and legal procedures. Free guides on motions, discovery, small claims, statutes of limitations, and more. No paywall on legal information.",
+          "Fair Fight provides plain-English legal education, public guides, and a paid Pro Case Analysis workspace for people preparing to speak with an attorney. It is not a law firm and does not provide legal advice.",
       },
-      { name: "keywords", content: "legal education, AI legal assistant, pro se, self-represented litigant, how to file a motion, statute of limitations, small claims court, discovery, legal brief, case law research, plain English law guide, free legal research" },
+      { name: "keywords", content: "legal education, self-represented litigant, how to file a motion, statute of limitations, small claims court, discovery, case law research, plain English law guide, Pro Case Analysis" },
       { name: "robots", content: "index, follow" },
       { name: "author", content: "Fair Fight" },
-      { property: "og:title", content: "Fair Fight — AI-Powered Legal Education | Free Legal Research & Case Analysis" },
+      { property: "og:title", content: "Fair Fight — Legal Education & Pro Case Analysis" },
       {
         property: "og:description",
         content:
-          "The TurboTax of legal education — AI-powered plain-English explanations of statutes, case law, and legal procedures. Free motion guides, discovery help, small claims court prep, and statute of limitations info for all 50 states.",
+          "Plain-English legal education, public guides, and a paid Pro Case Analysis workspace for people preparing to speak with an attorney. Not legal advice.",
       },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Fair Fight" },
       { property: "og:image", content: "https://fairfight.ctonew.app/og-image.png" },
       { property: "og:url", content: "https://fairfight.ctonew.app" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Fair Fight — AI-Powered Legal Education | Free Legal Research & Case Analysis" },
+      { name: "twitter:title", content: "Fair Fight — Legal Education & Pro Case Analysis" },
       {
         name: "twitter:description",
         content:
-          "The TurboTax of legal education — AI-powered plain-English explanations of statutes, case law, and legal procedures. Free motion guides, discovery help, small claims court prep, and statute of limitations info.",
+          "Plain-English legal education and paid Pro Case Analysis for people preparing to speak with an attorney. Not legal advice.",
       },
       { name: "twitter:image", content: "https://fairfight.ctonew.app/og-image.png" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -66,7 +66,7 @@ export const Route = createRootRoute({
           "@type": "Organization",
           name: "Fair Fight",
           description:
-            "Fair Fight helps you understand your legal situation with plain-English explanations, case organization, and AI-powered legal education tools. Free legal research access — no paywall.",
+            "Fair Fight helps you understand your legal situation with plain-English education, public legal resources, case organization, and paid Pro Case Analysis. It is not a law firm and does not provide legal advice.",
           url: "https://fairfight.ctonew.app",
           sameAs: [
             "https://twitter.com/fairfightai",
@@ -101,7 +101,7 @@ export const Route = createRootRoute({
               "name": "How much does Fair Fight cost?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Fair Fight's free legal education — including legal research, statutes, case law, court rules, and plain-English guides — is free and never paywalled. Paid Pro features are temporarily unavailable while we finish safety verification, and no payments are being accepted right now. We will update this page when paid features reopen."
+                "text": "Fair Fight provides public legal education and a paid Pro Case Analysis workspace. Pro Case Analysis is a one-time $99 purchase per case when payment access is enabled. Fair Fight is not a law firm and does not provide legal advice."
               }
             },
             {
@@ -117,7 +117,7 @@ export const Route = createRootRoute({
               "name": "What is a statute of limitations?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "A statute of limitations is a legal deadline for filing a lawsuit. If you miss the deadline, you permanently lose the right to sue — regardless of how strong your case is. Deadlines vary by state and case type: personal injury claims range from 1 to 6 years depending on the state. Fair Fight's free legal education center includes guides on statutes of limitations for all 50 states."
+                "text": "A statute of limitations is a legal deadline for filing a lawsuit. Deadlines vary by jurisdiction and case type. Fair Fight's public legal education guides discuss statutes of limitations in general terms; consult a licensed attorney about your situation."
               }
             },
             {

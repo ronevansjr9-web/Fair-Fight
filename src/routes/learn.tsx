@@ -33,8 +33,8 @@ export const Route = createFileRoute("/learn")({
     }
     return {
       meta: [
-        { title: "Free Legal Education Guides — Plain-English Law Explained | Fair Fight" },
-        { name: "description", content: "Free plain-English legal guides on court procedures, motions, discovery, statutes of limitations, criminal law, family law, housing law, debt collection, and more. No paywall — legal education for everyone." },
+        { title: "Public Legal Education Guides — Plain-English Law Explained | Fair Fight" },
+        { name: "description", content: "Public plain-English legal guides on court procedures, motions, discovery, statutes of limitations, criminal law, family law, housing law, debt collection, and more. Fair Fight's paid Pro Case Analysis workspace is separate from these educational guides." },
       ],
     };
   },
@@ -1390,8 +1390,8 @@ function Learn() {
     <main className="min-h-screen bg-navy">
       <section className="bg-navy-dark px-4 py-16 text-center">
         <div className="mx-auto max-w-4xl">
-          <h1 className="mb-4 text-4xl font-extrabold text-white sm:text-5xl">Free Legal Education Guides</h1>
-          <p className="mx-auto max-w-2xl text-lg text-white/60">Plain-English explanations of legal concepts, court procedures, and your rights. {ARTICLES.length}+ guides — always free, no paywall.</p>
+          <h1 className="mb-4 text-4xl font-extrabold text-white sm:text-5xl">Public Legal Education Guides</h1>
+          <p className="mx-auto max-w-2xl text-lg text-white/60">Plain-English explanations of legal concepts, court procedures, and your rights. Browse {ARTICLES.length} public guides; Pro Case Analysis is a separate one-time $99 purchase per case.</p>
         </div>
       </section>
       <section className="border-b border-white/10 px-4 py-6">

@@ -13,7 +13,7 @@ export const Route = createFileRoute("/chat")({
   component: ChatPage,
   head: () => ({
     meta: [
-      { title: "AI Legal Assistant Chat — Free Legal Education | Fair Fight" },
+      { title: "AI Legal Education Chat | Fair Fight" },
       { name: "description", content: "Chat with Fair Fight's AI legal education assistant. Ask questions about court procedures, legal concepts, statutes, and case law. Educational purposes only — not legal advice." },
     ],
   }),

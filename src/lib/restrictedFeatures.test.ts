@@ -17,7 +17,7 @@
  *     deletion/export, a subscription model, or functioning $99 Pro
  *     activation.
  *
- * Free legal education, legal research, statutes/case law/court rules,
+ * Public legal education, legal research, statutes/case law/court rules,
  * sign-in, and the durable case/timeline/calendar surfaces are deliberately
  * NOT gated and are not asserted here.
  */
@@ -200,9 +200,10 @@ describe("public copy no longer promises restricted flows", () => {
     expect(source).not.toContain("All your data has been deleted");
   });
 
-  test("structured data no longer promises $99 Pro or document uploads", () => {
+  test("structured data describes paid Pro Case Analysis without document-upload promises", () => {
     const source = read("../routes/__root.tsx");
-    expect(source).not.toContain("$99");
+    expect(source).toContain("$99");
+    expect(source).toMatch(/paid Pro Case Analysis/i);
     expect(source).not.toMatch(/Upload any documents, evidence/);
   });
 
@@ -396,7 +397,8 @@ describe("final review: case-creation copy and root structured data make no disa
     expect(source.toLowerCase()).toContain("legal education");
     expect(source).toContain("FAQPage");
     expect(source).toContain("not a law firm");
-    expect(source).toMatch(/never paywalled/i);
+    expect(source).not.toMatch(/never paywalled/i);
+    expect(source).toMatch(/paid Pro Case Analysis/i);
   });
 });
 
@@ -434,7 +436,7 @@ describe("ungated flows are NOT gated (preservation)", () => {
   test("the restriction doc lists free education/research and core case flows as not gated", () => {
     const source = read("./restrictedFeatures.ts").toLowerCase();
     expect(source).toContain("not gated");
-    expect(source).toContain("free legal education");
+    expect(source).toContain("public legal education");
     // "the durable case / timeline / calendar surfaces" may wrap across lines.
     expect(source).toMatch(/case \/ timeline \/\s*\*?\s*calendar/);
   });

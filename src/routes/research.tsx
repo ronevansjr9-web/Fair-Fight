@@ -7,8 +7,8 @@ export const Route = createFileRoute("/research")({
   component: ResearchPage,
   head: () => ({
     meta: [
-      { title: "Free Legal Research — Case Law & Statutes | Fair Fight" },
-      { name: "description", content: "Free legal research tools — search real case law via CourtListener, statutes, court rules, and legal concepts. Plain-English explanations. No paywall on legal information." },
+      { title: "Legal Research — Case Law & Statutes | Fair Fight" },
+      { name: "description", content: "Search public case law via CourtListener and explore statutes, court rules, and legal concepts. This educational research tool is separate from Fair Fight's paid Pro Case Analysis workspace; not legal advice." }
     ],
   }),
 });
@@ -150,9 +150,9 @@ function ResearchPage() {
     <main className="min-h-screen bg-navy">
       <section className="bg-navy px-4 py-16">
         <div className="mx-auto max-w-3xl text-center">
-          <h1 className="mb-4 text-4xl font-extrabold text-white sm:text-5xl">Free Legal Research</h1>
+          <h1 className="mb-4 text-4xl font-extrabold text-white sm:text-5xl">Legal Research</h1>
           <p className="mb-8 text-lg text-white/70">
-            Search real case law from U.S. courts via CourtListener. Free — forever.
+            Search public case law from U.S. courts via CourtListener. Educational research only; not legal advice.
           </p>
           <div className="flex gap-2">
             <input

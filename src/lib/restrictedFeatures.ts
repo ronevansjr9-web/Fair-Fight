@@ -16,7 +16,7 @@
  * process, every UI and server/API entry point for these flows fails closed
  * with an honest "temporarily unavailable" response.
  *
- * NOT gated (per the business plan): free legal education, legal research,
+ * NOT gated (per the business plan): public legal education and legal research,
  * statutes/case law/court rules, sign-in, and the durable case / timeline /
  * calendar surfaces.
  *
