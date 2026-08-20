@@ -323,13 +323,23 @@ function AnalysisPage() {
                   ? "This case doesn't exist or you don't have access to it."
                   : "We couldn't load this page right now. Please try again in a moment."}
               </p>
-              <Link
-                to="/dashboard"
-                search={{ checkout: undefined }}
-                className="gold-gradient inline-flex items-center rounded-full px-6 py-2.5 font-semibold text-navy"
-              >
-                Back to Dashboard
-              </Link>
+              <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+                {status.reason !== "not_found" && (
+                  <button
+                    onClick={refresh}
+                    className="gold-gradient inline-flex items-center rounded-full px-6 py-2.5 font-semibold text-navy"
+                  >
+                    Try again
+                  </button>
+                )}
+                <Link
+                  to="/dashboard"
+                  search={{ checkout: undefined }}
+                  className="inline-flex items-center rounded-full border border-white/20 px-6 py-2.5 font-semibold text-white/70 transition-colors hover:bg-white/10"
+                >
+                  Back to Dashboard
+                </Link>
+              </div>
             </div>
           )}
 
