@@ -87,7 +87,7 @@ function ProfilePage() {
                 )}
                 <div className="mt-3">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white/70">
-                    Free Plan
+                    Pro — temporarily unavailable
                   </span>
                 </div>
               </div>
@@ -128,10 +128,10 @@ function ProfilePage() {
             <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center">
               <div className="mx-auto mb-3 text-3xl">📋</div>
               <p className="text-sm text-white/70">
-                Fair Fight's free tier — legal education, legal research, statutes,
-                case law, court rules, and your core case tools — remains free and
-                available. We're verifying the paid Pro flow before re-enabling it;
-                no payments are being accepted right now.
+                Legal education, legal research, statutes, case law, court rules,
+                and your core case tools remain available in your workspace. We're
+                verifying the paid Pro flow before re-enabling it; no Pro Case
+                Analysis payments are being accepted right now.
               </p>
             </div>
           </div>

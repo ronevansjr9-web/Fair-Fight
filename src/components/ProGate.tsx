@@ -64,7 +64,7 @@ export function ProGate({ feature, caseId, children }: ProGateProps) {
       <h3 className="mb-2 text-xl font-bold text-white">{feature} — Temporarily Unavailable</h3>
       <p className="mx-auto mb-2 max-w-xl text-white/70">{TEMP_UNAVAILABLE_MESSAGE}</p>
       <p className="text-sm text-white/40">
-        Free legal education, legal research, statutes, case law, and court rules remain free and available.
+        Legal education, legal research, statutes, case law, and court rules remain available.
       </p>
     </div>
   );

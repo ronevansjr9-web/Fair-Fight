@@ -116,6 +116,7 @@ function CaseWorkspacePage() {
   const [state, setState] = useState<
     { status: "loading" } | { status: "error"; reason: string } | { status: "loaded"; case: CaseData }
   >({ status: "loading" });
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     // Wait for Clerk auth to definitively resolve before fetching. If auth is
@@ -138,7 +139,7 @@ function CaseWorkspacePage() {
     return () => {
       cancelled = true;
     };
-  }, [caseId, auth.isSignedIn]);
+  }, [caseId, auth.isSignedIn, retryKey]);
 
   return (
     <AuthenticatedGuard>
@@ -166,6 +167,14 @@ function CaseWorkspacePage() {
                   ? "We couldn't load this case right now. Please try again in a moment."
                   : "This case doesn't exist or you don't have access to it. Check the link or return to your dashboard."}
               </p>
+              {state.reason === "unavailable" && (
+                <button
+                  onClick={() => setRetryKey((k) => k + 1)}
+                  className="gold-gradient mb-3 inline-flex items-center rounded-full px-6 py-2.5 font-semibold text-navy shadow-md transition-all hover:shadow-lg"
+                >
+                  Try again
+                </button>
+              )}
               <Link
                 to="/dashboard"
                 search={{ checkout: undefined }}

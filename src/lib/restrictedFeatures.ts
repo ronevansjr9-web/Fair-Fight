@@ -66,7 +66,7 @@ export const RESTRICTED_FEATURES = {
 
 /** Honest, temporary-unavailable message shown to users. */
 export const TEMP_UNAVAILABLE_MESSAGE =
-  "This feature is temporarily unavailable while we finish safety verification. We're restoring it as soon as possible — free legal education, legal research, and your core case tools are unaffected.";
+  "This feature is temporarily unavailable while we finish safety verification. We're restoring it as soon as possible — your legal education, legal research, and core case tools are unaffected.";
 
 /** HTTP status used by API routes when a restricted flow is attempted. */
 export const TEMP_UNAVAILABLE_STATUS = 503;

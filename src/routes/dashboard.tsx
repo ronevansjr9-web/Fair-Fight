@@ -84,12 +84,25 @@ function DashboardPage() {
     entitledCaseIds: string[];
   }>({ cases: [], stats: { total: 0, active: 0, resolved: 0 }, entitledCaseIds: [] });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
+  const load = () => {
+    setLoading(true);
+    setLoadError(false);
+    getDashboardData()
+      .then((d) => {
+        setData(d);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+        setLoadError(true);
+      });
+  };
 
   useEffect(() => {
-    getDashboardData().then((d) => {
-      setData(d);
-      setLoading(false);
-    });
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Return parameters are informational only; access is granted by the webhook-backed DB record.
@@ -170,6 +183,18 @@ function DashboardPage() {
             {loading ? (
               <div className="p-12 text-center">
                 <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gold border-t-transparent" />
+              </div>
+            ) : loadError ? (
+              <div className="p-12 text-center">
+                <div className="mx-auto mb-4 text-4xl">⚠️</div>
+                <p className="mb-2 text-lg font-semibold text-white/70">We couldn't load your dashboard</p>
+                <p className="mb-4 text-sm text-white/40">A temporary problem interrupted the load. Try again in a moment.</p>
+                <button
+                  onClick={load}
+                  className="gold-gradient inline-flex items-center rounded-full px-6 py-2.5 font-semibold text-navy"
+                >
+                  Try again
+                </button>
               </div>
             ) : data.cases.length === 0 ? (
               <div className="p-12 text-center">

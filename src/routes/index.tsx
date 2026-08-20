@@ -26,7 +26,7 @@ function Home() {
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-navy-light px-4 py-1.5 text-sm text-gold-light">
             <span className="h-2 w-2 rounded-full bg-gold animate-pulse" />
-            Free Legal Education — No Paywall on Research
+            Plain-English Legal Education
           </div>
           <h1 className="mb-6 text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
             Understand the Law.
@@ -35,7 +35,8 @@ function Home() {
           </h1>
           <p className="mx-auto mb-8 max-w-2xl text-lg text-white/70 sm:text-xl">
             The TurboTax of legal education — AI-powered plain-English explanations
-            of statutes, case law, and legal procedures. Free legal research, always.
+            of statutes, case law, and legal procedures to help you prepare before you
+            talk to an attorney.
           </p>
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             {auth.isSignedIn ? (
@@ -49,7 +50,7 @@ function Home() {
               <>
                 <SignUpButton mode="modal">
                   <button className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)] transition-all hover:shadow-[0_0_30px_rgba(201,162,39,0.5)]">
-                    Create free account
+                    Create account
                   </button>
                 </SignUpButton>
                 <div className="flex items-center gap-2">
@@ -93,7 +94,7 @@ function Home() {
               },
               {
                 title: "Legal Research",
-                desc: "Free access to case law, statutes, and court rules. 56+ plain-English guides on court procedures and legal topics.",
+                desc: "Access to case law, statutes, and court rules. 56+ plain-English guides on court procedures and legal topics.",
                 icon: "📚",
               },
               {
@@ -139,7 +140,7 @@ function Home() {
           <p className="mb-8 text-lg text-white/70">
             Fair Fight Pro Case Analysis is a one-time $99 purchase per case: a plain-English summary,
             possible issues, candidate arguments, counterarguments, and traceable public sources.
-            Free legal research and legal education stay free.
+            Legal research and plain-English legal education help you prepare before you talk to an attorney.
           </p>
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             {auth.isSignedIn ? (
@@ -153,7 +154,7 @@ function Home() {
               <>
                 <SignUpButton mode="modal">
                   <button className="gold-gradient rounded-full px-8 py-3.5 font-semibold text-navy shadow-[0_0_20px_rgba(201,162,39,0.3)]">
-                    Create free account
+                    Create account
                   </button>
                 </SignUpButton>
                 <div className="flex items-center gap-2">
@@ -176,7 +177,7 @@ function Home() {
               href="/learn"
               className="rounded-full border border-white/20 px-8 py-3.5 font-semibold text-white transition-all hover:bg-white/10"
             >
-              Browse Free Guides
+              Browse Legal Guides
             </a>
           </div>
         </div>
