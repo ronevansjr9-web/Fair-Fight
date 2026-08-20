@@ -7,7 +7,7 @@ import {
 } from "~/lib/restrictedFeatures";
 import { hasOwnedCaseEntitlement } from "~/lib/argumentAccess";
 
-export const checkProAccess = createServerFn({ method: "GET" }).validator((v: unknown) => { const caseId = (v as any)?.caseId; if (typeof caseId !== "string" || !/^[A-Za-z0-9_-]+$/.test(caseId)) throw new Error("A case is required"); return { caseId }; }).handler(async ({ data }) => {
+export const checkProAccess = createServerFn({ method: "POST" }).validator((v: unknown) => { const caseId = (v as any)?.caseId; if (typeof caseId !== "string" || !/^[A-Za-z0-9_-]+$/.test(caseId)) throw new Error("A case is required"); return { caseId }; }).handler(async ({ data }) => {
   try {
     const auth = await getCurrentAuth();
     if (!auth.userId) return { hasAccess: false, isAuthenticated: false };

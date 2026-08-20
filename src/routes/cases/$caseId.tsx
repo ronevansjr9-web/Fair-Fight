@@ -37,7 +37,7 @@ type CaseResult =
 // path traversal or oversized payload; the DB query itself is parameterized.
 const CASE_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
 
-const getCase = createServerFn({ method: "GET" })
+const getCase = createServerFn({ method: "POST" })
   .validator((data: unknown) => {
     const d = data as Record<string, unknown>;
     if (typeof d.caseId !== "string" || !CASE_ID_PATTERN.test(d.caseId)) {
