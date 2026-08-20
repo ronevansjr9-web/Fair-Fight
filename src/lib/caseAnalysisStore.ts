@@ -62,18 +62,15 @@ export async function saveCaseAnalysis(row: {
 }
 
 /**
- * Load the saved analysis for a case, but ONLY when the requesting user owns
- * the case (ownership enforced inside the query itself).
+ * Serialization contract for the reopen path. The Neon serverless driver
+ * returns `timestamptz` columns as JS `Date` objects and `jsonb` as parsed
+ * objects/arrays. A `Date` or any non-json value that crosses the TanStack
+ * server-function RPC boundary breaks the client `.catch()` → "Unavailable",
+ * so this pure mapping MUST coerce every value to a JSON-safe primitive before
+ * `getAnalysisStatus` returns it to the client. Exported for direct unit
+ * testing of the round-trip contract (no real database).
  */
-export async function loadCaseAnalysis(userId: string, caseId: string): Promise<CaseAnalysisRow | null> {
-  const rows = await sql()`
-    SELECT case_id, user_id, facts, jurisdiction, summary, possible_issues, candidate_arguments, counterarguments, sources, model, created_at, updated_at
-    FROM case_analyses
-    WHERE case_id = ${caseId} AND user_id = ${userId}
-    LIMIT 1
-  `;
-  if (!rows || rows.length === 0) return null;
-  const r = rows[0] as Record<string, unknown>;
+export function mapCaseAnalysisRow(r: Record<string, unknown>): CaseAnalysisRow {
   return {
     facts: String(r.facts ?? ""),
     jurisdiction: String(r.jurisdiction ?? ""),
@@ -86,4 +83,19 @@ export async function loadCaseAnalysis(userId: string, caseId: string): Promise<
     createdAt: String(r.created_at),
     updatedAt: String(r.updated_at),
   };
+}
+
+/**
+ * Load the saved analysis for a case, but ONLY when the requesting user owns
+ * the case (ownership enforced inside the query itself).
+ */
+export async function loadCaseAnalysis(userId: string, caseId: string): Promise<CaseAnalysisRow | null> {
+  const rows = await sql()`
+    SELECT case_id, user_id, facts, jurisdiction, summary, possible_issues, candidate_arguments, counterarguments, sources, model, created_at, updated_at
+    FROM case_analyses
+    WHERE case_id = ${caseId} AND user_id = ${userId}
+    LIMIT 1
+  `;
+  if (!rows || rows.length === 0) return null;
+  return mapCaseAnalysisRow(rows[0] as Record<string, unknown>);
 }
