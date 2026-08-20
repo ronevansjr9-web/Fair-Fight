@@ -9,9 +9,11 @@ import {
   generateCaseAnalysis,
   normalizeSource,
   parseAnalysisResponse,
+  ANALYSIS_MODEL,
   type CaseAnalysis,
   type AnalysisDeps,
 } from "./caseAnalysis";
+import { ANALYSIS_MODEL as AI_MODEL } from "./ai";
 
 const VALID_JSON = JSON.stringify({
   summary: "A summary.",
@@ -138,6 +140,17 @@ describe("generateCaseAnalysis", () => {
     await expect(
       generateCaseAnalysis(baseInput, depsWith(async () => "not json at all")),
     ).rejects.toThrow(/valid JSON/);
+  });
+});
+
+describe("case-analysis model single-source-of-truth", () => {
+  // The route persists ANALYSIS_MODEL and the AI layer calls with its own
+  // ANALYSIS_MODEL. If they ever diverge the persisted `model` value lies
+  // about which model generated the row — and a stale hardcoded name is how
+  // gemini-2.0-flash regressed. Both must come from the same canonical constant.
+  test("case analysis uses exactly the canonical AI model (no drift)", () => {
+    expect(ANALYSIS_MODEL).toBe(AI_MODEL);
+    expect(ANALYSIS_MODEL).not.toBe("gemini-2.0-flash");
   });
 });
 
