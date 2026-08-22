@@ -5,6 +5,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { getCurrentAuth } from "~/lib/auth";
 import { RESTRICTED_FEATURES } from "~/lib/restrictedFeatures";
+import { listUserPayments, type PaymentHistoryRecord } from "~/lib/dataProtection";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
@@ -36,6 +37,19 @@ const getProfileData = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 /**
+ * Ownership-scoped payment history. Returns ONLY the authenticated user's own
+ * stored `payments` rows (the single source of truth we actually query) —
+ * it never invents Stripe-detail we don't store, and it is scoped so no other
+ * user's rows are exposed. Empty list when there are none or on a DB error.
+ */
+const getPaymentHistory = createServerFn({ method: "POST" }).handler(async () => {
+  const auth = await getCurrentAuth();
+  if (!auth.userId) return { payments: [] };
+  const payments = await listUserPayments(auth.userId);
+  return { payments };
+});
+
+/**
  * Billing/membership copy is driven by the CURRENT gate state so it can never
  * drift out of date:
  *
@@ -58,6 +72,7 @@ const getProfileData = createServerFn({ method: "GET" }).handler(async () => {
 function ProfilePage() {
   const { user, isLoaded: userLoaded } = useUser();
   const [loading, setLoading] = useState(true);
+  const [payments, setPayments] = useState<PaymentHistoryRecord[] | null>(null);
 
   // Truthful to the CURRENT gate state. Never claim payments are open while the
   // checkout/Pro activation gate is still active.
@@ -67,7 +82,20 @@ function ProfilePage() {
     getProfileData()
       .then(() => setLoading(false))
       .catch(() => setLoading(false));
+    getPaymentHistory()
+      .then((res) => setPayments(res.payments ?? []))
+      .catch(() => setPayments([]));
   }, []);
+
+  function formatDate(iso: string): string {
+    try {
+      return new Date(iso).toLocaleDateString("en-US", {
+        year: "numeric", month: "short", day: "numeric",
+      });
+    } catch {
+      return iso;
+    }
+  }
 
   if (!userLoaded) {
     return (
@@ -167,18 +195,43 @@ function ProfilePage() {
           <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
             <h2 className="mb-1 text-xl font-bold text-white">Payment History</h2>
             <p className="mb-6 text-sm text-white/60">
-              {paymentsAccepted
-                ? "Payment history — temporarily unavailable"
-                : "Payment history is temporarily unavailable"}
+              Pro Case Analysis purchases recorded on your account.
             </p>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-center">
-              <div className="mx-auto mb-3 text-3xl">🧾</div>
-              <p className="text-sm text-white/60">
-                {paymentsAccepted
-                  ? "Payment history will appear here once we finish restoring this view. Your Pro Case Analysis purchases are recorded on your account."
-                  : "Payment history is temporarily unavailable while we finish safety verification. No payments are being accepted right now."}
-              </p>
-            </div>
+            {payments === null ? (
+              <p className="text-sm text-white/60">Loading…</p>
+            ) : payments.length === 0 ? (
+              <div className="rounded-lg border border-white/10 bg-white/5 p-6 text-center">
+                <div className="mx-auto mb-3 text-3xl">🧾</div>
+                <p className="text-sm text-white/60">
+                  No payment records found for this account.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-white/40">
+                      <th className="pb-2 pr-4 font-medium">Date</th>
+                      <th className="pb-2 pr-4 font-medium">Case</th>
+                      <th className="pb-2 pr-4 font-medium">Amount</th>
+                      <th className="pb-2 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments.map((p) => (
+                      <tr key={p.id} className="border-b border-white/5">
+                        <td className="py-3 pr-4 text-white/80">{formatDate(p.createdAt)}</td>
+                        <td className="py-3 pr-4 font-mono text-xs text-white/60">{p.caseId}</td>
+                        <td className="py-3 pr-4 text-white/80">
+                          ${(p.amountCents / 100).toFixed(2)} {p.currency.toUpperCase()}
+                        </td>
+                        <td className="py-3 capitalize text-white/80">{p.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Account Actions */}

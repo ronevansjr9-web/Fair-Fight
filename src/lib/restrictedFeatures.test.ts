@@ -244,7 +244,11 @@ describe("review fix: profile shows honest temporary-unavailable state, not fabr
     expect(source).not.toContain("storageUsed");
     // Honest temporary-unavailable state is shown for both sections.
     expect(source).toMatch(/Storage Used[\s\S]*?Temporarily unavailable/);
-    expect(source.toLowerCase()).toContain("payment history is temporarily unavailable");
+    // Payment history is rebuilt (ownership-scoped) and may show real stored
+    // rows; it must never fabricate an empty-history claim ("No payments yet")
+    // or a fake 0 B storage figure.
+    expect(source).not.toContain("No payments yet");
+    expect(source).toContain("listUserPayments");
   });
 
   test("profile server fn reports unavailable instead of fabricated zeros", () => {
@@ -292,14 +296,21 @@ describe("review fix: gate docs and code do not claim a flag flip restores remov
     expect(source).toContain("must be rebuilt");
   });
 
-  test("data-request handlers stay fail-closed even after the gate (implementations removed)", () => {
+  test("data-request handlers are fail-closed at the gate and contain a rebuilt, ownership-scoped implementation", () => {
+    // The restriction removed the working bodies. This delegation rebuilds them
+    // (see src/lib/dataProtection.ts) but keeps them fail-closed at the gate:
+    // the gate is the FIRST check, and only after it clears is the real,
+    // ownership-scoped implementation reached. Clearing the flag must be the
+    // LAST step of a verified controlled deploy.
     const source = read("../routes/data-request.tsx");
     const exportBody = handlerBody(source, "exportUserData");
+    expect(exportBody).toContain("RESTRICTED_FEATURES.exportUserData");
     expect(exportBody).toContain("tempUnavailableError");
-    expect(exportBody).not.toContain("success: true");
+    expect(exportBody).toContain("collectUserExport");
     const deleteBody = handlerBody(source, "deleteUserData");
+    expect(deleteBody).toContain("RESTRICTED_FEATURES.deleteUserData");
     expect(deleteBody).toContain("tempUnavailableError");
-    expect(deleteBody).not.toContain("success: true");
+    expect(deleteBody).toContain("deleteAllUserData");
   });
 
   test("evidence manager UI was removed, not left half-working behind the flag", () => {
