@@ -142,6 +142,8 @@ describe("every restricted server function references the fail-closed gate", () 
     "../routes/evidence.tsx": ["getUploadedFiles", "removeFile"],
     "../routes/legal-argument.tsx": ["generateArgument"],
     "../routes/profile.tsx": ["getProfileData"],
+    "../routes/documents.tsx": ["generateDocument"],
+    "../routes/chat.tsx": ["sendMessage"],
   };
 
   for (const [file, fns] of Object.entries(gatedFns)) {
@@ -233,6 +235,69 @@ describe("public copy no longer promises restricted flows", () => {
     expect(source).toContain("Temporarily unavailable");
   });
 });
+
+/* ────────────────────────────────────────────
+   Flag A (2026-08-22): /documents and /chat are
+   live paid AI tools that are NOT case-scoped.
+   With the $99 checkout gated for everyone, they
+   must fail closed on the same gate — no signed-in
+   user may invoke paid AI generation. The route
+   UI shows the honest unavailable panel, and the
+   real implementation stays behind the gate (it is
+   the LAST step of any future controlled deploy).
+   /research (court-law search) remains ungated.
+   ──────────────────────────────────────────── */
+
+describe("Flag A: paid AI tools /documents & /chat fail closed, not case-scoped", () => {
+  test("generateDocument fails closed at the checkout gate before any AI work", () => {
+    const source = read("../routes/documents.tsx");
+    const body = handlerBody(source, "generateDocument");
+    expect(body).toContain("RESTRICTED_FEATURES.checkoutProActivation");
+    expect(body).toContain("tempUnavailableError");
+    // The gate must precede the AI call so no user can invoke live generation.
+    expect(body.indexOf("RESTRICTED_FEATURES.checkoutProActivation")).toBeLessThan(
+      body.indexOf("askAI"),
+    );
+  });
+
+  test("sendMessage fails closed at the checkout gate before any rate-limit or AI work", () => {
+    const source = read("../routes/chat.tsx");
+    const body = handlerBody(source, "sendMessage");
+    expect(body).toContain("RESTRICTED_FEATURES.checkoutProActivation");
+    expect(body).toContain("tempUnavailableError");
+    // Gate precedes the rate-limit check and the streaming AI call.
+    expect(body.indexOf("RESTRICTED_FEATURES.checkoutProActivation")).toBeLessThan(
+      body.indexOf("checkRateLimit"),
+    );
+    expect(body.indexOf("RESTRICTED_FEATURES.checkoutProActivation")).toBeLessThan(
+      body.indexOf("askAIStreaming"),
+    );
+  });
+
+  test("documents route shows the honest unavailable panel, not a live generator", () => {
+    const source = read("../routes/documents.tsx");
+    expect(source.toLowerCase()).toContain("temporarily unavailable");
+    expect(source).toContain("{TEMP_UNAVAILABLE_MESSAGE}");
+    // The live generator UI (doc-type selector and generate button) is gone.
+    expect(source).not.toContain("Generate Document Template");
+    expect(source).not.toContain("Motion Template");
+  });
+
+  test("chat route shows the honest unavailable panel, not a live chat UI", () => {
+    const source = read("../routes/chat.tsx");
+    expect(source.toLowerCase()).toContain("temporarily unavailable");
+    expect(source).toContain("{TEMP_UNAVAILABLE_MESSAGE}");
+    // The live chat surface (message input, send button) is gone.
+    expect(source).not.toContain("handleSend");
+    expect(source).not.toContain("habeas corpus");
+  });
+
+  test("landing page presents the Document Generator as temporarily unavailable", () => {
+    const source = read("../routes/index.tsx");
+    expect(source).toMatch(/Document Generator[\s\S]*?temporarily unavailable/i);
+  });
+});
+
 
 /* ────────────────────────────────────────────
    Independent-review regression tests
