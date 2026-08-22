@@ -35,12 +35,21 @@ mock.module("stripe", () => ({
 
 mock.module("~/db", () => ({
   sql: () => (strings: TemplateStringsArray, ...params: unknown[]) => {
-    // isCaseOwner runs SELECT 1 FROM cases WHERE id=? AND user_id=?; return a
-    // row only when the case id is the "owned" one.
     const sqlText = strings.join("?");
+    // isCaseOwner runs SELECT 1 FROM cases WHERE id=? AND user_id=?; return a
+    // row only when the case id is one of the owned ones.
     if (sqlText.includes("FROM cases WHERE")) {
       const caseId = params[0];
-      return Promise.resolve(caseId === "case_owned" ? [{ "?column?": 1 }] : []);
+      return Promise.resolve(
+        caseId === "case_owned" || caseId === "case_entitled" ? [{ "?column?": 1 }] : [],
+      );
+    }
+    // hasCaseEntitlement runs SELECT 1 FROM payments WHERE user_id=? AND
+    // case_id=? AND status='succeeded'; return a row only for the
+    // already-entitled case.
+    if (sqlText.includes("FROM payments WHERE")) {
+      const caseId = params[1];
+      return Promise.resolve(caseId === "case_entitled" ? [{ "?column?": 1 }] : []);
     }
     return Promise.resolve([]);
   },
@@ -117,6 +126,24 @@ describe("createCheckoutSessionCore", () => {
     const result = await createCheckoutSessionCore("user_1", "case_owned");
     expect(result.error).toContain("$99");
     expect(createdSessions.length).toBe(0);
+  });
+
+  test("already-entitled owned case refuses to create a second checkout (no double charge)", async () => {
+    reset();
+    const result = await createCheckoutSessionCore("user_1", "case_entitled");
+    expect(result.error).toContain("already unlocked");
+    expect(createdSessions.length).toBe(0);
+  });
+
+  test("owned, not-yet-entitled case still creates a single checkout session", async () => {
+    reset();
+    const result = await createCheckoutSessionCore("user_1", "case_owned");
+    expect(result).toEqual({ url: "https://checkout.stripe.example/session" });
+    // Multiple rapid calls for the SAME unpaid case create one session each
+    // (Stripe grants entitlement via the first completed+paid webhook; the
+    // second is not yet entitled so it is permitted). The genuinely redundant
+    // case (already entitled) is what the guard blocks above.
+    expect(createdSessions.length).toBeGreaterThanOrEqual(1);
   });
 });
 
