@@ -22,11 +22,13 @@ const sqlMock = () => async () => {
 };
 mock.module("~/db", () => ({ sql: sqlMock }));
 
-let mockUserId: string | null = "user_1";
-mock.module("~/lib/auth", () => ({
-  getCurrentAuth: async () => ({ userId: mockUserId }),
-  getPrimaryEmail: async () => "user@example.com",
-}));
+// NOTE: do NOT mock "~/lib/auth" here. bun's mock.module matches modules by
+// resolved path across test files in the same run — a stale mock here silently
+// replaces the real ~/lib/auth.ts for src/lib/auth.test.ts, which imports the
+// same file for real, breaking its getCurrentAuth/getPrimaryEmail assertions.
+// The ProGate fail-closed path is tested directly via the pure resolveProAccess
+// function (see the "resolveProAccess" describe block below), so no auth mock
+// is needed in this file at all.
 
 // NOTE: do NOT mock "~/lib/stripe" here. Nothing in this file's import graph
 // (argumentAccess, legal-argument route, ProGate) imports it, and bun's
@@ -55,7 +57,7 @@ mock.module("@tanstack/react-start", () => ({
 // Imports must come after mock.module so the mocked modules are used.
 const { hasOwnedCaseEntitlement, isCaseOwner } = await import("./argumentAccess");
 const { fetchUserCases } = await import("../routes/legal-argument");
-const { checkProAccess } = await import("../components/ProGate");
+const { resolveProAccess } = await import("../components/ProGate");
 
 describe("hasOwnedCaseEntitlement", () => {
   test("denies access when the case is not owned by the user", async () => {
@@ -103,10 +105,16 @@ describe("isCaseOwner", () => {
 });
 
 describe("ProGate access check fails closed while checkout is restricted", () => {
-  test("checkProAccess denies access for authenticated users without touching the database", async () => {
+  test("resolveProAccess denies access for authenticated users without touching the database", async () => {
     results = [];
-    const res = await checkProAccess({ data: { caseId: "case_owned" } });
+    const res = await resolveProAccess("user_1", "case_owned");
     expect(res).toEqual({ hasAccess: false, isAuthenticated: true });
+    expect(results.length).toBe(0);
+  });
+  test("resolveProAccess fails closed with isAuthenticated false when signed out", async () => {
+    results = [];
+    const res = await resolveProAccess(null, "case_owned");
+    expect(res).toEqual({ hasAccess: false, isAuthenticated: false });
     expect(results.length).toBe(0);
   });
   test("ProGate no longer exposes the startCheckout server function", () => {
@@ -160,7 +168,8 @@ describe("case-scoped authorization wiring", () => {
   });
 
   test("ProGate authorizes with hasOwnedCaseEntitlement only", () => {
-    expect(proGateSource).toContain("hasOwnedCaseEntitlement(auth.userId, data.caseId)");
+    expect(proGateSource).toContain("hasOwnedCaseEntitlement(userId, caseId)");
+    expect(proGateSource).toContain("resolveProAccess(");
     expect(proGateSource).not.toContain("hasAnyEntitlement");
     expect(proGateSource).not.toContain("getSubscriptionStatus");
     expect(proGateSource).toContain("getCurrentAuth");
