@@ -467,3 +467,39 @@ describe("ungated flows are NOT gated (preservation)", () => {
     expect(source).toMatch(/case \/ timeline \/\s*\*?\s*calendar/);
   });
 });
+
+/* ────────────────────────────────────────────
+   Mobile nav / mobile layout regression guards
+   (fix/mobile-nav-header-calendar)
+   ──────────────────────────────────────────── */
+
+describe("signed-in users get a mobile navigation drawer in the shared header", () => {
+  const source = read("../routes/__root.tsx");
+  const sourceLower = source.toLowerCase();
+
+  test("the header keeps the desktop that is hidden below md:flex primary nav", () => {
+    expect(source).toContain("hidden items-center gap-6 md:flex");
+    expect(sourceLower).toContain('id="mobile-nav-menu"');
+  });
+
+  test("a mobile menu trigger with aria-expanded/aria-controls and a 44px+ target exists", () => {
+    expect(source).toContain('aria-expanded={mobileOpen}');
+    expect(source).toContain('aria-controls="mobile-nav-menu"');
+    expect(source).toContain('h-11 w-11'); // 44px touch target
+    expect(source).toContain('aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}');
+  });
+
+  test("the drawer exposes the main signed-in app routes and closes on Escape/backdrop", () => {
+    for (const route of ['to="/dashboard"', 'to="/chat"', 'to="/evidence"', 'to="/calendar"', 'to="/profile"']) {
+      expect(source).toContain(route);
+    }
+    expect(source).toContain('if (e.key === "Escape") setMobileOpen(false)');
+    expect(source).toContain("bg-black/50"); // click-outside-to-close backdrop
+  });
+
+  test("sign-in and get-started CTAs stay present for signed-out users", () => {
+    expect(source).toContain("<SignInButton");
+    expect(source).toContain("<SignUpButton");
+    expect(source).toContain("Get Started");
+  });
+});

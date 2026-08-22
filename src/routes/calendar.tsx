@@ -231,11 +231,11 @@ function CalendarPage() {
                   {sortedEvents.map((event) => (
                     <div
                       key={event.id}
-                      className={`flex items-start justify-between rounded-xl border p-4 ${eventTypeColors[event.type] || eventTypeColors.other}`}
+                      className={`flex items-start justify-between gap-3 rounded-xl border p-4 ${eventTypeColors[event.type] || eventTypeColors.other}`}
                     >
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <h3 className="font-semibold">{event.title}</h3>
-                        <div className="mt-1 flex items-center gap-2">
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                           <span className="text-sm font-medium">
                             {new Date(
                               event.date + "T00:00:00",
@@ -258,7 +258,7 @@ function CalendarPage() {
                       </div>
                       <button
                         onClick={() => handleRemove(event.id)}
-                        className="ml-4 rounded-lg p-2 opacity-50 hover:opacity-100"
+                        className="shrink-0 rounded-lg p-2 opacity-50 hover:opacity-100"
                       >
                         <svg
                           className="h-5 w-5"
