@@ -7,10 +7,18 @@ import {
 } from "~/lib/restrictedFeatures";
 import { hasOwnedCaseEntitlement } from "~/lib/argumentAccess";
 
-export const checkProAccess = createServerFn({ method: "POST" }).validator((v: unknown) => { const caseId = (v as any)?.caseId; if (typeof caseId !== "string" || !/^[A-Za-z0-9_-]+$/.test(caseId)) throw new Error("A case is required"); return { caseId }; }).handler(async ({ data }) => {
+/**
+ * Pure fail-closed resolvers for Pro access. Kept as a pure exported function
+ * taking the already-resolved `userId` (rather than calling `getCurrentAuth`
+ * inline) so it can be unit-tested directly without mocking the auth module —
+ * see src/lib/argumentAccess.test.ts, which exercises this exact seam.
+ */
+export async function resolveProAccess(
+  userId: string | null,
+  caseId: string,
+): Promise<{ hasAccess: boolean; isAuthenticated: boolean }> {
   try {
-    const auth = await getCurrentAuth();
-    if (!auth.userId) return { hasAccess: false, isAuthenticated: false };
+    if (!userId) return { hasAccess: false, isAuthenticated: false };
     // P0 fail-closed gate: Pro activation is not yet verified end-to-end, so
     // access is intentionally denied while the gate is active — even when an
     // entitlement record already exists for this user/case. Existing payment
@@ -24,9 +32,16 @@ export const checkProAccess = createServerFn({ method: "POST" }).validator((v: u
       return { hasAccess: false, isAuthenticated: true };
     }
     try {
-      const hasAccess = await hasOwnedCaseEntitlement(auth.userId, data.caseId);
+      const hasAccess = await hasOwnedCaseEntitlement(userId, caseId);
       return { hasAccess, isAuthenticated: true };
     } catch { return { hasAccess: false, isAuthenticated: true }; }
+  } catch { return { hasAccess: false, isAuthenticated: false }; }
+}
+
+export const checkProAccess = createServerFn({ method: "POST" }).validator((v: unknown) => { const caseId = (v as any)?.caseId; if (typeof caseId !== "string" || !/^[A-Za-z0-9_-]+$/.test(caseId)) throw new Error("A case is required"); return { caseId }; }).handler(async ({ data }) => {
+  try {
+    const auth = await getCurrentAuth();
+    return resolveProAccess(auth.userId, data.caseId);
   } catch { return { hasAccess: false, isAuthenticated: false }; }
 });
 

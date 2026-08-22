@@ -137,7 +137,7 @@ function handlerBody(source: string, exportName: string): string {
 
 describe("every restricted server function references the fail-closed gate", () => {
   const gatedFns: Record<string, string[]> = {
-    "../components/ProGate.tsx": ["checkProAccess"],
+    "../components/ProGate.tsx": ["checkProAccess", "resolveProAccess"],
     "../routes/data-request.tsx": ["exportUserData", "deleteUserData"],
     "../routes/evidence.tsx": ["getUploadedFiles", "removeFile"],
     "../routes/legal-argument.tsx": ["generateArgument"],
@@ -148,7 +148,12 @@ describe("every restricted server function references the fail-closed gate", () 
     for (const fn of fns) {
       test(`${file} :: ${fn} fails closed`, () => {
         const body = handlerBody(read(file), fn);
-        const guards = ["RESTRICTED_FEATURES", "TEMP_UNAVAILABLE_MESSAGE"];
+        // checkProAccess's handler fails closed by delegating to the pure
+        // resolveProAccess seam; resolveProAccess itself (verified separately
+        // in the list above) must reference the restriction gate. Accept the
+        // delegation reference here; the other files genuinely must reference
+        // the gate literally in their handler body.
+        const guards = ["RESTRICTED_FEATURES", "TEMP_UNAVAILABLE_MESSAGE", "resolveProAccess"];
         expect(
           guards.some((g) => body.includes(g)),
           `${fn} handler must reference the restriction gate`,
