@@ -1,24 +1,36 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef, useEffect } from "react";
 import { createServerFn } from "@tanstack/react-start";
 import { getCurrentAuth } from "~/lib/auth";
 import { askAIStreaming } from "~/lib/ai";
 import { sanitizeInput } from "~/lib/sanitize";
 import { checkRateLimit } from "~/lib/rate-limit";
 import { logAIAnalysisGenerated } from "~/lib/audit";
-import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
+import {
+  RESTRICTED_FEATURES,
+  TEMP_UNAVAILABLE_MESSAGE,
+  tempUnavailableError,
+} from "~/lib/restrictedFeatures";
 
 export const Route = createFileRoute("/chat")({
   component: ChatPage,
   head: () => ({
     meta: [
-      { title: "AI Legal Education Chat | Fair Fight" },
-      { name: "description", content: "Chat with Fair Fight's AI legal education assistant. Ask questions about court procedures, legal concepts, statutes, and case law. Educational purposes only — not legal advice." },
+      { title: "AI Legal Education Chat — Fair Fight" },
+      { name: "description", content: "The AI Legal Education Chat is temporarily unavailable while we verify Pro activation. Educational purposes only — not legal advice." },
     ],
   }),
 });
 
+// NOTE (Flag A, 2026-08-22): The AI legal-education chat is a live paid AI tool.
+// It is NOT case-scoped (unlike Pro Case Analysis, which is gated per-case via
+// the Pro entitlement), and the $99 checkout is gated for everyone today
+// (RESTRICTED_FEATURES.checkoutProActivation). So it must fail closed here —
+// mirroring evidence/data-request — rather than being exposed to any signed-in
+// user for live paid AI chat. The implementation below is kept behind the gate
+// (matching evidence/data-request): clearing the flag is the LAST step of
+// re-enabling this flow through a controlled deploy, and this route's UI must be
+// rebuilt as a real chat surface before then.
 const sendMessage = createServerFn({ method: "POST" })
   .validator((data: unknown) => {
     const d = data as Record<string, unknown>;
@@ -26,6 +38,16 @@ const sendMessage = createServerFn({ method: "POST" })
     return { message: d.message as string, history: (d.history as { role: string; content: string }[]) || [] };
   })
   .handler(async ({ data }) => {
+    const auth = await getCurrentAuth();
+    if (!auth.userId) return { error: "Sign in required" };
+
+    // P0 fail-closed gate: chat generation is a paid AI tool, and no Pro
+    // payments are accepted while checkout is gated. Refuse ALL calls (paid or
+    // not) before any rate-limit or AI work.
+    if (RESTRICTED_FEATURES.checkoutProActivation) {
+      return tempUnavailableError();
+    }
+
     const rateLimitResponse = await checkRateLimit("ai");
     if (rateLimitResponse) return rateLimitResponse;
 
@@ -51,7 +73,6 @@ The user may ask about any legal topic — court procedures, criminal law, famil
     ];
 
     try {
-      const auth = await getCurrentAuth();
       if (auth.userId) {
         await logAIAnalysisGenerated(auth.userId, "chat");
       }
@@ -66,110 +87,33 @@ The user may ask about any legal topic — court procedures, criminal law, famil
   });
 
 function ChatPage() {
-  const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([
-    {
-      role: "assistant",
-      content: "Hi! I'm the Fair Fight AI legal education assistant. I can help you understand legal concepts in plain English — court procedures, statutes, case law, legal terms, and more. What would you like to learn about today?\n\n*This is legal education, not legal advice. Always consult a licensed attorney for your specific situation.*",
-    },
-  ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-    const userMessage = input.trim();
-    setInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
-    setIsLoading(true);
-
-    const history = messages.map((m) => ({ role: m.role, content: m.content }));
-    const result = await sendMessage({ data: { message: userMessage, history } });
-
-    if (result.success && result.response) {
-      setMessages((prev) => [...prev, { role: "assistant", content: result.response }]);
-      trackEvent(AnalyticsEvents.AI_ANALYSIS_RUN);
-    } else if (result.error) {
-      setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ ${result.error}` }]);
-    }
-    setIsLoading(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
   return (
     <AuthenticatedGuard>
-      <main className="flex h-[calc(100vh-120px)] flex-col bg-navy">
-        <div className="border-b border-white/10 bg-white/5 px-4 py-4">
-          <div className="mx-auto max-w-4xl">
-            <h1 className="text-xl font-bold text-white">AI Legal Education Chat</h1>
-            <p className="text-sm text-white/60">Ask questions about legal concepts — plain English answers. Not legal advice.</p>
-          </div>
-        </div>
+      <main className="min-h-screen bg-navy px-4 py-12">
+        <div className="mx-auto max-w-3xl">
+          <h1 className="mb-2 text-3xl font-extrabold text-white">AI Legal Education Chat</h1>
+          <p className="mb-8 text-white/70">
+            The AI legal-education chat is temporarily unavailable while we
+            verify Pro activation.
+          </p>
 
-        <div className="flex-1 overflow-y-auto px-4 py-6">
-          <div className="mx-auto max-w-3xl space-y-6">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-2xl px-5 py-3 ${
-                    msg.role === "user"
-                      ? "bg-gold/20 text-white"
-                      : "border border-white/10 bg-white/5 text-white/80"
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3">
-                  <div className="flex gap-1">
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-gold" style={{ animationDelay: "0ms" }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-gold" style={{ animationDelay: "150ms" }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-gold" style={{ animationDelay: "300ms" }} />
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
-
-        <div className="border-t border-white/10 bg-white/5 px-4 py-4">
-          <div className="mx-auto max-w-3xl">
-            <div className="flex gap-3">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask about any legal concept... (e.g., 'What is habeas corpus?' or 'Explain the exclusionary rule')"
-                rows={2}
-                className="flex-1 resize-none rounded-xl border border-white/10 bg-navy px-4 py-3 text-sm text-white/90 placeholder-white/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
-              />
-              <button
-                onClick={handleSend}
-                disabled={!input.trim() || isLoading}
-                className="self-end gold-gradient rounded-xl px-5 py-3 text-sm font-semibold text-navy transition-all hover:shadow-md disabled:opacity-50"
-              >
-                {isLoading ? "..." : "Send"}
-              </button>
+          <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold/10">
+              <svg className="h-8 w-8 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
             </div>
-            <p className="mt-2 text-center text-xs text-white/40">
-              ⚖️ Educational purposes only. Not legal advice. Consult a licensed attorney.
+            <h2 className="mb-2 text-center text-xl font-bold text-white">
+              The AI Legal Education Chat is temporarily unavailable
+            </h2>
+            <p className="mx-auto mb-6 max-w-xl text-center text-sm text-white/70">
+              {TEMP_UNAVAILABLE_MESSAGE}
+            </p>
+            <p className="mx-auto max-w-xl text-center text-sm text-white/60">
+              AI chat is a paid tool. We are verifying Pro activation before
+              making it available. When it is restored, answers will be
+              educational only — never legal advice. Your legal education, legal
+              research, and core case tools continue to work.
             </p>
           </div>
         </div>

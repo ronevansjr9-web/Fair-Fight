@@ -102,7 +102,7 @@ function Home() {
               },
               {
                 title: "Document Generator",
-                desc: "Document Generator is temporarily unavailable while we verify the workflow. When available, outputs will be educational templates only—not filing-ready documents or legal advice.",
+                desc: "The AI Document Generator is temporarily unavailable while we verify Pro activation. When available, outputs will be educational templates only — not filing-ready documents or legal advice.",
                 icon: "📝",
               },
               {
