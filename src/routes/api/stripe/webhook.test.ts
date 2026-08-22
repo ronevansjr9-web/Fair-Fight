@@ -146,4 +146,64 @@ describe("Stripe webhook fail-closed gate (P0 restriction active)", () => {
     expect(sqlCalls).toBe(0);
     expect(stripeInstantiations).toBe(0);
   });
+
+  test("charge.refunded -> 503 feature_restricted with zero DB/Stripe calls", async () => {
+    sqlCalls = 0;
+    stripeInstantiations = 0;
+    const payload = JSON.stringify({
+      id: "evt_test_refund",
+      object: "event",
+      type: "charge.refunded",
+      data: { object: { id: "ch_1", object: "charge", payment_intent: "pi_test_1" } },
+    });
+    const request = new Request(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "stripe-signature": validStripeSignature(payload) },
+      body: payload,
+    });
+    const res = await POST({ request });
+    await expectRestricted(res);
+    expect(sqlCalls).toBe(0);
+    expect(stripeInstantiations).toBe(0);
+  });
+
+  test("checkout.session.expired -> 503 feature_restricted with zero DB/Stripe calls", async () => {
+    sqlCalls = 0;
+    stripeInstantiations = 0;
+    const payload = JSON.stringify({
+      id: "evt_test_expired",
+      object: "event",
+      type: "checkout.session.expired",
+      data: { object: { id: "cs_test_expired", object: "checkout.session" } },
+    });
+    const request = new Request(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "stripe-signature": validStripeSignature(payload) },
+      body: payload,
+    });
+    const res = await POST({ request });
+    await expectRestricted(res);
+    expect(sqlCalls).toBe(0);
+    expect(stripeInstantiations).toBe(0);
+  });
+
+  test("payment_intent.payment_failed -> 503 feature_restricted with zero DB/Stripe calls", async () => {
+    sqlCalls = 0;
+    stripeInstantiations = 0;
+    const payload = JSON.stringify({
+      id: "evt_test_pifail",
+      object: "event",
+      type: "payment_intent.payment_failed",
+      data: { object: { id: "pi_test_fail", object: "payment_intent", status: "requires_payment_method" } },
+    });
+    const request = new Request(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "stripe-signature": validStripeSignature(payload) },
+      body: payload,
+    });
+    const res = await POST({ request });
+    await expectRestricted(res);
+    expect(sqlCalls).toBe(0);
+    expect(stripeInstantiations).toBe(0);
+  });
 });

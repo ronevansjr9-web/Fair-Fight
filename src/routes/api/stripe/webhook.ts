@@ -102,9 +102,30 @@ async function handlePost(request: Request) {
 
       case "charge.refunded":
       case "charge.refund.updated": {
+        // A refund flips the durable payment row to 'refunded', which revokes
+        // the exact-case entitlement immediately (hasCaseEntitlement only
+        // honors status='succeeded') and cannot be resurrected by a replayed
+        // checkout.session.completed (insert is first-write-wins).
         await processRefundEvent(event, deps);
         break;
       }
+
+      // Expired/failed checkout sessions and failed payment intents.
+      //
+      // Entitlement is ONLY ever granted by a verified, paid
+      // checkout.session.completed. An expired or failed payment never emits
+      // that event, so no payments row and no entitlement are ever written for
+      // these — they are fail-closed by construction. Acknowledging them here
+      // (200, no DB/Stripe side effects) makes the handling explicit and
+      // reviewable so a future event type is not silently mistaken for a
+      // completed purchase. Importantly, none of these can flip an existing
+      // 'succeeded' entitlement to 'refunded' — only `charge.refunded` /
+      // `charge.refund.updated` do that, above.
+      case "checkout.session.expired":
+      case "checkout.session.async_payment_failed":
+      case "payment_intent.payment_failed":
+      case "payment_intent.canceled":
+        break;
 
       default:
         // Unknown/irrelevant event types are acknowledged but ignored.
