@@ -6,7 +6,7 @@ import {
   createRootRoute,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ClerkProvider, UserButton, SignInButton, SignUpButton, useAuth } from "@clerk/tanstack-react-start";
 import { Analytics } from "@vercel/analytics/react";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
@@ -170,18 +170,42 @@ function AuthTracker() {
   return null;
 }
 
+// Main app routes a signed-in user must be able to reach on small screens,
+// where the desktop primary nav is hidden. Drawn from the existing desktop nav.
+const SIGNED_IN_MOBILE_LINKS = [
+  { to: "/dashboard" as const, label: "Dashboard" },
+  { to: "/chat" as const, label: "Chat" },
+  { to: "/evidence" as const, label: "Evidence" },
+  { to: "/calendar" as const, label: "Calendar" },
+  { to: "/profile" as const, label: "Profile" },
+];
+
 function SiteHeader() {
   const auth = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Pressing Escape closes the mobile menu (accessibility).
+  useEffect(() => {
+    if (!mobileOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setMobileOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-navy shadow-lg">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2 text-xl font-extrabold text-white">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3 py-3 sm:px-4">
+        <div className="flex items-center gap-6 md:gap-8">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-lg font-extrabold text-white sm:text-xl"
+          >
             <span className="text-gold">⚖️</span>
             Fair Fight
           </Link>
-          <nav className="hidden items-center gap-6 md:flex">
+          <nav className="hidden items-center gap-6 md:flex" aria-label="Primary">
             <Link to="/learn" className="nav-link">Guides</Link>
             {auth.isSignedIn && (
               <>
@@ -202,6 +226,38 @@ function SiteHeader() {
               >
                 Profile
               </Link>
+              <button
+                type="button"
+                onClick={() => setMobileOpen((o) => !o)}
+                aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-expanded={mobileOpen}
+                aria-controls="mobile-nav-menu"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-white/20 text-white/80 transition-colors hover:bg-white/10 hover:text-white md:hidden"
+              >
+                {mobileOpen ? (
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
+              </button>
               <UserButton
                 afterSignOutUrl="/"
                 appearance={{
@@ -227,6 +283,45 @@ function SiteHeader() {
           )}
         </div>
       </div>
+
+      {/* Mobile navigation drawer (signed-in only; desktop nav covers md+). */}
+      {auth.isSignedIn && (
+        <nav
+          id="mobile-nav-menu"
+          aria-label="Mobile"
+          className="relative md:hidden"
+        >
+          {mobileOpen && (
+            <div
+              className="fixed inset-0 z-40 bg-black/50"
+              onClick={() => setMobileOpen(false)}
+              aria-hidden="true"
+            />
+          )}
+          <div
+            className={mobileOpen ? "block border-t border-white/10 bg-navy-dark px-4 pb-4 pt-2" : "hidden"}
+            style={{ position: "relative", zIndex: 50 }}
+          >
+            {SIGNED_IN_MOBILE_LINKS.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                onClick={() => setMobileOpen(false)}
+                className="block rounded-lg px-3 py-3 text-base font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-gold"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <Link
+              to="/learn"
+              onClick={() => setMobileOpen(false)}
+              className="block rounded-lg px-3 py-3 text-base font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-gold"
+            >
+              Guides
+            </Link>
+          </div>
+        </nav>
+      )}
     </header>
   );
 }
