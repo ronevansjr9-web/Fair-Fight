@@ -24,13 +24,13 @@ export const Route = createFileRoute("/chat")({
 
 // NOTE (Flag A, 2026-08-22): The AI legal-education chat is a live paid AI tool.
 // It is NOT case-scoped (unlike Pro Case Analysis, which is gated per-case via
-// the Pro entitlement), and the $99 checkout is gated for everyone today
-// (RESTRICTED_FEATURES.checkoutProActivation). So it must fail closed here —
-// mirroring evidence/data-request — rather than being exposed to any signed-in
-// user for live paid AI chat. The implementation below is kept behind the gate
-// (matching evidence/data-request): clearing the flag is the LAST step of
-// re-enabling this flow through a controlled deploy, and this route's UI must be
-// rebuilt as a real chat surface before then.
+// the Pro entitlement), and has no per-user entitlement check — it would run
+// chats on our paid backend for ANY signed-in user. It is therefore gated on the
+// ALWAYS-CLOSED `generativeProTools` flag (NOT the checkout gate, which opens
+// for the $99 case-scoped launch): /chat and /documents stay fail-closed until
+// a real, non-case-scoped Pro entitlement model is built for them. The
+// implementation below is kept behind the gate; the route's unavailable UI is
+// intentionally unchanged.
 const sendMessage = createServerFn({ method: "POST" })
   .validator((data: unknown) => {
     const d = data as Record<string, unknown>;
@@ -41,10 +41,10 @@ const sendMessage = createServerFn({ method: "POST" })
     const auth = await getCurrentAuth();
     if (!auth.userId) return { error: "Sign in required" };
 
-    // P0 fail-closed gate: chat generation is a paid AI tool, and no Pro
-    // payments are accepted while checkout is gated. Refuse ALL calls (paid or
-    // not) before any rate-limit or AI work.
-    if (RESTRICTED_FEATURES.checkoutProActivation) {
+    // Fail-closed gate: chat generation is a non-case-scoped paid AI tool with
+    // no entitlement check yet, so it stays closed for every signed-in user.
+    // Refuse ALL calls before any rate-limit or AI work.
+    if (RESTRICTED_FEATURES.generativeProTools) {
       return tempUnavailableError();
     }
 

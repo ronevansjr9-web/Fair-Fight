@@ -9,34 +9,17 @@ import {
 } from "~/lib/payment";
 import { isCaseOwner } from "~/lib/argumentAccess";
 import { processCheckoutCompleted, processRefundEvent } from "~/lib/webhookProcessor";
-import {
-  RESTRICTED_FEATURES,
-  TEMP_UNAVAILABLE_MESSAGE,
-  TEMP_UNAVAILABLE_STATUS,
-} from "~/lib/restrictedFeatures";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "";
 
 async function handlePost(request: Request) {
-  // P0 fail-closed gate: the webhook records the durable Pro entitlement, and
-  // that path is not yet verified against the real Stripe endpoint and real
-  // database (no DATABASE_URL in the build sandbox; migrations not applied).
-  // Reject every delivery with 503 `feature_restricted` (Stripe will retry)
-  // instead of writing entitlement records that were never proven durable.
-  // This check stays FIRST: it runs before signature verification, Stripe
-  // client construction, or any DB work. The full processing path lives in
-  // src/lib/webhookProcessor.ts and is covered by unit tests; clearing this
-  // gate is the LAST step of a controlled deploy after real verification
-  // (see src/lib/restrictedFeatures.ts).
-  if (RESTRICTED_FEATURES.checkoutProActivation) {
-    return json(
-      { error: TEMP_UNAVAILABLE_MESSAGE, code: "feature_restricted" },
-      { status: TEMP_UNAVAILABLE_STATUS },
-    );
-  }
-
+  // The webhook records the durable Pro entitlement and is OPEN for live $99
+  // payments (owner-approved controlled launch). Signature verification is the
+  // first line of defense: a delivery missing or failing verification is
+  // rejected before any Stripe client or DB work. Entitlement is granted ONLY
+  // by a verified, paid `checkout.session.completed` (see src/lib/webhookProcessor.ts).
   if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
     return json({ error: "Stripe not configured" }, { status: 500 });
   }

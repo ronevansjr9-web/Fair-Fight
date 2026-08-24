@@ -1,7 +1,7 @@
 /**
  * Checkout tests: ownership, exact $99 product validation, and metadata
  * shape. Stripe and the database are mocked (no real Stripe/database
- * verification is claimed). The fail-closed gate path is also asserted.
+ * verification is claimed). The open entry point is also asserted.
  */
 import { describe, expect, test, mock } from "bun:test";
 
@@ -11,7 +11,11 @@ process.env.NODE_ENV = "development";
 process.env.PUBLIC_SITE_URL = "https://fairfight.example";
 
 let createdSessions: Record<string, unknown>[] = [];
-let priceConfig: { type: string; unit_amount: number; currency: string } | null = null;
+let priceConfig: {
+  type: string;
+  unit_amount: number;
+  currency: string;
+} | null = null;
 let priceError: Error | null = null;
 
 mock.module("stripe", () => ({
@@ -19,7 +23,14 @@ mock.module("stripe", () => ({
     prices = {
       retrieve: async () => {
         if (priceError) throw priceError;
-        return priceConfig ?? { id: "price_ff_pro_99", type: "one_time", unit_amount: 9900, currency: "usd" };
+        return (
+          priceConfig ?? {
+            id: "price_ff_pro_99",
+            type: "one_time",
+            unit_amount: 9900,
+            currency: "usd",
+          }
+        );
       },
     };
     checkout = {
@@ -34,29 +45,38 @@ mock.module("stripe", () => ({
 }));
 
 mock.module("~/db", () => ({
-  sql: () => (strings: TemplateStringsArray, ...params: unknown[]) => {
-    const sqlText = strings.join("?");
-    // isCaseOwner runs SELECT 1 FROM cases WHERE id=? AND user_id=?; return a
-    // row only when the case id is one of the owned ones.
-    if (sqlText.includes("FROM cases WHERE")) {
-      const caseId = params[0];
-      return Promise.resolve(
-        caseId === "case_owned" || caseId === "case_entitled" ? [{ "?column?": 1 }] : [],
-      );
-    }
-    // hasCaseEntitlement runs SELECT 1 FROM payments WHERE user_id=? AND
-    // case_id=? AND status='succeeded'; return a row only for the
-    // already-entitled case.
-    if (sqlText.includes("FROM payments WHERE")) {
-      const caseId = params[1];
-      return Promise.resolve(caseId === "case_entitled" ? [{ "?column?": 1 }] : []);
-    }
-    return Promise.resolve([]);
-  },
+  sql:
+    () =>
+    (strings: TemplateStringsArray, ...params: unknown[]) => {
+      const sqlText = strings.join("?");
+      // isCaseOwner runs SELECT 1 FROM cases WHERE id=? AND user_id=?; return a
+      // row only when the case id is one of the owned ones.
+      if (sqlText.includes("FROM cases WHERE")) {
+        const caseId = params[0];
+        return Promise.resolve(
+          caseId === "case_owned" || caseId === "case_entitled"
+            ? [{ "?column?": 1 }]
+            : [],
+        );
+      }
+      // hasCaseEntitlement runs SELECT 1 FROM payments WHERE user_id=? AND
+      // case_id=? AND status='succeeded'; return a row only for the
+      // already-entitled case.
+      if (sqlText.includes("FROM payments WHERE")) {
+        const caseId = params[1];
+        return Promise.resolve(
+          caseId === "case_entitled" ? [{ "?column?": 1 }] : [],
+        );
+      }
+      return Promise.resolve([]);
+    },
 }));
 
-const { createCheckoutSession, createCheckoutSessionCore, validateConfiguredProPrice } = await import("~/lib/stripe");
-const { TEMP_UNAVAILABLE_MESSAGE } = await import("~/lib/restrictedFeatures");
+const {
+  createCheckoutSession,
+  createCheckoutSessionCore,
+  validateConfiguredProPrice,
+} = await import("~/lib/stripe");
 
 function reset() {
   createdSessions = [];
@@ -100,9 +120,14 @@ describe("createCheckoutSessionCore", () => {
     expect(createdSessions.length).toBe(1);
     const session = createdSessions[0] as Record<string, unknown>;
     expect(session.mode).toBe("payment");
-    expect((session.line_items as { price: string }[])[0].price).toBe("price_ff_pro_99");
+    expect((session.line_items as { price: string }[])[0].price).toBe(
+      "price_ff_pro_99",
+    );
     expect((session.line_items as { quantity: number }[])[0].quantity).toBe(1);
-    expect(session.metadata).toEqual({ userId: "user_1", caseId: "case_owned" });
+    expect(session.metadata).toEqual({
+      userId: "user_1",
+      caseId: "case_owned",
+    });
     expect(session.allow_promotion_codes).toBe(false);
   });
 
@@ -115,7 +140,9 @@ describe("createCheckoutSessionCore", () => {
 
   test("malformed case id is rejected", async () => {
     reset();
-    expect((await createCheckoutSessionCore("user_1", "bad id!")).error).toBeDefined();
+    expect(
+      (await createCheckoutSessionCore("user_1", "bad id!")).error,
+    ).toBeDefined();
     expect((await createCheckoutSessionCore("user_1", "")).error).toBeDefined();
     expect(createdSessions.length).toBe(0);
   });
@@ -147,11 +174,15 @@ describe("createCheckoutSessionCore", () => {
   });
 });
 
-describe("gated entry point", () => {
-  test("createCheckoutSession stays fail-closed while the gate is active", async () => {
+describe("open entry point", () => {
+  test("createCheckoutSession delegates to the real checkout implementation", async () => {
     reset();
     const result = await createCheckoutSession("user_1", "case_owned");
-    expect(result).toEqual({ error: TEMP_UNAVAILABLE_MESSAGE });
-    expect(createdSessions.length).toBe(0);
+    expect(result).toEqual({ url: "https://checkout.stripe.example/session" });
+    expect(createdSessions.length).toBe(1);
+    expect(createdSessions[0].metadata as Record<string, unknown>).toEqual({
+      userId: "user_1",
+      caseId: "case_owned",
+    });
   });
 });

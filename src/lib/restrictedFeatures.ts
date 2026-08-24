@@ -1,20 +1,33 @@
 /**
- * P0 SAFETY RESTRICTIONS — temporary fail-closed gates for unverified
- * customer flows.
+ * FAIL-CLOSED GATES over unverified customer flows.
  *
- * Background (2026-08-12 source audit): Checkout/Pro activation, self-serve
- * deletion/export, and evidence uploads are not yet verified end-to-end:
- *   - One-time Stripe Checkout does not yet grant a verified durable Pro
- *     entitlement (no webhook/production-origin/authenticated test evidence).
- *   - The deletion/export flow can omit uploaded files and payment/subscription
- *     records, uses mismatched timeline/calendar tables, and is not
- *     transactional.
- *   - The `files` table has no migration on master; `/api/upload` is not
- *     registered as a TanStack route, so uploaded evidence is not durable.
+ * Background (2026-08-12 source audit, updated 2026-08 for the live-checkout
+ * launch): several high-risk flows were gated closed pending end-to-end
+ * verification. Checkout is now OPEN, the rest remain gated:
  *
- * Until each flow is repaired, tested, and deployed behind an approved
- * process, every UI and server/API entry point for these flows fails closed
- * with an honest "temporarily unavailable" response.
+ *   - checkoutProActivation (OPEN): the $99 one-time Stripe Checkout /
+ *     customer-portal flow plus webhook entitlement recording is enabled for
+ *     LIVE payments, per the owner-approved controlled live-checkout launch.
+ *     The gate flag is the owner-approved launch control: flipping it to false
+ *     (with the profile payment-history + billing copy restored) is the
+ *     defined "open the gate" sequence. Real (non-test) payment is still
+ *     confirmed only through the coordinated live checkout test — nothing is
+ *     to be presented as an established live channel until that test passes.
+ *
+ *   - deleteUserData, exportUserData, evidenceUploads (STILL GATED): the
+ *     self-serve data flows and evidence uploads are separate flows, NOT part
+ *     of this checkout launch, and remain fail-closed with an honest
+ *     "temporarily unavailable" response.
+ *
+ *   - generativeProTools (STILL GATED): the non-case-scoped paid AI tools
+ *     (/documents and /chat) generate on our paid backend for ANY signed-in
+ *     user without a per-case entitlement check. They are NOT part of the
+ *     $99 case-scoped Pro launch, so they must not be exposed to every
+ *     signed-in user just because the checkout gate opened. They remain
+ *     fail-closed on this separate flag until a real Pro entitlement model is
+ *     built for them. (Analysis / legal-argument, by contrast, are
+ *     case-scoped and enforce `hasOwnedCaseEntitlement` server-side, so they
+ *     open with the checkout gate.)
  *
  * NOT gated (per the business plan): public legal education and legal research,
  * statutes/case law/court rules, sign-in, and the durable case / timeline /
@@ -22,40 +35,24 @@
  *
  * ── IMPORTANT: what clearing a flag does and does NOT do ──────────────────
  *
- * A flag below is a temporary fail-closed gate over one unverified flow. It
- * does NOT by itself restore a working flow. This change did two different
- * kinds of work, and re-enabling each flow needs both:
- *
- *   (a) Flows whose implementations were KEPT behind the flag (only gated):
- *       - Stripe Checkout / customer-portal session creation (lib/stripe.ts)
- *       - Evidence uploadFile (lib/storage.ts)
- *       - API routes: /api/upload, /api/user/export-data,
- *         /api/user/delete-data, /api/stripe/webhook
- *       - ProGate.checkProAccess and legal-argument.generateArgument
- *       For these, clearing the flag re-exposes the existing implementation,
- *       which must first be repaired, covered by tests, and enabled through a
- *       controlled deploy.
- *
- *   (b) Flows whose implementations were REMOVED or replaced by this change:
- *       - the `startCheckout` server function and the purchase funnel
- *         (replaced by the ProGate unavailable panel),
- *       - the evidence-manager UI (upload form, file list, delete actions —
- *         replaced by the unavailable panel),
- *       - the self-serve export/delete server-fn handlers in
- *         routes/data-request.tsx (their working bodies were removed and both
- *         now return the temporary-unavailable error unconditionally),
- *       - the profile storage/payment-history lookups in routes/profile.tsx
- *         (removed; the page reports an honest unavailable state).
- *       For these, clearing the flag alone does NOT restore anything: the
- *       implementation must be rebuilt first, then verified end-to-end, then
- *       the flag cleared through a controlled deploy.
+ * A flag below is a fail-closed gate over one flow. For flows whose
+ * implementations were KEPT behind the flag (Stripe Checkout / portal, evidence
+ * uploadFile, the webhook, ProGate/analysis/legal-argument entitlement), Open
+ * re-exposes the existing, tested implementation. For flows whose
+ * implementations were REMOVED or replaced while gated (the self-serve
+ * export/delete handlers in routes/data-request.tsx, the evidence-manager UI,
+ * the documents/chat generative surfaces), clearing the flag alone does NOT
+ * restore anything — the implementation must be rebuilt first, then verified
+ * end-to-end, then the flag cleared through a controlled deploy.
  *
  * So the rule is: clear a flag ONLY as the last step of re-enabling its
  * flow — never as the re-enabling action itself.
  */
 export const RESTRICTED_FEATURES = {
-  /** Stripe Checkout session creation + webhook entitlement recording. */
-  checkoutProActivation: true,
+  /** Stripe Checkout session creation + webhook entitlement recording (OPEN for live payments). */
+  checkoutProActivation: false,
+  /** Non-case-scoped paid AI tools /documents + /chat (rebuilt entitlement model required first). */
+  generativeProTools: true,
   /** Self-serve deletion of all user data (files, payments, referrals...). */
   deleteUserData: true,
   /** Self-serve portable export of all user data. */
