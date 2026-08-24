@@ -4,6 +4,7 @@ import {
   guideUrl,
   SITE_ORIGIN,
 } from "~/lib/guides";
+import { guideStructuredDataScripts } from "~/lib/structuredData";
 
 export const Route = createFileRoute("/learn/$slug")({
   head: ({ params }) => {
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/learn/$slug")({
         { name: "twitter:image", content: ogImage },
       ],
       links: [{ rel: "canonical", href: canonical }],
+      scripts: guideStructuredDataScripts(article),
     };
   },
   component: GuidePage,
