@@ -1,8 +1,8 @@
 /**
- * P0 fail-closed guard tests for unverified customer flows.
+ * Gate-state guard tests for unverified customer flows.
  *
- * Covers the three restricted flows (Checkout/Pro activation, deletion/export,
- * evidence uploads) at every layer:
+ * Covers the open checkout flow plus the still-restricted deletion/export,
+ * evidence uploads, and non-case-scoped generative tools at every layer:
  *   - lib gate constants (src/lib/restrictedFeatures.ts)
  *   - lib entry points: createCheckoutSession / createCustomerPortalSession
  *     (src/lib/stripe.ts) and uploadFile (src/lib/storage.ts)
@@ -13,9 +13,8 @@
  *     same pattern as getAuthRequestContext.test.ts): every gated server fn
  *     must reference the restriction gate so it can never silently run the
  *     unverified flow again.
- *   - public copy: no remaining promises of working uploads, complete
- *     deletion/export, a subscription model, or functioning $99 Pro
- *     activation.
+ *   - public copy: no remaining promises of working uploads or complete
+ *     deletion/export, and truthful one-time $99 Pro activation copy.
  *
  * Public legal education, legal research, statutes/case law/court rules,
  * sign-in, and the durable case/timeline/calendar surfaces are deliberately
@@ -34,17 +33,22 @@ import {
 } from "./restrictedFeatures";
 
 describe("restricted feature gate constants", () => {
-  test("all three high-risk flows are gated closed", () => {
-    expect(RESTRICTED_FEATURES.checkoutProActivation).toBe(true);
+  test("checkout is open while the other high-risk flows and generative tools stay gated", () => {
+    expect(RESTRICTED_FEATURES.checkoutProActivation).toBe(false);
+    expect(RESTRICTED_FEATURES.generativeProTools).toBe(true);
     expect(RESTRICTED_FEATURES.deleteUserData).toBe(true);
     expect(RESTRICTED_FEATURES.exportUserData).toBe(true);
     expect(RESTRICTED_FEATURES.evidenceUploads).toBe(true);
   });
 
   test("message is honest, temporary, and does not overclaim", () => {
-    expect(TEMP_UNAVAILABLE_MESSAGE.toLowerCase()).toContain("temporarily unavailable");
+    expect(TEMP_UNAVAILABLE_MESSAGE.toLowerCase()).toContain(
+      "temporarily unavailable",
+    );
     // Must not imply the flow is complete, functioning, or ready.
-    expect(TEMP_UNAVAILABLE_MESSAGE.toLowerCase()).not.toMatch(/complete|is ready|now live|fully working/i);
+    expect(TEMP_UNAVAILABLE_MESSAGE.toLowerCase()).not.toMatch(
+      /complete|is ready|now live|fully working/i,
+    );
     expect(TEMP_UNAVAILABLE_STATUS).toBe(503);
   });
 
@@ -53,14 +57,19 @@ describe("restricted feature gate constants", () => {
   });
 });
 
-describe("lib entry points fail closed", () => {
-  test("stripe checkout helpers reference the gate before any Stripe call", () => {
+describe("lib entry points", () => {
+  test("open Stripe checkout helpers no longer return the temporary-unavailable gate error", () => {
     const source = read("../lib/stripe.ts");
     const checkoutBody = handlerBody(source, "createCheckoutSession");
-    expect(checkoutBody).toContain("RESTRICTED_FEATURES.checkoutProActivation");
-    expect(checkoutBody).toContain("TEMP_UNAVAILABLE_MESSAGE");
+    expect(checkoutBody).toContain("createCheckoutSessionCore");
+    expect(checkoutBody).not.toContain(
+      "RESTRICTED_FEATURES.checkoutProActivation",
+    );
+    expect(checkoutBody).not.toContain("TEMP_UNAVAILABLE_MESSAGE");
     const portalBody = handlerBody(source, "createCustomerPortalSession");
-    expect(portalBody).toContain("RESTRICTED_FEATURES.checkoutProActivation");
+    expect(portalBody).not.toContain(
+      "RESTRICTED_FEATURES.checkoutProActivation",
+    );
   });
 
   test("uploadFile fails closed before any DB access", async () => {
@@ -81,28 +90,40 @@ describe("lib entry points fail closed", () => {
 describe("API routes fail closed with 503", () => {
   test("/api/upload POST rejects uploads", async () => {
     const { POST } = await import("../routes/api/upload");
-    const res = await POST({ request: new Request("http://localhost/api/upload", { method: "POST" }) });
+    const res = await POST({
+      request: new Request("http://localhost/api/upload", { method: "POST" }),
+    });
     expect(res.status).toBe(503);
     expect((await res.json()).error).toBe(TEMP_UNAVAILABLE_MESSAGE);
   });
 
   test("/api/upload GET rejects listing", async () => {
     const { GET } = await import("../routes/api/upload");
-    const res = await GET({ request: new Request("http://localhost/api/upload", { method: "GET" }) });
+    const res = await GET({
+      request: new Request("http://localhost/api/upload", { method: "GET" }),
+    });
     expect(res.status).toBe(503);
     expect((await res.json()).error).toBe(TEMP_UNAVAILABLE_MESSAGE);
   });
 
   test("/api/user/delete-data POST rejects deletion", async () => {
     const { POST } = await import("../routes/api/user/delete-data");
-    const res = await POST({ request: new Request("http://localhost/api/user/delete-data", { method: "POST" }) });
+    const res = await POST({
+      request: new Request("http://localhost/api/user/delete-data", {
+        method: "POST",
+      }),
+    });
     expect(res.status).toBe(503);
     expect((await res.json()).error).toBe(TEMP_UNAVAILABLE_MESSAGE);
   });
 
   test("/api/user/export-data POST rejects export", async () => {
     const { POST } = await import("../routes/api/user/export-data");
-    const res = await POST({ request: new Request("http://localhost/api/user/export-data", { method: "POST" }) });
+    const res = await POST({
+      request: new Request("http://localhost/api/user/export-data", {
+        method: "POST",
+      }),
+    });
     expect(res.status).toBe(503);
     expect((await res.json()).error).toBe(TEMP_UNAVAILABLE_MESSAGE);
   });
@@ -130,7 +151,10 @@ function handlerBody(source: string, exportName: string): string {
   // `const x = ...` lines inside handlers never match the createServerFn
   // pattern, so the slice reliably covers the whole handler.
   const rest = source.slice(start + 1);
-  const nextFn = /\n(?:export )?const \w+ = createServerFn|\nexport (?:async )?function |\nfunction /.exec(rest);
+  const nextFn =
+    /\n(?:export )?const \w+ = createServerFn|\nexport (?:async )?function |\nfunction /.exec(
+      rest,
+    );
   const end = nextFn ? start + 1 + nextFn.index : source.length;
   return source.slice(start, end);
 }
@@ -141,7 +165,6 @@ describe("every restricted server function references the fail-closed gate", () 
     "../routes/data-request.tsx": ["exportUserData", "deleteUserData"],
     "../routes/evidence.tsx": ["getUploadedFiles", "removeFile"],
     "../routes/legal-argument.tsx": ["generateArgument"],
-    "../routes/profile.tsx": ["getProfileData"],
     "../routes/documents.tsx": ["generateDocument"],
     "../routes/chat.tsx": ["sendMessage"],
   };
@@ -155,7 +178,11 @@ describe("every restricted server function references the fail-closed gate", () 
         // in the list above) must reference the restriction gate. Accept the
         // delegation reference here; the other files genuinely must reference
         // the gate literally in their handler body.
-        const guards = ["RESTRICTED_FEATURES", "TEMP_UNAVAILABLE_MESSAGE", "resolveProAccess"];
+        const guards = [
+          "RESTRICTED_FEATURES",
+          "TEMP_UNAVAILABLE_MESSAGE",
+          "resolveProAccess",
+        ];
         expect(
           guards.some((g) => body.includes(g)),
           `${fn} handler must reference the restriction gate`,
@@ -180,21 +207,21 @@ describe("public copy no longer promises restricted flows", () => {
     expect(source).not.toMatch(/Upload, organize, and tag evidence/);
   });
 
-  test("profile billing copy is gate-driven: $99 price only behind the pay-gate-open branch, no upgrade/upload-tier claims", () => {
+  test("profile billing copy truthfully presents one-time $99 case purchases", () => {
     const source = read("../routes/profile.tsx");
     // No upgrade CTA or upload-tier claim anywhere on the profile.
     expect(source).not.toContain("Upgrade to Pro");
     expect(source).not.toContain("5 file uploads");
-    // Truthfulness while the checkout gate is ON (today): users must NOT be
-    // pitched a $99 / payment offer yet. The $99 price copy is legitimate and
-    // named only inside the `paymentsAccepted` (gate-open) branch, and
-    // `paymentsAccepted` is derived from the gate flag so it is false today —
-    // users see the honest "temporarily unavailable / no payments accepted"
-    // fallback instead. (Revisit this branch keyed off `paymentsAccepted` when
-    // the gate opens for real payments; see the TODO(gate-open) in profile.tsx.)
-    expect(source).toContain("const paymentsAccepted = !RESTRICTED_FEATURES.checkoutProActivation");
-    expect(source).toContain("Paid Pro activation is temporarily unavailable");
-    expect(source).toContain("no Pro Case Analysis payments are being accepted right now");
+    expect(source).toContain(
+      "Pro Case Analysis is available as a one-time $99 purchase per case",
+    );
+    expect(source).not.toContain(
+      "Paid Pro activation is temporarily unavailable",
+    );
+    expect(source).not.toContain(
+      "no Pro Case Analysis payments are being accepted right now",
+    );
+    expect(source).not.toContain("const paymentsAccepted");
   });
 
   test("ProGate has no purchase funnel copy", () => {
@@ -240,36 +267,36 @@ describe("public copy no longer promises restricted flows", () => {
    Flag A (2026-08-22): /documents and /chat are
    live paid AI tools that are NOT case-scoped.
    With the $99 checkout gated for everyone, they
-   must fail closed on the same gate — no signed-in
+   must fail closed on their separate generative-tools gate — no signed-in
    user may invoke paid AI generation. The route
    UI shows the honest unavailable panel, and the
-   real implementation stays behind the gate (it is
+   real implementation stays behind that gate (it is
    the LAST step of any future controlled deploy).
    /research (court-law search) remains ungated.
    ──────────────────────────────────────────── */
 
 describe("Flag A: paid AI tools /documents & /chat fail closed, not case-scoped", () => {
-  test("generateDocument fails closed at the checkout gate before any AI work", () => {
+  test("generateDocument fails closed at the generative-tools gate before any AI work", () => {
     const source = read("../routes/documents.tsx");
     const body = handlerBody(source, "generateDocument");
-    expect(body).toContain("RESTRICTED_FEATURES.checkoutProActivation");
+    expect(body).toContain("RESTRICTED_FEATURES.generativeProTools");
     expect(body).toContain("tempUnavailableError");
     // The gate must precede the AI call so no user can invoke live generation.
-    expect(body.indexOf("RESTRICTED_FEATURES.checkoutProActivation")).toBeLessThan(
+    expect(body.indexOf("RESTRICTED_FEATURES.generativeProTools")).toBeLessThan(
       body.indexOf("askAI"),
     );
   });
 
-  test("sendMessage fails closed at the checkout gate before any rate-limit or AI work", () => {
+  test("sendMessage fails closed at the generative-tools gate before any rate-limit or AI work", () => {
     const source = read("../routes/chat.tsx");
     const body = handlerBody(source, "sendMessage");
-    expect(body).toContain("RESTRICTED_FEATURES.checkoutProActivation");
+    expect(body).toContain("RESTRICTED_FEATURES.generativeProTools");
     expect(body).toContain("tempUnavailableError");
     // Gate precedes the rate-limit check and the streaming AI call.
-    expect(body.indexOf("RESTRICTED_FEATURES.checkoutProActivation")).toBeLessThan(
+    expect(body.indexOf("RESTRICTED_FEATURES.generativeProTools")).toBeLessThan(
       body.indexOf("checkRateLimit"),
     );
-    expect(body.indexOf("RESTRICTED_FEATURES.checkoutProActivation")).toBeLessThan(
+    expect(body.indexOf("RESTRICTED_FEATURES.generativeProTools")).toBeLessThan(
       body.indexOf("askAIStreaming"),
     );
   });
@@ -294,10 +321,11 @@ describe("Flag A: paid AI tools /documents & /chat fail closed, not case-scoped"
 
   test("landing page presents the Document Generator as temporarily unavailable", () => {
     const source = read("../routes/index.tsx");
-    expect(source).toMatch(/Document Generator[\s\S]*?temporarily unavailable/i);
+    expect(source).toMatch(
+      /Document Generator[\s\S]*?temporarily unavailable/i,
+    );
   });
 });
-
 
 /* ────────────────────────────────────────────
    Independent-review regression tests
@@ -341,7 +369,9 @@ describe("review fix: evidence copy matches the whole-manager restriction", () =
     const source = read("../routes/cases/$caseId.tsx");
     expect(source).not.toContain("uploads temporarily unavailable");
     expect(source).not.toMatch(/tools for organizing evidence/);
-    expect(source).toContain("Temporarily unavailable — organizing and uploading case evidence");
+    expect(source).toContain(
+      "Temporarily unavailable — organizing and uploading case evidence",
+    );
   });
 
   test("evidence route meta and body describe the whole-manager restriction", () => {
@@ -362,7 +392,7 @@ describe("review fix: gate docs and code do not claim a flag flip restores remov
     const source = read("./restrictedFeatures.ts");
     // No leftover "flip the flag to re-enable" oversimplification.
     expect(source).not.toMatch(/flip a flag/i);
-    expect(source).toContain("does NOT restore");
+    expect(source).toContain("clearing the flag alone does NOT");
     expect(source).toContain("must be rebuilt");
   });
 
@@ -391,10 +421,10 @@ describe("review fix: gate docs and code do not claim a flag flip restores remov
   });
 });
 
-describe("review fix: checkout-success analytics are disabled while checkout is restricted", () => {
-  test("shouldTrackCheckoutSuccess is false while the checkout gate is on", () => {
-    expect(RESTRICTED_FEATURES.checkoutProActivation).toBe(true);
-    expect(shouldTrackCheckoutSuccess()).toBe(false);
+describe("review fix: checkout-success analytics are enabled with open checkout", () => {
+  test("shouldTrackCheckoutSuccess is true while the checkout gate is open", () => {
+    expect(RESTRICTED_FEATURES.checkoutProActivation).toBe(false);
+    expect(shouldTrackCheckoutSuccess()).toBe(true);
   });
 
   test("dashboard guards the client-controlled checkout-success event with the gate", () => {
@@ -420,22 +450,27 @@ describe("review fix: privacy policy last-amended date", () => {
    comment truthfulness, evidence heading
    ──────────────────────────────────────────── */
 
-describe("final re-review regression: webhook 503 feature_restricted gate", () => {
-  test("webhook restricted payload carries the feature_restricted code", () => {
+describe("final re-review regression: open webhook signature gate", () => {
+  test("webhook no longer emits the removed feature_restricted checkout response", () => {
     const source = read("../routes/api/stripe/webhook.ts");
-    expect(source).toContain('code: "feature_restricted"');
-    expect(source).not.toContain('code: "temporarily_unavailable"');
+    expect(source).not.toContain('code: "feature_restricted"');
+    expect(source).toContain(
+      'return json({ error: "No signature" }, { status: 400 })',
+    );
+    expect(source).toContain(
+      'return json({ error: "Invalid signature" }, { status: 400 })',
+    );
   });
 
-  test("webhook gate stays the handler's first check (fail-closed not weakened)", () => {
+  test("webhook signature verification precedes event processing", () => {
     const source = read("../routes/api/stripe/webhook.ts");
-    const gate = source.indexOf("RESTRICTED_FEATURES.checkoutProActivation");
-    expect(gate).toBeGreaterThanOrEqual(0);
-    // The gate must precede the Stripe env guard, Stripe client
-    // construction, and signature verification inside the handler.
-    expect(gate).toBeLessThan(source.indexOf("if (!STRIPE_SECRET_KEY"));
-    expect(gate).toBeLessThan(source.indexOf("new Stripe("));
-    expect(gate).toBeLessThan(source.indexOf("stripe-signature"));
+    const signature = source.indexOf("stripe-signature");
+    const processing = source.indexOf(
+      "const outcome = await processCheckoutCompleted",
+    );
+    expect(source).not.toContain("RESTRICTED_FEATURES.checkoutProActivation");
+    expect(signature).toBeGreaterThanOrEqual(0);
+    expect(processing).toBeGreaterThan(signature);
   });
 });
 
@@ -455,7 +490,9 @@ describe("final re-review regression: evidence unavailable heading", () => {
   test("primary evidence heading states the whole manager is unavailable", () => {
     const source = read("../routes/evidence.tsx");
     expect(source).toContain("The Evidence Manager is temporarily unavailable");
-    expect(source).not.toContain("Evidence uploads are temporarily unavailable");
+    expect(source).not.toContain(
+      "Evidence uploads are temporarily unavailable",
+    );
   });
 });
 
@@ -500,12 +537,12 @@ describe("final review: case-creation copy and root structured data make no disa
 
 describe("ungated flows are NOT gated (preservation)", () => {
   const ungatedRoutes: Record<string, string> = {
-    "../routes/learn.tsx": "createFileRoute(\"/learn\")",
-    "../routes/research.tsx": "createFileRoute(\"/research\")",
-    "../routes/timeline.tsx": "createFileRoute(\"/timeline\")",
-    "../routes/calendar.tsx": "createFileRoute(\"/calendar\")",
-    "../routes/cases/new.tsx": "createFileRoute(\"/cases/new\")",
-    "../routes/cases/$caseId.tsx": "createFileRoute(\"/cases/$caseId\")",
+    "../routes/learn.tsx": 'createFileRoute("/learn")',
+    "../routes/research.tsx": 'createFileRoute("/research")',
+    "../routes/timeline.tsx": 'createFileRoute("/timeline")',
+    "../routes/calendar.tsx": 'createFileRoute("/calendar")',
+    "../routes/cases/new.tsx": 'createFileRoute("/cases/new")',
+    "../routes/cases/$caseId.tsx": 'createFileRoute("/cases/$caseId")',
   };
 
   for (const [file, routeDecl] of Object.entries(ungatedRoutes)) {
@@ -548,14 +585,22 @@ describe("signed-in users get a mobile navigation drawer in the shared header", 
   });
 
   test("a mobile menu trigger with aria-expanded/aria-controls and a 44px+ target exists", () => {
-    expect(source).toContain('aria-expanded={mobileOpen}');
+    expect(source).toContain("aria-expanded={mobileOpen}");
     expect(source).toContain('aria-controls="mobile-nav-menu"');
-    expect(source).toContain('h-11 w-11'); // 44px touch target
-    expect(source).toContain('aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}');
+    expect(source).toContain("h-11 w-11"); // 44px touch target
+    expect(source).toContain(
+      'aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}',
+    );
   });
 
   test("the drawer exposes the main signed-in app routes and closes on Escape/backdrop", () => {
-    for (const route of ['to="/dashboard"', 'to="/chat"', 'to="/evidence"', 'to="/calendar"', 'to="/profile"']) {
+    for (const route of [
+      'to="/dashboard"',
+      'to="/chat"',
+      'to="/evidence"',
+      'to="/calendar"',
+      'to="/profile"',
+    ]) {
       expect(source).toContain(route);
     }
     expect(source).toContain('if (e.key === "Escape") setMobileOpen(false)');
