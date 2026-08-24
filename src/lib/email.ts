@@ -57,26 +57,24 @@ export async function sendWelcomeEmail(
   const subject = "Welcome to Fair Fight — Understand the Law";
   const body = `Hi ${name},
 
-Welcome to Fair Fight! We're here to help you understand your legal situation with plain-English explanations, AI-powered case analysis, and tools to stay organized.
+Welcome to Fair Fight, a legal-education workspace. We're here to help you understand your legal situation with plain-English explanations, case-law research, and tools to help you organize your own case.
 
-Here's what you can do right now:
-• Browse our free legal guides at /learn
-• Try the AI Case Analyzer on the homepage
-• Create your first case and get an educational legal analysis
+Here's what's available to you:
+• Free public education: browse plain-English guides at /learn and search public case law at /research — free for everyone, no purchase needed.
+• Pro Case Analysis: an in-depth educational analysis of a single case, available as a one-time $99 purchase per case. There's no subscription, and there's no free tier of the paid case-analysis tool.
 
-Remember: Fair Fight is for educational purposes only. We never provide legal advice. Always consult a licensed attorney for your specific situation.
+Remember: Fair Fight is for educational purposes only. We never provide legal advice, and we can't promise that any argument is guaranteed or best. Always consult a licensed attorney for your specific situation.
 
 — The Fair Fight Team`;
 
   const html = `<!DOCTYPE html><html><body style="font-family:Inter,sans-serif;color:#333;max-width:600px;margin:0 auto;padding:20px">
 <h1 style="color:#0A2342">Welcome to Fair Fight ⚖️</h1>
 <p>Hi ${name},</p>
-<p>Welcome to <strong>Fair Fight</strong>! We're here to help you understand your legal situation with plain-English explanations, AI-powered case analysis, and tools to stay organized.</p>
-<p><strong>Here's what you can do right now:</strong></p>
+<p>Welcome to <strong>Fair Fight</strong>, a legal-education workspace. We're here to help you understand your legal situation with plain-English explanations, case-law research, and tools to help you organize your own case.</p>
+<p><strong>Here's what's available to you:</strong></p>
 <ul>
-<li>Browse our free legal guides</li>
-<li>Try the AI Case Analyzer</li>
-<li>Create your first case and get an educational legal analysis</li>
+<li><strong>Free public education:</strong> browse plain-English guides at <a href="/learn">/learn</a> and search public case law at <a href="/research">/research</a> — free for everyone, no purchase needed.</li>
+<li><strong>Pro Case Analysis:</strong> an in-depth educational analysis of a single case, available as a one-time <strong>$99 purchase per case</strong>. There's no subscription, and there's no free tier of the paid case-analysis tool.</li>
 </ul>
 <p style="background:#f8f8f8;padding:12px;border-left:4px solid #C9A227;font-size:14px">
 ⚖️ Fair Fight is for educational purposes only. We never provide legal advice. Always consult a licensed attorney.
