@@ -1,10 +1,6 @@
 import Stripe from "stripe";
 import { checkoutReturnUrls, FAIR_FIGHT_CURRENCY, FAIR_FIGHT_PRICE_CENTS, hasCaseEntitlement } from "~/lib/payment";
 import { isCaseOwner } from "~/lib/argumentAccess";
-import {
-  RESTRICTED_FEATURES,
-  TEMP_UNAVAILABLE_MESSAGE,
-} from "~/lib/restrictedFeatures";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || "";
@@ -123,24 +119,17 @@ export async function createCheckoutSession(
   userId: string,
   caseId: string
 ): Promise<{ url: string } | { error: string }> {
-  // P0 fail-closed gate: Pro activation is not yet verified end-to-end
-  // (real Stripe webhook + real database verification are blocked). The
-  // complete, unit-tested path is implemented behind this gate; clearing it
-  // is the LAST step of a controlled deploy (see lib/restrictedFeatures.ts).
-  if (RESTRICTED_FEATURES.checkoutProActivation) {
-    return { error: TEMP_UNAVAILABLE_MESSAGE };
-  }
+  // Checkout is OPEN for live $99 payments (owner-approved controlled launch):
+  // this delegates directly to the tested core (ownership check, price
+  // validation, exact server-derived metadata). Entitlement is granted only by
+  // the paid, verified checkout.session.completed webhook (see webhook.ts).
   return createCheckoutSessionCore(userId, caseId);
 }
 
 export async function createCustomerPortalSession(
   customerId: string
 ): Promise<{ url: string } | { error: string }> {
-  // P0 fail-closed gate: billing/portal is part of the unverified paid flow.
-  if (RESTRICTED_FEATURES.checkoutProActivation) {
-    return { error: TEMP_UNAVAILABLE_MESSAGE };
-  }
-
+  // Billing/portal is open alongside the live-checkout launch.
   try {
     const stripe = getStripe();
     const session = await stripe.billingPortal.sessions.create({

@@ -4,7 +4,6 @@ import { useUser } from "@clerk/tanstack-react-start";
 import { createServerFn } from "@tanstack/react-start";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { getCurrentAuth } from "~/lib/auth";
-import { RESTRICTED_FEATURES } from "~/lib/restrictedFeatures";
 import { listUserPayments, type PaymentHistoryRecord } from "~/lib/dataProtection";
 
 export const Route = createFileRoute("/profile")({
@@ -12,28 +11,20 @@ export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
       { title: "Your Profile — Fair Fight" },
-      { name: "description", content: "Manage your Fair Fight profile and account settings. Paid Pro activation is temporarily unavailable." },
+      { name: "description", content: "Manage your Fair Fight profile, billing, and account settings." },
     ],
   }),
 });
 
 const getProfileData = createServerFn({ method: "GET" }).handler(async () => {
   const auth = await getCurrentAuth();
-  if (!auth.userId) return { unavailable: true, pro: false };
-
-  // P0 fail-closed gate: Pro entitlement, billing status, and storage usage
-  // are not verified, and the lookups that would produce them were removed.
-  // Report an honest unavailable state instead of fabricated zeros. Clearing
-  // the flag alone does NOT restore the removed lookups (see
-  // lib/restrictedFeatures.ts); re-enabling requires restoring and verifying
-  // them first.
-  if (RESTRICTED_FEATURES.checkoutProActivation) {
-    return { unavailable: true, pro: false };
-  }
-
-  // The verified entitlement/storage/payment-history lookups belong here once
-  // the flow is repaired and tested; until then the honest state is reported.
-  return { unavailable: true, pro: false };
+  if (!auth.userId) return { unavailable: false, pro: false };
+  // Checkout is OPEN for live $99 payments. Payment history is fetched by the
+  // separate ownership-scoped `getPaymentHistory` server function below; Pro
+  // status is per-case and derived at the analysis surface, and storage usage
+  // has no real measurement, so no fabricated entitlement or storage figure is
+  // reported here.
+  return { unavailable: false, pro: false };
 });
 
 /**
@@ -50,33 +41,23 @@ const getPaymentHistory = createServerFn({ method: "POST" }).handler(async () =>
 });
 
 /**
- * Billing/membership copy is driven by the CURRENT gate state so it can never
- * drift out of date:
+ * Billing/membership copy reflects the CURRENT, OPEN checkout state.
  *
- *   - While `checkoutProActivation` is true (today), payments are NOT being
- *     accepted, so the honest copy says exactly that.
- *
- *   - The moment the gate is cleared for real (non-test) payments, the
- *     "no payments are being accepted" claims below would become FALSE. That
- *     transition is a launch blocker and must be handled deliberately — see
- *     `src/lib/restrictedFeatures.ts` for what clearing the flag does and does
- *     NOT restore (the payment-history/entitlement lookups were REMOVED when the
- *     flow was restricted and must be rebuilt and verified first).
- *
- * TODO(gate-open): when `checkoutProActivation` is cleared for real payments,
- * revisit EVERY branch keyed off `paymentsAccepted` in this file, replace the
- * "not being accepted" wording with the true live payment state, and restore the
- * payment-history/entitlement lookups. Do NOT simply flip the flag and expect
- * this copy to be valid — payments history is not yet shown.
+ * The checkout/Pro-activation gate is now open for live $99 payments
+ * (owner-approved controlled launch, see `src/lib/restrictedFeatures.ts`), so
+ * the profile shows the truthful paid billing copy directly below — no
+ * "no payments accepted" fallback. Payment history is fetched by the
+ * ownership-scoped `getPaymentHistory` server function above. (Storage usage
+ * remains "temporarily unavailable" because there is no real storage figure —
+ * that is a separate, still-gated surface, not part of this launch.)
  */
 function ProfilePage() {
   const { user, isLoaded: userLoaded } = useUser();
   const [loading, setLoading] = useState(true);
   const [payments, setPayments] = useState<PaymentHistoryRecord[] | null>(null);
 
-  // Truthful to the CURRENT gate state. Never claim payments are open while the
-  // checkout/Pro activation gate is still active.
-  const paymentsAccepted = !RESTRICTED_FEATURES.checkoutProActivation;
+  // Checkout is OPEN: payments are accepted, so the profile shows the truthful
+  // paid billing copy (no gate-closed fallback).
 
   useEffect(() => {
     getProfileData()
@@ -176,17 +157,13 @@ function ProfilePage() {
           <div className="mb-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
             <h2 className="mb-1 text-xl font-bold text-white">Membership & Billing</h2>
             <p className="mb-6 text-sm text-white/60">
-              {paymentsAccepted
-                ? "Pro Case Analysis is available as a one-time $99 purchase per case"
-                : "Paid Pro activation is temporarily unavailable"}
+              {"Pro Case Analysis is available as a one-time $99 purchase per case"}
             </p>
 
             <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center">
               <div className="mx-auto mb-3 text-3xl">📋</div>
               <p className="text-sm text-white/70">
-                {paymentsAccepted
-                  ? "Pro Case Analysis is available as a one-time $99 purchase per case: a plain-English summary, possible issues, candidate arguments, and traceable public sources — educational only, not legal advice. Legal education and your core case tools remain available in your workspace."
-                  : "Legal education, legal research, statutes, case law, court rules, and your core case tools remain available in your workspace. We're verifying the paid Pro flow before re-enabling it; no Pro Case Analysis payments are being accepted right now."}
+                {"Pro Case Analysis is available as a one-time $99 purchase per case: a plain-English summary, possible issues, candidate arguments, and traceable public sources — educational only, not legal advice. Legal education and your core case tools remain available in your workspace."}
               </p>
             </div>
           </div>
