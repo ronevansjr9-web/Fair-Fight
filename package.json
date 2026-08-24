@@ -11,7 +11,8 @@
     "go-live": "bash ./go-live.sh",
     "format": "prettier --write .",
     "migrate": "bun run src/lib/migrate-cli.ts",
-    "test:pg": "bash scripts/pg-disposable-integration.sh"
+    "test:pg": "bash scripts/pg-disposable-integration.sh",
+    "gen:sitemap": "bun run scripts/gen-sitemap.ts"
   },
   "dependencies": {
     "@clerk/backend": "^3.16.9",
