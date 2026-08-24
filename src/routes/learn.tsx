@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ARTICLES, ALL_CATEGORIES, getGuideBySlug } from "~/lib/guides";
+import { ARTICLES, ALL_CATEGORIES, getGuideBySlug, guideUrl } from "~/lib/guides";
 
 export const Route = createFileRoute("/learn")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -26,8 +26,11 @@ export const Route = createFileRoute("/learn")({
             { name: "twitter:description", content: description },
             { name: "twitter:image", content: ogImage },
           ],
+          // Legacy /learn?article=<id> deep links hand SEO credit to the clean
+          // static /learn/<slug> canonical rather than self-canonicalizing to the
+          // legacy ?article= URL. The component below also redirects to /learn/<slug>.
           links: [
-            { rel: "canonical", href: `https://fairfight.ctonew.app/learn?article=${article.id}` },
+            { rel: "canonical", href: guideUrl(article.id) },
           ],
         };
       }
