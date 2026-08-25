@@ -4,14 +4,14 @@ import {
   Scripts,
   Link,
   createRootRoute,
-  useRouterState,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { ClerkProvider, UserButton, SignInButton, SignUpButton, useAuth } from "@clerk/tanstack-react-start";
-import { trackEvent, trackPageView, AnalyticsEvents } from "~/lib/analytics";
+import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { SECURITY_HEADERS } from "~/lib/security-headers";
 import { SignInTicketHandler } from "~/components/SignInTicketHandler";
+import { RouteVisitTracker } from "~/components/RouteVisitTracker";
 
 import appCss from "~/styles/app.css?url";
 
@@ -168,25 +168,6 @@ function AuthTracker() {
     prevSignedIn.current = auth.isSignedIn;
   }, [auth.isSignedIn]);
 
-  return null;
-}
-
-/**
- * First-party page-view beacon. Fires once on first render (the initial
- * landing — including direct SEO landings on a /learn guide) and again on each
- * real route transition (path + search). Fire-and-forget via sendBeacon /
- * fetch keepalive; it must never block page load or the payment path.
- */
-function RouteVisitTracker() {
-  const route = useRouterState({
-    select: (s) => s.location.pathname + s.location.search,
-  });
-  const lastSent = useRef<string | null>(null);
-  useEffect(() => {
-    if (route === lastSent.current) return;
-    lastSent.current = route;
-    trackPageView(route);
-  }, [route]);
   return null;
 }
 
