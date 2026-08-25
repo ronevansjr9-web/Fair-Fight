@@ -119,8 +119,8 @@ function ProfilePage() {
                   <p className="text-sm text-white/40">@{user.username}</p>
                 )}
                 <div className="mt-3">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white/70">
-                    Pro — temporarily unavailable
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1 text-sm font-semibold text-gold">
+                    Pro Case Analysis — $99 one-time per case
                   </span>
                 </div>
               </div>

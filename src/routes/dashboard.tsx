@@ -228,9 +228,14 @@ function DashboardPage() {
                           {c.status}
                         </span>
                         {data.entitledCaseIds.includes(c.id) ? (
-                          <span className="rounded-full bg-gold/15 px-2 py-0.5 text-xs font-medium text-gold" title="Pro Case Analysis unlocked for this case">
+                          <Link
+                            to="/analysis"
+                            search={{ caseId: c.id, checkout: undefined }}
+                            className="rounded-full bg-gold/15 px-2 py-0.5 text-xs font-medium text-gold transition-colors hover:bg-gold/25"
+                            title="Open your unlocked Pro Case Analysis for this case"
+                          >
                             ✓ Pro Analysis
-                          </span>
+                          </Link>
                         ) : (
                           <a
                             href={`/analysis?caseId=${encodeURIComponent(c.id)}`}
