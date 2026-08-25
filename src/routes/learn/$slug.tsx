@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
+  GUIDE_REDIRECTS,
   getGuideBySlug,
   guideUrl,
   SITE_ORIGIN,
@@ -7,6 +8,15 @@ import {
 import { guideStructuredDataScripts } from "~/lib/structuredData";
 
 export const Route = createFileRoute("/learn/$slug")({
+  // Folded/renamed guide slugs resolve to their canonical page with a true
+  // server-side 301 so search engines consolidate authority onto one URL.
+  loader: ({ params }) => {
+    const target = GUIDE_REDIRECTS[params.slug];
+    if (target) {
+      throw redirect({ href: guideUrl(target), statusCode: 301, replace: true });
+    }
+    return null;
+  },
   head: ({ params }) => {
     const article = getGuideBySlug(params.slug);
     if (!article) {

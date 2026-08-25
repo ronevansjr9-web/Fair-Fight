@@ -396,22 +396,23 @@ export const ARTICLES: Article[] = [
     readTime: "11 min",
     paragraphs: [
       "Small claims court is designed for people to resolve disputes involving relatively small amounts of money without needing a lawyer. Each state sets its own monetary limit — typically $3,000 to $10,000, though some states go up to $25,000. Small claims court has simplified procedures: no formal discovery, relaxed evidence rules, and no juries (a judge decides everything).",
-      "To file a small claims case, go to the courthouse in the county where the defendant lives or does business (or where the dispute occurred). Fill out a simple complaint form describing what happened, how much you're owed, and why. Pay the filing fee ($15-75, often recoverable if you win). The court clerk schedules a hearing date and issues a summons for the defendant.",
-      "Before the hearing, consider sending a formal demand letter — it shows the court you tried to resolve the dispute. Prepare your evidence: contracts, receipts, photos, emails/texts, invoices, estimates, and witness statements. Organize everything chronologically. Practice explaining your case in 3-5 minutes — small claims hearings are short.",
+      "Before filing, confirm small claims court is the right venue for your case. Small claims courts generally handle claims for money only and cannot order someone to do something (like return property or perform a service), though some states allow limited equitable relief. Make sure the amount is within the court's monetary limit — if you're owed more than the limit, you can waive the excess and sue for the limit, but you can't split one claim into multiple small claims cases. You must file in the county where the defendant lives or does business, or where the dispute occurred. Confirm your claim is within the statute of limitations — most small claims cases must be filed within 2-6 years depending on the claim type and state.",
+      "To file, go to the courthouse in the county where the defendant lives or does business (or where the dispute occurred). Fill out a simple complaint form describing what happened, how much you're owed, and why. Use the defendant's correct legal name and address — for a business, check the Secretary of State's website for the registered agent. Pay the filing fee ($15-100, often recoverable if you win); fee waivers are available for low-income litigants. The court clerk schedules a hearing date, issues a summons, and usually handles service via certified mail or sheriff's service for a small additional fee. Bring at least three copies of everything you file — one for the judge, one for the defendant, and one for yourself.",
+      "Before the hearing, consider sending a formal demand letter — it shows the court you tried to resolve the dispute and may settle the case without litigation. Prepare your evidence: contracts, receipts, photos, emails/texts, invoices, estimates, cancelled checks, repair estimates, and witness statements. Organize everything chronologically, and arrange for any witnesses to attend. Practice explaining your case in 3-5 minutes — small claims hearings are short, and judges appreciate clear, concise presentations.",
       "At the hearing, arrive early, dress professionally, and bring all your evidence and copies for the judge and other party. When it's your turn, tell your story clearly and concisely. Stick to the facts. Show the judge your evidence. Answer questions directly. Be respectful — even if you're frustrated. The judge will either rule from the bench or mail a decision later.",
-      "If you win, you get a judgment — but collecting can be the hardest part. You may need to garnish wages, levy bank accounts, or place liens on property. If you lose, appeal deadlines are short (typically 10-30 days) and appeals are usually limited to errors of law, not disagreements with the judge's factual findings.",
+      "After the hearing: if you win, you get a judgment — but collecting can be the hardest part, and the court doesn't collect the money for you. Collection options include wage garnishment, bank levy, and property liens (and in some states, driver's license suspension for non-payment of judgments). If you lose, review whether you can appeal — deadlines are short (typically 10-30 days), and in many states appeals are de novo (a new trial in a higher court), while in others they are limited to errors of law rather than disagreements with the judge's factual findings.",
     ],
     takeaways: [
       "Small claims has simplified procedures with monetary limits of $3,000-$10,000 (varies by state)",
-      "File where the defendant lives or does business; pay a small filing fee",
-      "Send a demand letter first; organize evidence chronologically; practice your 3-5 minute summary",
-      "Dress professionally, be respectful, bring copies of all evidence, stick to facts",
-      "Winning is half the battle — collecting a judgment may require garnishment or liens",
+      "Confirm jurisdiction: money-only disputes, within the court's limit, in the right county, and within the statute of limitations (usually 2-6 years)",
+      "Filing steps: demand letter → complaint form (correct legal name) → file with the clerk → pay fee ($15-100, waivers for low-income) → service via certified mail or sheriff; keep 3 copies",
+      "Send a demand letter first; organize evidence chronologically; bring 3 copies; practice your 3-5 minute summary",
+      "Winning is half the battle — collecting may require garnishment, bank levy, or liens; appeal deadlines are short (10-30 days)",
     ],
     relatedGuides: ["how-to-write-demand-letter", "security-deposit-guide", "debt-collection-defense"],
   },
   {
-    id: "what-is-summary-judgment",
+    id: "what-happens-after-filing-lawsuit",
     title: "What Happens After You File a Complaint: A Timeline of Civil Litigation",
     category: "Court Procedures",
     readTime: "13 min",
@@ -521,18 +522,20 @@ export const ARTICLES: Article[] = [
     category: "Housing Law",
     readTime: "9 min",
     paragraphs: [
-    "Tenant rights are a patchwork of federal, state, and local laws that protect renters from unfair treatment. While specific protections vary by jurisdiction, there are fundamental rights that apply broadly: the right to a habitable home, the right to privacy, protection against discrimination, and the right to due process before eviction. Understanding these rights is essential for every renter.",
-    "The implied warranty of habitability — recognized in most states — requires landlords to maintain rental properties in safe, livable condition. This means working heat, hot water, plumbing, electricity, structural integrity, and freedom from pest infestations and mold. If the landlord fails to make essential repairs after reasonable notice, tenants may have remedies including: withholding rent (in some states, you must pay into an escrow account), repairing and deducting the cost from rent, or breaking the lease without penalty. Follow your state's exact procedures — doing it wrong can lead to eviction.",
+    "Tenant rights are a patchwork of federal, state, and local laws that protect renters from unfair treatment. While specific protections vary by jurisdiction, there are fundamental rights that apply broadly: the right to a habitable home, the right to privacy, protection against discrimination, and the right to due process before eviction. Understanding these rights is essential for every renter. The three areas where tenants most commonly need to assert their rights are security deposits, repairs and habitability, and eviction defense.",
+    "The implied warranty of habitability — recognized in the vast majority of states — requires landlords to maintain rental properties in safe, livable condition. This means working heat, hot water, plumbing, and electricity; structurally sound floors, walls, and roofs; freedom from pest infestations and mold; functioning smoke detectors and carbon monoxide alarms; and secure doors and windows. If the landlord fails to make essential repairs after reasonable written notice, tenants may have remedies including: withholding rent (in some states, you must pay into an escrow account), repairing and deducting the cost from rent, reporting the conditions to local housing code enforcement, or breaking the lease without penalty (the doctrine of constructive eviction). Follow your state's exact procedures — doing it wrong can lead to your own eviction.",
+    "Security deposits are regulated in every state. Key protections include: maximum deposit limits (typically 1-2 months' rent, higher in some markets), requirements for how deposits must be held (some states require separate interest-bearing accounts), and strict timelines for returning deposits after move-out (typically 14-45 days, with some of the strictest being California's 21 days and Massachusetts's 30 days). Landlords can only deduct for: unpaid rent, damage beyond normal wear and tear, and cleaning if the unit is left abnormally dirty. Normal wear and tear — faded paint, minor carpet wear, small nail holes — cannot be deducted. If the landlord fails to provide a written itemized statement of deductions within the deadline, you may be entitled to the full deposit plus statutory penalties (2-3x the deposit in many states).",
+    "Eviction is a legal process — not something a landlord can accomplish by changing locks, shutting off utilities, or removing your belongings. Self-help evictions are illegal in all 50 states. The lawful eviction process requires: proper written notice (pay-or-quit for unpaid rent, cure-or-quit for lease violations, or unconditional quit for serious breaches), filing an eviction lawsuit if you don't comply, proper service of the summons and complaint, an opportunity to file an answer and present defenses at a hearing, and a court order (writ of possession) before a sheriff can physically remove you. Defenses include: the landlord didn't follow proper procedures, the eviction is retaliatory (you complained about conditions or joined a tenant union), the eviction is discriminatory (violating the Fair Housing Act), or you've already paid the rent or cured the violation.",
     "Your right to privacy means the landlord cannot enter your unit whenever they want. Most states require 24-48 hours' notice (except in emergencies like a burst pipe or fire). Landlords cannot enter to harass you, show the unit to strangers without notice, or conduct repeated unnecessary inspections designed to force you out. If the landlord violates your privacy repeatedly, you may have grounds for a rent reduction or lease termination.",
     "The Fair Housing Act (federal) prohibits discrimination based on race, color, national origin, religion, sex, familial status, and disability. Many states and cities add protections for source of income, sexual orientation, gender identity, age, and marital status. Discrimination can include: refusing to rent, setting different terms, falsely claiming units are unavailable, steering families to specific buildings, or refusing reasonable accommodations for disabilities.",
-    "Retaliation is illegal: your landlord cannot evict you, raise your rent, or reduce services because you complained about housing code violations, joined a tenant organization, or exercised your legal rights. Most states presume retaliation if the landlord takes adverse action within 6-12 months of a protected activity. Keep records of all complaints, repair requests, and landlord communications — dates, times, and what was said. Documentation wins these cases.",
+    "Retaliation is illegal: your landlord cannot evict you, raise your rent, or reduce services because you complained about housing code violations, joined a tenant organization, or exercised your legal rights. Most states presume retaliation if the landlord takes adverse action within 6-12 months of a protected activity. Keep records of everything: your lease, all correspondence with the landlord, photos of conditions, receipts for rent payments and repairs, and written documentation of all complaints and requests — dates, times, and what was said. In a dispute, documentation wins. Some jurisdictions also provide a right to counsel in eviction cases.",
     ],
     takeaways: [
-    "Implied warranty of habitability: landlords must maintain safe, livable conditions",
-    "Remedies for habitability violations: withhold rent (use escrow), repair and deduct, or break lease",
-    "Landlords must give 24-48 hours' notice before entering (except emergencies)",
-    "Fair Housing Act prohibits discrimination based on race, religion, sex, disability, and family status",
-    "Retaliation for exercising your rights is illegal — document all communications with your landlord",
+    "Implied warranty of habitability: working systems, structural integrity, no pests/mold; remedies include escrow withholding, repair-and-deduct, and breaking the lease",
+    "Security deposits: state limits, strict return deadlines (14-45 days), deductions only for damage beyond normal wear and tear",
+    "Self-help evictions are illegal — landlords must follow formal notice, court filing, and a hearing before a writ of possession",
+    "Landlords must give 24-48 hours' notice before entering (except emergencies); Fair Housing Act prohibits discrimination",
+    "Retaliation for asserting your rights is illegal — document all communications, receipts, and complaints; documentation wins disputes",
     ],
     relatedGuides: ["eviction-process-guide", "security-deposit-guide", "small-claims-court-guide"],
     },
@@ -788,48 +791,6 @@ export const ARTICLES: Article[] = [
       "If granted asylum, you can apply for a green card after one year; work authorization after 150+ days pending",
     ],
     relatedGuides: ["immigration-court-basics", "how-to-file-a-motion", "civil-rights-section-1983"],
-  },
-  {
-    id: "sue-in-small-claims",
-    title: "How to Sue in Small Claims Court: From Filing to Judgment",
-    category: "Court Procedures",
-    readTime: "9 min",
-    paragraphs: [
-      "Small claims court is the people's court — designed for ordinary individuals to resolve disputes without lawyers, expensive filing fees, or complex procedures. Every state has a small claims division, with monetary limits typically ranging from $3,000 to $10,000 (some states go up to $25,000 for individuals). Small claims court handles a wide range of cases: unpaid debts, landlord-tenant security deposit disputes, property damage, breach of contract, defective products, auto repair disputes, and more. The process is streamlined, relaxed, and accessible to everyone.",
-      "Before filing, confirm that small claims court is the right venue for your case. Key questions: Is your claim for money only? Small claims courts generally cannot order someone to do something (like return property or perform a service) — though some states allow limited equitable relief. Is the amount within the court's monetary limit? If you're owed $15,000 but the limit is $10,000, you can waive the excess and sue for the limit — but you can't split one claim into multiple small claims cases. Is the defendant in the right location? You must sue in the county where the defendant lives or does business, or where the dispute occurred. Is your claim within the statute of limitations? Most small claims cases must be filed within 2-6 years depending on the claim type and state.",
-      "Step-by-step filing: (1) Send a formal demand letter — this shows the court you tried to resolve the dispute and may settle the case without litigation. (2) Obtain the small claims complaint form from your local courthouse or online (many states have self-help websites). (3) Fill out the form: your name and contact info, the defendant's correct legal name and address (for a business, check the Secretary of State's website for the registered agent), a brief plain-English description of what happened and why you're owed money, and the exact amount you're claiming. (4) File the complaint with the court clerk and pay the filing fee ($15-$100, often recoverable if you win). Fee waivers are available for low-income litigants. (5) Arrange service of process — the court clerk usually handles this via certified mail or sheriff's service for a small additional fee.",
-      "Before your hearing, preparation is everything. Organize your evidence: contracts, receipts, invoices, cancelled checks, photos, text messages/emails, repair estimates, expert reports, and a written timeline of events. Bring at least three copies of everything — one for the judge, one for the defendant, and one for yourself. If you have witnesses, arrange for them to attend. Practice telling your story in 3-5 minutes — small claims hearings are short, and judges appreciate clear, concise presentations. Focus on the facts: what happened, when, who was involved, and why the defendant owes you money.",
-      "After the hearing: if you win, the judge issues a judgment. But collecting is a separate battle — the court doesn't collect the money for you. Options for collection include: wage garnishment, bank levy, property liens, and (in some states) driver's license suspension for non-payment of judgments. If the defendant appeals, appeals in small claims are usually de novo (a new trial in a higher court), and the deadline is typically 10-30 days. If you lose, review whether you can appeal. Many small claims judgments are final, but legal errors in the hearing can be grounds for appeal. Either way, small claims court is a cost-effective way to assert your rights — even when the outcome is uncertain.",
-    ],
-    takeaways: [
-      "Small claims handles money disputes up to $3,000-$10,000 (varies by state) with no lawyers needed",
-      "Confirm jurisdiction: money claim only, within monetary limit, right county, within statute of limitations",
-      "Filing steps: demand letter → complaint form → file with court clerk → pay fee → serve defendant",
-      "Prepare thoroughly: organized evidence, 3 copies of everything, practice a 3-5 minute summary",
-      "Winning the judgment is half the battle — collecting requires separate enforcement steps",
-    ],
-    relatedGuides: ["small-claims-court-guide", "how-to-write-demand-letter", "what-is-a-complaint"],
-  },
-  {
-    id: "renter-rights-full-guide",
-    title: "Your Rights as a Renter: Security Deposits, Repairs, and Evictions",
-    category: "Housing Law",
-    readTime: "8 min",
-    paragraphs: [
-      "Renting a home is one of the most significant financial relationships most people have, yet many tenants don't fully understand their legal rights until something goes wrong. Federal, state, and local laws provide a framework of tenant protections — but they only work if you know they exist and how to assert them. The three areas where tenants most commonly need to assert their rights are: security deposits, repairs and habitability, and eviction defense.",
-      "Security deposits are regulated in every state. Key protections include: maximum deposit limits (typically 1-2 months' rent, higher in some markets), requirements for how deposits must be held (some states require separate interest-bearing accounts), and strict timelines for returning deposits after move-out (typically 14-45 days, with some of the strictest being California's 21 days and Massachusetts's 30 days). Landlords can only deduct for: unpaid rent, damage beyond normal wear and tear, and cleaning if the unit is left abnormally dirty. Normal wear and tear — faded paint, minor carpet wear, small nail holes — cannot be deducted. If the landlord fails to provide a written itemized statement of deductions within the deadline, you're typically entitled to the full deposit plus statutory penalties (2-3x the deposit in many states).",
-      "The right to a habitable home is fundamental. Under the implied warranty of habitability — recognized in the vast majority of states — landlords must maintain: working heat, hot water, plumbing, and electricity; structurally sound floors, walls, and roofs; freedom from pest infestations and mold; functioning smoke detectors and carbon monoxide alarms; and secure doors and windows. If your landlord fails to make essential repairs after reasonable written notice, state law may allow you to: withhold rent (often requiring you to deposit rent into an escrow account with the court), pay for the repair yourself and deduct the cost from rent ('repair and deduct'), report the conditions to local housing code enforcement, or in severe cases, break the lease without penalty under the doctrine of constructive eviction. Follow your state's exact procedures — doing it incorrectly can result in your own eviction for non-payment.",
-      "Eviction is a legal process — not something a landlord can accomplish by changing locks, shutting off utilities, or removing your belongings. Self-help evictions are illegal in all 50 states. The lawful eviction process requires: proper written notice (pay-or-quit for unpaid rent, cure-or-quit for lease violations, or unconditional quit for serious breaches), filing an eviction lawsuit if you don't comply, proper service of the summons and complaint, an opportunity for you to file an answer and present defenses at a hearing, and a court order (writ of possession) before a sheriff can physically remove you. Defenses include: the landlord didn't follow proper procedures, the eviction is retaliatory (you complained about conditions or joined a tenant union), the eviction is discriminatory (violating the Fair Housing Act), or you've already paid the rent or cured the violation.",
-      "Beyond these three core areas, renters have additional rights: privacy (landlords generally must provide 24-48 hours' notice before entering, except for emergencies), protection against retaliation (you can't be evicted, have your rent raised, or services reduced for asserting your legal rights), protection against discrimination under the Fair Housing Act (race, color, religion, sex, national origin, familial status, disability — and many states add more categories), and in some jurisdictions, right to counsel in eviction cases. Keep records of everything: your lease, all correspondence with the landlord, photos of conditions, receipts for rent payments and repairs, and written documentation of all complaints and requests. In a dispute, documentation wins.",
-    ],
-    takeaways: [
-      "Security deposits: state-regulated, strict return deadlines (14-45 days), deductions only for damage beyond wear and tear",
-      "Implied warranty of habitability requires safe, livable conditions — remedies include escrow withholding and repair-and-deduct",
-      "Self-help evictions are illegal — landlords must go through formal court process with notice and hearing",
-      "Fair Housing Act prohibits discrimination; retaliation for asserting your rights is separately illegal",
-      "Document everything: lease, correspondence, photos, receipts, complaints — documentation wins disputes",
-    ],
-    relatedGuides: ["tenant-rights-guide", "eviction-process-guide", "security-deposit-guide"],
   },
   {
     id: "class-action-lawsuits",
@@ -1303,6 +1264,15 @@ export const ALL_CATEGORIES = Object.keys(CATEGORY_COLORS);
 
 // Resolve a guide by its URL slug (the article id, which is already slug-shaped,
 // e.g. "how-to-file-a-motion").
+// Moved/renamed guide slugs -> canonical slug. These are handled by a server-side
+// 301 redirect in the /learn/$slug route so search engines consolidate authority
+// onto the surviving (canonical) page. Keep keys as the OLD slugs that 404/have
+// been folded away; values must be live guide ids present in ARTICLES.
+export const GUIDE_REDIRECTS: Record<string, string> = {
+  "sue-in-small-claims": "small-claims-court-guide",
+  "renter-rights-full-guide": "tenant-rights-guide",
+  "what-is-summary-judgment": "what-happens-after-filing-lawsuit",
+};
 export function getGuideBySlug(slug: string): Article | undefined {
   return ARTICLES.find((a) => a.id === slug);
 }
