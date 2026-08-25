@@ -16,6 +16,7 @@ transaction; if any file fails, the whole batch rolls back (no partial schema).
 | `003_case_analyses.sql` | **`case_analyses`** — durable per-case paid analysis workspace (UNIQUE `case_id` → `cases` ON DELETE CASCADE) | `001` |
 | `004_webhook_events.sql` | **`webhook_events`** — Stripe webhook idempotency ledger (PK `event_id`) | — |
 | `005_case_activity.sql` | **`timeline_entries`**, **`calendar_events`** (FK → `cases` ON DELETE CASCADE) | `001` |
+| `006_analytics.sql` | **`analytics_events`** — append-only route-visit + funnel-event log (no cookie; session id from sessionStorage) | — |
 
 ## Runner guarantees (proven against a real, disposable PostgreSQL)
 

@@ -10,6 +10,7 @@ import { generateCaseAnalysis, ANALYSIS_MODEL, type CaseAnalysis, type LegalSour
 import { saveCaseAnalysis, loadCaseAnalysis, type CaseAnalysisRow } from "~/lib/caseAnalysisStore";
 import { createCheckoutSession } from "~/lib/stripe";
 import { askAI } from "~/lib/ai";
+import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { sanitizeInput } from "~/lib/sanitize";
 import {
   RESTRICTED_FEATURES,
@@ -282,6 +283,8 @@ function AnalysisPage() {
     if (!search.caseId) return;
     setStartingCheckout(true);
     setActionError("");
+    // Fire-and-forget funnel beacon (analytics must never block checkout).
+    trackEvent(AnalyticsEvents.CHECKOUT_STARTED);
     const result = await startCheckout({ data: { caseId: search.caseId } });
     if (result.success) {
       window.location.assign(result.url);

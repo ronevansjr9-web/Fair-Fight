@@ -51,8 +51,8 @@ describe("splitStatements", () => {
 describe("loadMigrations", () => {
   test("loads the repo migrations in version order with checksums", () => {
     const files = loadMigrations(MIGRATIONS_DIR);
-    expect(files.length).toBeGreaterThanOrEqual(5);
-    expect(files.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005"]);
+    expect(files.length).toBeGreaterThanOrEqual(6);
+    expect(files.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006"]);
     for (const f of files) {
       expect(f.checksum).toMatch(/^[0-9a-f]{64}$/);
       expect(f.statements.length).toBeGreaterThan(0);
@@ -113,7 +113,7 @@ describe("runMigrations", () => {
       },
     }) as unknown as MigrationSql;
     const plan = await runMigrations({ sql, migrationsDir: MIGRATIONS_DIR });
-    expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005"]);
+    expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006"]);
     expect(log.calls.length).toBe(1);
     const batch = log.calls[0] as string[];
     // The advisory xact lock MUST be first so concurrent runners serialize
@@ -125,7 +125,7 @@ describe("runMigrations", () => {
     expect(batch.join("\n")).toContain("CREATE TABLE IF NOT EXISTS case_analyses");
     expect(batch.join("\n")).toContain("CREATE TABLE IF NOT EXISTS webhook_events");
     // Ledger inserts for each version at the end.
-    for (const version of ["001", "002", "003", "004", "005"]) {
+    for (const version of ["001", "002", "003", "004", "005", "006"]) {
       expect(batch.some((q) => q.includes(`VALUES ('${version}'`))).toBe(true);
     }
   });
@@ -140,7 +140,7 @@ describe("runMigrations", () => {
     }) as unknown as MigrationSql;
     const plan = await runMigrations({ sql, migrationsDir: MIGRATIONS_DIR });
     expect(plan.toApply).toEqual([]);
-    expect(plan.skipped).toEqual(["001", "002", "003", "004", "005"]);
+    expect(plan.skipped).toEqual(["001", "002", "003", "004", "005", "006"]);
   });
 
   test("drift aborts with an error instead of applying", async () => {
