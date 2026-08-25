@@ -88,6 +88,7 @@ const EXPECTED_TABLES = [
   "webhook_events",
   "timeline_entries",
   "calendar_events",
+  "analytics_events",
 ];
 
 describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
@@ -104,7 +105,7 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     await resetPublicSchema(pool);
     const sql = pgSql(pool);
     const plan = await runMigrations({ sql });
-    expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005"]);
+    expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006"]);
     expect(plan.skipped).toEqual([]);
     expect(plan.drift).toEqual([]);
 
@@ -120,7 +121,7 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
       pool,
       "SELECT version, checksum FROM schema_migrations ORDER BY version",
     );
-    expect(ledger.map((r) => r.version)).toEqual(["001", "002", "003", "004", "005"]);
+    expect(ledger.map((r) => r.version)).toEqual(["001", "002", "003", "004", "005", "006"]);
     for (const file of files) {
       const entry = ledger.find((r) => r.version === file.version)!;
       expect(entry.checksum, `ledger checksum for ${file.version}`).toBe(file.checksum);
@@ -134,12 +135,12 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     await runMigrations({ sql });
     const second = await runMigrations({ sql });
     expect(second.toApply).toEqual([]);
-    expect(second.skipped).toEqual(["001", "002", "003", "004", "005"]);
+    expect(second.skipped).toEqual(["001", "002", "003", "004", "005", "006"]);
     const ledger = await queryAll<{ version: string }>(
       pool,
       "SELECT version FROM schema_migrations ORDER BY version",
     );
-    expect(ledger).toHaveLength(5);
+    expect(ledger).toHaveLength(6);
   });
 
   test("checksum mismatch: drift aborts the run and never touches the schema", async () => {
@@ -180,7 +181,7 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
       // Removing the broken file lets the exact same run succeed.
       rmSync(join(scratch, "006_broken.sql"));
       const plan = await runMigrations({ sql, migrationsDir: scratch });
-      expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005"]);
+      expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006"]);
     } finally {
       rmSync(scratch, { recursive: true, force: true });
     }
@@ -196,12 +197,12 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     // all five; the other either saw the committed ledger (applies nothing) or
     // replayed its pre-lock plan as idempotent IF NOT EXISTS / ON CONFLICT
     // no-ops after the first committed. Either way both succeed.
-    expect([pa.toApply.length, pb.toApply.length].sort((x, y) => y - x)[0]).toBe(5);
+    expect([pa.toApply.length, pb.toApply.length].sort((x, y) => y - x)[0]).toBe(6);
     const ledger = await queryAll<{ version: string; checksum: string }>(
       pool,
       "SELECT version, checksum FROM schema_migrations ORDER BY version",
     );
-    expect(ledger.map((r) => r.version)).toEqual(["001", "002", "003", "004", "005"]);
+    expect(ledger.map((r) => r.version)).toEqual(["001", "002", "003", "004", "005", "006"]);
     const files = loadMigrations(MIGRATIONS_DIR);
     for (const file of files) {
       const entry = ledger.find((r) => r.version === file.version)!;
