@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { getRequest } from "@tanstack/react-start/server";
 import { checkoutReturnUrls, FAIR_FIGHT_CURRENCY, FAIR_FIGHT_PRICE_CENTS, hasCaseEntitlement } from "~/lib/payment";
 import { isCaseOwner } from "~/lib/argumentAccess";
 
@@ -18,6 +19,20 @@ function getStripe(): Stripe {
     });
   }
   return _stripe;
+}
+
+/**
+ * The current request, or undefined when none is in flight (e.g. direct unit
+ * tests that invoke server functions outside the request lifecycle). Used to
+ * build same-origin checkout return URLs. getRequest() throws when there is no
+ * AsyncLocalStorage request context, so we fail soft to env-based fallback.
+ */
+function currentRequest(): Request | undefined {
+  try {
+    return getRequest();
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -103,12 +118,12 @@ export async function createCheckoutSessionCore(
         userId,
         caseId,
       },
-      ...checkoutReturnUrls(),
+      ...checkoutReturnUrls(undefined, { request: currentRequest(), caseId }),
       allow_promotion_codes: false,
       billing_address_collection: "auto",
     });
 
-    return { url: session.url || checkoutReturnUrls().success_url };
+    return { url: session.url || checkoutReturnUrls(undefined, { request: currentRequest(), caseId }).success_url };
   } catch (error) {
     console.error("Stripe checkout error:", error);
     return { error: "Failed to create checkout session" };
@@ -134,7 +149,7 @@ export async function createCustomerPortalSession(
     const stripe = getStripe();
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${checkoutReturnUrls().success_url.split("?")[0]}`,
+      return_url: `${checkoutReturnUrls(undefined, { request: currentRequest() }).success_url.split("?")[0]}`,
     });
 
     return { url: session.url };

@@ -22,18 +22,78 @@ export const FAIR_FIGHT_CURRENCY = "usd";
 /** Safe shape for user/case ids carried in Stripe metadata. */
 export const ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
 
-export function getPublicOrigin(env: Record<string, string | undefined> = process.env): string {
+/**
+ * Host/port that must not ever be treated as a live, TLS public origin —
+ * `localhost` only describes local dev, where Stripe return URLs are not used
+ * for real buyers anyway (the http/env fallback below applies instead).
+ */
+function isLocalhostHost(host: string): boolean {
+  return host === "localhost" || host.startsWith("localhost:") || host === "127.0.0.1" || host.startsWith("127.0.0.1:");
+}
+
+/**
+ * Best-effort extraction of the external Host from an incoming Request.
+ *
+ * Rejects anything that is not a plain host[:port] — no scheme, path, query,
+ * userinfo, or whitespace — so a hostile/spoofed header can never inject a
+ * surprise URL into a Stripe redirect. Returns null when there is no usable
+ * host, so callers fall back to the configured env origin.
+ */
+function hostFromRequest(request?: Request): string | null {
+  if (!request) return null;
+  const raw = request.headers.get("x-forwarded-host") || request.headers.get("host");
+  if (!raw) return null;
+  const host = raw.trim().toLowerCase();
+  if (!/^[a-z0-9-]+(?:\.[a-z0-9-]+)*(?::\d{1,5})?$/.test(host)) return null;
+  return host;
+}
+
+/**
+ * The origin used to build Stripe checkout return URLs.
+ *
+ * Preference order:
+ *   1. The incoming request host (so return URLs always resolve to the EXACT
+ *      origin the buyer is on). This is the anti-stranding guarantee: even if
+ *      PUBLIC_SITE_URL is stale on a given pod — e.g. a live pod still pointing
+ *      at a dead dev subdomain — a real $99 buyer is redirected back to the
+ *      live domain they were just on, never to a dead one.
+ *   2. A configured PUBLIC_SITE_URL / VERCEL_URL.
+ *   3. In production, throw (the prior fail-closed contract — never silently
+ *      emit localhost for a live purchase).
+ *   4. Otherwise `http://localhost:3000` for local dev.
+ */
+export function getPublicOrigin(env: Record<string, string | undefined> = process.env, request?: Request): string {
+  const reqHost = hostFromRequest(request);
+  if (reqHost && !isLocalhostHost(reqHost)) {
+    return `https://${reqHost}`;
+  }
   const configured = env.PUBLIC_SITE_URL?.trim() || (env.VERCEL_URL ? `https://${env.VERCEL_URL}` : "");
   if (configured) return configured.replace(/\/$/, "");
   if (env.NODE_ENV === "production") throw new Error("PUBLIC_SITE_URL (or VERCEL_URL) must be configured in production");
   return "http://localhost:3000";
 }
 
-export function checkoutReturnUrls(env?: Record<string, string | undefined>) {
-  const origin = getPublicOrigin(env);
+/**
+ * Stripe return URLs for a checkout session.
+ *
+ * `opts.caseId`, when provided, routes success/cancel straight back to that
+ * case's analysis workspace (`/analysis?caseId=...&checkout=...`), where the
+ * "Verifying your payment" pending state lives — so a fresh payer lands on the
+ * thing they just bought instead of a dashboard they must navigate away from.
+ * Without a caseId the classic dashboard redirect is used instead (e.g. the
+ * billing portal, which has no single case).
+ */
+export function checkoutReturnUrls(
+  env?: Record<string, string | undefined>,
+  opts?: { request?: Request; caseId?: string },
+) {
+  const origin = getPublicOrigin(env, opts?.request);
+  const caseId = opts?.caseId;
+  const target = caseId ? "analysis" : "dashboard";
+  const caseQuery = caseId ? `caseId=${encodeURIComponent(caseId)}&` : "";
   return {
-    success_url: `${origin}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/dashboard?checkout=cancelled`,
+    success_url: `${origin}/${target}?${caseQuery}checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/${target}?${caseQuery}checkout=cancelled`,
   };
 }
 

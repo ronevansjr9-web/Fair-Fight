@@ -112,7 +112,7 @@ function Home() {
               },
               {
                 title: "Legal Argument Builder",
-                desc: "Structure legal arguments with jurisdiction-specific case law. Temporarily unavailable while Pro activation is verified.",
+                desc: "Build candidate legal arguments with jurisdiction-specific case law as part of Pro Case Analysis — unlocked for a case with the one-time $99 purchase. Educational, not legal advice.",
                 icon: "⚖️",
               },
             ].map((feature) => (
