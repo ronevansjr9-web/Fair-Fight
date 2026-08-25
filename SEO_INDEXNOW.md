@@ -7,6 +7,13 @@
 - **Endpoint:** `https://api.indexnow.org/indexnow` (JSON POST)
 - **Submission (2026-08-24):** HTTP 202 Accepted — all **63** sitemap URLs
   (home `/`, `/learn`, `/research`, + 60 `/learn/<slug>`).
+- **After /learn guide consolidation (2026-08):** near-duplicate guides were folded
+  and redirects added, so the sitemap now enumerates **58** `/learn/<slug>` guides
+  + 3 canonical pages = **61** URLs. Folded/renamed slugs (`sue-in-small-claims`,
+  `renter-rights-full-guide`, `what-is-summary-judgment`) are removed from the
+  public list and 301-redirect server-side to their canonical page. Re-run
+  `bun run scripts/gen-sitemap.ts` to regenerate, then re-submit these 61 URLs to
+  IndexNow with the same key.
 
 ## Re-submitting (e.g. after adding guides)
 ```bash

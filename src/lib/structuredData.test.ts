@@ -14,7 +14,6 @@ describe("isHowToGuide", () => {
       "how-to-file-a-motion",
       "eviction-process-guide",
       "small-claims-court-guide",
-      "sue-in-small-claims",
       "restraining-order-guide",
       "how-to-write-a-will", // "...A Step-by-Step Guide"
     ]) {
