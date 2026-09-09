@@ -18,8 +18,8 @@ import { RouterContextProvider } from "@tanstack/react-router";
 import {
   RouteVisitTracker,
   createRouteViewTracker,
+  getLocationRoute,
 } from "./RouteVisitTracker";
-
 describe("createRouteViewTracker", () => {
   test("fires for a distinct route and dedupes repeats", () => {
     const seen: string[] = [];
@@ -35,7 +35,28 @@ describe("createRouteViewTracker", () => {
     expect(seen).toEqual(["/", "/learn/small-claims-court-guide"]);
   });
 });
-
+describe("getLocationRoute", () => {
+  test("joins pathname and the raw search string", () => {
+    expect(getLocationRoute({ pathname: "/", searchStr: "" })).toBe("/");
+    expect(
+      getLocationRoute({ pathname: "/learn/x", searchStr: "?utm_source=1" }),
+    ).toBe("/learn/x?utm_source=1");
+  });
+  test("regression: handles a real router location whose `search` is a null-prototype object (no toString/valueOf)", () => {
+    // This mirrors @tanstack/router-core's runtime shape: `location.search` is
+    // the parsed search-params object built via `Object.create(null)`. A null-
+    // prototype object throws "Cannot convert object to primitive value" when
+    // coerced, so route building MUST only read `pathname` + `searchStr`.
+    const location = {
+      pathname: "/learn/small-claims-court-guide",
+      searchStr: "?utm_campaign=launch",
+      search: Object.create(null) as Record<string, unknown>,
+    };
+    expect(getLocationRoute(location)).toBe(
+      "/learn/small-claims-court-guide?utm_campaign=launch",
+    );
+  });
+});
 describe("RouteVisitTracker SSR safety", () => {
   test("server-side render must not read router location and must not crash", () => {
     // Replicates the server store: any read of the location's fields throws,
@@ -59,7 +80,6 @@ describe("RouteVisitTracker SSR safety", () => {
         return () => undefined;
       },
     };
-
     let html = "";
     expect(() => {
       html = renderToStaticMarkup(
@@ -68,7 +88,6 @@ describe("RouteVisitTracker SSR safety", () => {
         </RouterContextProvider>,
       );
     }).not.toThrow();
-
     // Renders nothing, so it must never touch the DOM during SSR.
     expect(html).toBe("");
     // Subscribing to route changes is client-only work: it must never happen
