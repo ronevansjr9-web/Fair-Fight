@@ -71,16 +71,26 @@ function NewCasePage() {
     setIsSubmitting(true);
     setError("");
 
-    const result = await createCase({ data: { title, caseType, jurisdiction, description } });
+    try {
+      const result = await createCase({ data: { title, caseType, jurisdiction, description } });
 
-    if (result.success) {
-      trackEvent(AnalyticsEvents.CASE_CREATED);
-      navigate({ to: "/cases/$caseId", params: { caseId: result.caseId } });
-    } else if (result.error) {
-      setError(result.error);
+      if (result?.success && result.caseId) {
+        trackEvent(AnalyticsEvents.CASE_CREATED);
+        navigate({ to: "/cases/$caseId", params: { caseId: result.caseId } });
+      } else if (result?.error) {
+        setError(result.error);
+      } else {
+        // A response with neither success nor error means the server fn's
+        // reply was not decodable — surface it instead of silently resetting
+        // the form (the pre-fix behavior left users stuck on /cases/new).
+        setError("Something went wrong creating your case. Please try again.");
+      }
+    } catch (err) {
+      console.error("Case creation request failed:", err);
+      setError("Could not reach the server. Please check your connection and try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   return (

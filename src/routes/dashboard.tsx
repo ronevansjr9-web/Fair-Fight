@@ -21,7 +21,13 @@ export const Route = createFileRoute("/dashboard")({
   }),
 });
 
-const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
+// POST, not GET: TanStack Start's GET server-fn transport serializes the
+// request differently (payload in query string) and in this runtime the
+// authenticated GET path does not carry the Clerk session through
+// getCurrentAuth — an authenticated dashboard consistently returned empty
+// data. POST matches the codebase's proven authenticated-fn pattern
+// (see src/routes/cases/$caseId.tsx getCase).
+const getDashboardData = createServerFn({ method: "POST" }).handler(async () => {
   const auth = await getCurrentAuth();
   if (!auth.userId) return { cases: [], stats: { total: 0, active: 0, resolved: 0 }, entitledCaseIds: [] };
 
