@@ -59,4 +59,22 @@ describe("smoke-test defect regression contracts", () => {
     // The authorized response path still navigates to the new case.
     expect(newCase).toContain('to: "/cases/$caseId"');
   });
+  it("createCase authenticates FIRST, before validating (defect 1 root fix)", () => {
+    const newCase = readFileSync(resolve(siteRoot, "src/routes/cases/new.tsx"), "utf8");
+    // The auth gate MUST run before any payload processing, so an
+    // unauthenticated createCase refuses even when the payload is invalid.
+    const handlerStart = newCase.indexOf(".handler(async");
+    const authCall = newCase.indexOf("const auth = await getCurrentAuth();", handlerStart);
+    const refuse = newCase.indexOf('return { error: "Sign in required" };', handlerStart);
+    const validate = newCase.indexOf("parseCreateCaseInput(data)", handlerStart);
+    // no `.validator(` at all — validator-compiled POST fns lose the request
+    // lifecycle that getCurrentAuth() needs (production-verified defect 1).
+    expect(newCase).not.toMatch(/createServerFn\([^)]*\)\s*\.validator/);
+    expect(handlerStart).toBeGreaterThan(-1);
+    expect(authCall).toBeGreaterThan(-1);
+    expect(refuse).toBeGreaterThan(-1);
+    expect(validate).toBeGreaterThan(-1);
+    expect(authCall).toBeLessThan(validate);
+    expect(refuse).toBeLessThan(validate);
+  });
 });
