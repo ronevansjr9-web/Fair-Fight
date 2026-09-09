@@ -3,6 +3,26 @@ import { useRouter } from "@tanstack/react-router";
 import { trackPageView } from "~/lib/analytics";
 
 /**
+ * Resolve the "route" string (pathname + raw search string) from a TanStack
+ * Router location for page-view tracking.
+ *
+ * MUST use `location.searchStr` — never `location.search`. TanStack Router's
+ * `location.search` is the PARSED search-params object, and it is built with
+ * `Object.create(null)` (null prototype, see `nullReplaceEqualDeep` in
+ * @tanstack/router-core utils). A null-prototype object has no `toString` /
+ * `valueOf`, so any string coercion — `pathname + location.search`, template
+ * literals, `String(location.search)` — throws
+ * `TypeError: Cannot convert object to primitive value` at runtime. This is what
+ * crashed hydration on every page after the first analytics ping. Pure and
+ * unit-testable without a browser.
+ */
+export function getLocationRoute(location: {
+  pathname: string;
+  searchStr: string;
+}): string {
+  return location.pathname + location.searchStr;
+}
+/**
  * Build a route-view "fire" callback that dedupes consecutive identical routes
  * and delegates the actual tracking. Pure and unit-testable without a browser.
  *
@@ -41,6 +61,12 @@ export function createRouteViewTracker(
  * never runs during server rendering, and `router.subscribe` is only registered
  * inside that effect, so there is no client-only work (and no subscribe call)
  * during SSR.
+ *
+ * CLIENT-SIDE: even after hydration, never string-coerce `location.search` —
+ * it is the parsed search-params object built with a null prototype (see
+ * `getLocationRoute` above), and concatenation throws
+ * `TypeError: Cannot convert object to primitive value`, crashing the whole
+ * tree via the error boundary. Always use `location.searchStr` (a string).
  */
 export function RouteVisitTracker() {
   const router = useRouter();
@@ -49,8 +75,7 @@ export function RouteVisitTracker() {
     // This effect runs only on the client, after hydration. Every router/browser
     // read below is therefore safe and can never affect server rendering.
     const fire = () => {
-      const route =
-        router.state.location.pathname + router.state.location.search;
+      const route = getLocationRoute(router.state.location);
       if (route === lastSent.current) return;
       lastSent.current = route;
       trackPageView(route);
