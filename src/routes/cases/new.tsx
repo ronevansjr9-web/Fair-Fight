@@ -18,27 +18,50 @@ export const Route = createFileRoute("/cases/new")({
   }),
 });
 
-const createCase = createServerFn({ method: "POST" })
-  .validator((data: unknown) => {
-    const d = data as Record<string, unknown>;
-    if (typeof d.title !== "string" || !d.title.trim()) throw new Error("Case title is required");
-    return {
-      title: d.title as string,
-      caseType: (d.caseType as string) || "Civil",
-      jurisdiction: (d.jurisdiction as string) || "",
-      description: (d.description as string) || "",
-    };
-  })
-  .handler(async ({ data }) => {
-    const auth = await getCurrentAuth();
-    if (!auth.userId) return { error: "Sign in required" };
+// Client-side payload shape is validated by the server-side auth gate FIRST and
+// then sanitized per-field in the handler. Deliberately NO `.validator(...)`:
+// in this runtime (TanStack Start 1.168 + Bun serve) a POST server fn compiled
+// with a `.validator()` runs its handler against a request lifecycle that
+// `getCurrentAuth()` cannot authenticate (verified in production: createCase
+// returned "Sign in required" for an authenticated session while the
+// no-validator POST fn getDashboardData authenticated fine, same browser,
+// seconds apart). The proven authenticated-fn pattern is: authenticate first,
+// then validate — an unauthenticated createCase still refuses before any
+// validation runs.
+interface CreateCaseInput {
+  title: string;
+  caseType: string;
+  jurisdiction: string;
+  description: string;
+}
+function parseCreateCaseInput(data: unknown): CreateCaseInput {
+  const d = (data ?? {}) as Record<string, unknown>;
+  if (typeof d.title !== "string" || !d.title.trim()) {
+    throw new Error("Case title is required");
+  }
+  return {
+    title: d.title,
+    caseType: (d.caseType as string) || "Civil",
+    jurisdiction: (d.jurisdiction as string) || "",
+    description: (d.description as string) || "",
+  };
+}
+const createCase = createServerFn({ method: "POST" }).handler(async ({ data }) => {
+  const auth = await getCurrentAuth();
+  if (!auth.userId) return { error: "Sign in required" };
+  let input: CreateCaseInput;
+  try {
+    input = parseCreateCaseInput(data);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Invalid case data" };
+  }
 
-    const sanitized = {
-      title: sanitizeInput(data.title),
-      caseType: sanitizeInput(data.caseType),
-      jurisdiction: sanitizeInput(data.jurisdiction),
-      description: sanitizeInput(data.description),
-    };
+  const sanitized = {
+    title: sanitizeInput(input.title),
+    caseType: sanitizeInput(input.caseType),
+    jurisdiction: sanitizeInput(input.jurisdiction),
+    description: sanitizeInput(input.description),
+  };
 
     try {
       const result = await sql()`

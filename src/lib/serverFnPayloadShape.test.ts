@@ -77,7 +77,6 @@ describe("validator-backed server fn client payload shape", () => {
   // Sanity: the customer-critical set (audit-named plus the reference
   // timeline/calendar fns) must all be detected as validator-backed.
   const expectedNames = [
-    "createCase",
     "generateArgument",
     "generateDocument",
     "getCase",
