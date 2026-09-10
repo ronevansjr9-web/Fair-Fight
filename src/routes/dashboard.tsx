@@ -4,7 +4,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { getCurrentAuth } from "~/lib/auth";
-import { ReferralCard } from "~/components/ReferralCard";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { shouldTrackCheckoutSuccess } from "~/lib/restrictedFeatures";
 import { fetchAuthedData } from "~/lib/caseFetchGate";
@@ -214,11 +213,6 @@ function DashboardPage() {
                 <span className="font-semibold text-white">{action.label}</span>
               </Link>
             ))}
-          </div>
-
-          {/* Referral */}
-          <div className="mb-8">
-            <ReferralCard />
           </div>
 
           {/* Cases List */}

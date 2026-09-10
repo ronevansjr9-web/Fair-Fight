@@ -6,7 +6,6 @@ import {
   UserButton,
   useAuth,
 } from "@clerk/tanstack-react-start";
-import { getReferrerInfo } from "~/lib/referral";
 
 export const Route = createFileRoute("/")({
   component: Home,
