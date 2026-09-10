@@ -240,35 +240,61 @@ function AnalysisPage() {
   const [startingCheckout, setStartingCheckout] = useState(false);
   const [actionError, setActionError] = useState("");
 
+  const applyStatus = (result: AnalysisStatus) => {
+    if ("restricted" in result) {
+      setStatus({ status: "restricted" });
+      return;
+    }
+    if (!result.ok) {
+      setStatus({ status: "error", reason: result.reason });
+      return;
+    }
+    if (!result.entitled) {
+      // After a Stripe redirect, the webhook may still be in flight —
+      // present an honest "verifying payment" state instead of a dead end.
+      if (search.checkout === "success") setStatus({ status: "pending" });
+      else setStatus({ status: "unpaid", caseTitle: result.caseTitle });
+      return;
+    }
+    setStatus({ status: "paid", analysis: result.analysis, caseTitle: result.caseTitle });
+  };
   const refresh = () => {
     if (!search.caseId) return;
     setStatus({ status: "loading" });
     setActionError("");
     getAnalysisStatus({ data: { caseId: search.caseId } })
-      .then((result) => {
-        if ("restricted" in result) {
-          setStatus({ status: "restricted" });
-          return;
-        }
-        if (!result.ok) {
-          setStatus({ status: "error", reason: result.reason });
-          return;
-        }
-        if (!result.entitled) {
-          // After a Stripe redirect, the webhook may still be in flight —
-          // present an honest "verifying payment" state instead of a dead end.
-          if (search.checkout === "success") setStatus({ status: "pending" });
-          else setStatus({ status: "unpaid", caseTitle: result.caseTitle });
-          return;
-        }
-        setStatus({ status: "paid", analysis: result.analysis, caseTitle: result.caseTitle });
-      })
+      .then(applyStatus)
       .catch(() => setStatus({ status: "error", reason: "unavailable" }));
   };
-
   useEffect(() => {
     if (!shouldFetchForSignedInUser(auth.isSignedIn)) return;
-    refresh();
+    if (!search.caseId) return;
+    let cancelled = false;
+    setStatus({ status: "loading" });
+    setActionError("");
+    // fetchAuthedData force-refreshes the Clerk session token before the first
+    // getAnalysisStatus call and retries exactly once if the server still
+    // answers `unauthorized` (hard-load token-freshness race: the __session JWT
+    // is short-lived and can expire before the client SDK rotates it on a fresh
+    // page load). The $99 CTA must render from real status data, not from a
+    // stale-token rejection.
+    fetchAuthedData({
+      isSignedIn: auth.isSignedIn,
+      getToken: auth.getToken,
+      fetch: () => getAnalysisStatus({ data: { caseId: search.caseId } }),
+      isUnauthorized: (result) =>
+        !("restricted" in result) && !result.ok && result.reason === "unauthorized",
+    })
+      .then((outcome) => {
+        if (cancelled || outcome.state === "auth_not_ready") return;
+        applyStatus(outcome.result);
+      })
+      .catch(() => {
+        if (!cancelled) setStatus({ status: "error", reason: "unavailable" });
+      });
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.isSignedIn, search.caseId, search.checkout]);
 

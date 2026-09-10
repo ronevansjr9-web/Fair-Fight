@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { createServerFn } from "@tanstack/react-start";
+import { useAuth } from "@clerk/tanstack-react-start";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { getCurrentAuth } from "~/lib/auth";
 import { ReferralCard } from "~/components/ReferralCard";
 import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { shouldTrackCheckoutSuccess } from "~/lib/restrictedFeatures";
+import { fetchAuthedData } from "~/lib/caseFetchGate";
 import { sql } from "~/db";
 
 export const Route = createFileRoute("/dashboard")({
@@ -21,15 +23,38 @@ export const Route = createFileRoute("/dashboard")({
   }),
 });
 
+type DashboardCase = {
+  id: string;
+  title: string;
+  caseType: string;
+  status: string;
+  jurisdiction: string;
+  createdAt: string;
+  updatedAt: string;
+};
+type DashboardData = {
+  cases: DashboardCase[];
+  stats: { total: number; active: number; resolved: number };
+  entitledCaseIds: string[];
+};
+// Distinguish "session rejected" (unauthorized → client refreshes the Clerk
+// token and retries once) from a real backend failure (unavailable → error UI).
+// The previous lossy shape mapped BOTH the unauthenticated case and any DB
+// failure to an empty dataset, which turned the hard-load token-freshness race
+// into a misleading empty dashboard (audit §3.1).
+type DashboardResult =
+  | { ok: true; data: DashboardData }
+  | { ok: false; reason: "unauthorized" | "unavailable" };
+
 // POST, not GET: TanStack Start's GET server-fn transport serializes the
 // request differently (payload in query string) and in this runtime the
 // authenticated GET path does not carry the Clerk session through
 // getCurrentAuth — an authenticated dashboard consistently returned empty
 // data. POST matches the codebase's proven authenticated-fn pattern
 // (see src/routes/cases/$caseId.tsx getCase).
-const getDashboardData = createServerFn({ method: "POST" }).handler(async () => {
+const getDashboardData = createServerFn({ method: "POST" }).handler(async (): Promise<DashboardResult> => {
   const auth = await getCurrentAuth();
-  if (!auth.userId) return { cases: [], stats: { total: 0, active: 0, resolved: 0 }, entitledCaseIds: [] };
+  if (!auth.userId) return { ok: false, reason: "unauthorized" };
 
   try {
     const cases = await sql()`
@@ -61,55 +86,70 @@ const getDashboardData = createServerFn({ method: "POST" }).handler(async () => 
       console.error("Entitlement lookup failed:", error);
     }
     return {
-      cases: cases.map((c: Record<string, unknown>) => ({
-        id: String(c.id),
-        title: String(c.title),
-        caseType: String(c.case_type),
-        status: String(c.status),
-        jurisdiction: String(c.jurisdiction),
-        createdAt: String(c.created_at),
-        updatedAt: String(c.updated_at),
-      })),
-      stats: {
-        total: Number(stats[0]?.total || 0),
-        active: Number(stats[0]?.active || 0),
-        resolved: Number(stats[0]?.resolved || 0),
+      ok: true,
+      data: {
+        cases: cases.map((c: Record<string, unknown>) => ({
+          id: String(c.id),
+          title: String(c.title),
+          caseType: String(c.case_type),
+          status: String(c.status),
+          jurisdiction: String(c.jurisdiction),
+          createdAt: String(c.created_at),
+          updatedAt: String(c.updated_at),
+        })),
+        stats: {
+          total: Number(stats[0]?.total || 0),
+          active: Number(stats[0]?.active || 0),
+          resolved: Number(stats[0]?.resolved || 0),
+        },
+        entitledCaseIds,
       },
-      entitledCaseIds,
     };
   } catch {
-    return { cases: [], stats: { total: 0, active: 0, resolved: 0 }, entitledCaseIds: [] };
+    return { ok: false, reason: "unavailable" };
   }
 });
 
 function DashboardPage() {
   const search = Route.useSearch();
-  const [data, setData] = useState<{
-    cases: { id: string; title: string; caseType: string; status: string; jurisdiction: string; createdAt: string; updatedAt: string }[];
-    stats: { total: number; active: number; resolved: number };
-    entitledCaseIds: string[];
-  }>({ cases: [], stats: { total: 0, active: 0, resolved: 0 }, entitledCaseIds: [] });
+  // Route components render inside <ClerkProvider> (see __root.tsx), so useAuth()
+  // here is SSR-safe. Gate the authed fetch on Clerk session readiness: on a
+  // fresh hard load, `isSignedIn` is `undefined` while the client hydrates, and
+  // the `__session` JWT may still be the pre-sign-in/expired token when the
+  // first fetch fires. fetchAuthedData waits for the token, and if the server
+  // still rejects (unauthorized) it refreshes it and retries exactly once.
+  const auth = useAuth();
+  const [data, setData] = useState<DashboardData>({ cases: [], stats: { total: 0, active: 0, resolved: 0 }, entitledCaseIds: [] });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
-  const load = () => {
+  const load = async () => {
     setLoading(true);
     setLoadError(false);
-    getDashboardData()
-      .then((d) => {
-        setData(d);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-        setLoadError(true);
-      });
+    const outcome = await fetchAuthedData({
+      isSignedIn: auth.isSignedIn,
+      getToken: auth.getToken,
+      fetch: getDashboardData,
+      isUnauthorized: (result) => !result.ok && result.reason === "unauthorized",
+    });
+    if (outcome.state === "auth_not_ready") return;
+    const result = outcome.result;
+    if (result.ok) {
+      setData(result.data);
+      setLoading(false);
+    } else {
+      // unauthorized (even after the one retry) or unavailable — never pretend
+      // a rejected/errored load is an empty dashboard.
+      setLoading(false);
+      setLoadError(true);
+    }
   };
 
   useEffect(() => {
+    if (auth.isSignedIn !== true) return;
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [auth.isSignedIn]);
 
   // Return parameters are informational only; access is granted by the webhook-backed DB record.
   // While checkout is restricted, ignore client-controlled ?checkout=success so
