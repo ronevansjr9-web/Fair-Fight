@@ -136,4 +136,41 @@ describe("smoke-test defect regression contracts", () => {
     // getAnalysisStatus must distinguish "not yours" from "yours but unpaid".
     expect(analysis).toContain("{ ok: true; entitled: false; caseTitle: string }");
   });
+  it("dashboard fetch is gated on Clerk auth readiness + retries once on unauthorized (hard-load token race)", () => {
+    const dashboard = readFileSync(resolve(siteRoot, "src/routes/dashboard.tsx"), "utf8");
+    // The client must wait for auth to resolve before the effect fires any
+    // authed fetch (previously it fired unconditionally on mount).
+    expect(dashboard).toContain("useAuth()");
+    expect(dashboard).toContain("auth.isSignedIn !== true");
+    // The session token is force-refreshed before/on unauthorized, and the retry
+    // happens exactly once via the shared gate.
+    expect(dashboard).toContain("fetchAuthedData");
+    expect(dashboard).toContain("getToken: auth.getToken");
+    expect(dashboard).toContain('reason === "unauthorized"');
+    // Server side: the auth gate runs first and still refuses unauthenticated
+    // requests, but now with an explicit signal instead of a lossy empty dataset
+    // (audit §3.1) so the client can distinguish the race from a real empty
+    // dashboard.
+    expect(dashboard).toContain('return { ok: false, reason: "unauthorized" };');
+    expect(dashboard).toContain('return { ok: false, reason: "unavailable" };');
+  });
+  it("case detail fetch gets the same auth gate + retry-once-on-unauthorized (hard-load token race)", () => {
+    const caseDetail = readFileSync(resolve(siteRoot, "src/routes/cases/$caseId.tsx"), "utf8");
+    // No fetch may fire while Clerk auth is hydrating/signed out…
+    expect(caseDetail).toContain("shouldFetchForSignedInUser(auth.isSignedIn)");
+    // …and a stale/expired __session JWT on a hard load must not strand the
+    // user on "Case Not Found": token refresh + exactly one retry via the gate.
+    expect(caseDetail).toContain("fetchAuthedData");
+    expect(caseDetail).toContain("getToken: auth.getToken");
+    expect(caseDetail).toContain('!result.ok && result.reason === "unauthorized"');
+  });
+  it("analysis initial getAnalysisStatus fetch is gated + retries once on unauthorized (its $99 CTA depends on it)", () => {
+    const analysis = readFileSync(resolve(siteRoot, "src/routes/analysis.tsx"), "utf8");
+    expect(analysis).toContain("shouldFetchForSignedInUser(auth.isSignedIn)");
+    expect(analysis).toContain("fetchAuthedData");
+    expect(analysis).toContain("getToken: auth.getToken");
+    expect(analysis).toContain('result.reason === "unauthorized"');
+    // SPA refresh keeps working (manual retry path is untouched).
+    expect(analysis).toContain("const refresh = () => {");
+  });
 });

@@ -4,7 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 import { getCurrentAuth } from "~/lib/auth";
-import { shouldFetchForSignedInUser } from "~/lib/caseFetchGate";
+import { shouldFetchForSignedInUser, fetchAuthedData } from "~/lib/caseFetchGate";
 import { sql } from "~/db";
 
 export const Route = createFileRoute("/cases/$caseId")({
@@ -138,9 +138,20 @@ function CaseWorkspacePage() {
     if (!shouldFetchForSignedInUser(auth.isSignedIn)) return;
     let cancelled = false;
     setState({ status: "loading" });
-    getCase({ data: { caseId } })
-      .then((result) => {
-        if (cancelled) return;
+    // fetchAuthedData also force-refreshes the Clerk session token before the
+    // first fetch — a hard load can carry an expired ~60s __session JWT that
+    // the client SDK has not rotated yet — and, if the server still reports
+    // `unauthorized`, refreshes again and retries exactly once. Only after
+    // that single retry does the error/not-found UI render.
+    fetchAuthedData({
+      isSignedIn: auth.isSignedIn,
+      getToken: auth.getToken,
+      fetch: () => getCase({ data: { caseId } }),
+      isUnauthorized: (result) => !result.ok && result.reason === "unauthorized",
+    })
+      .then((outcome) => {
+        if (cancelled || outcome.state === "auth_not_ready") return;
+        const result = outcome.result;
         if (result.ok) setState({ status: "loaded", case: result.case });
         else setState({ status: "error", reason: result.reason });
       })
