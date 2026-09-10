@@ -76,6 +76,21 @@ function loadEnv(): ClerkEnv {
  * - Inside an API route handler: call `getCurrentAuth(request)` with the
  *   handler's `{ request }` argument.
  */
+function sessionNbfAheadMs(req: Request): number {
+  try {
+    const raw = req.headers.get("cookie") ?? "";
+    const m = raw.match(/(?:^|;\s*)__session=([^;]+)/);
+    if (!m) return 0;
+    const payload = JSON.parse(
+      Buffer.from(m[1].split(".")[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"),
+    );
+    const nbf = payload?.nbf;
+    return typeof nbf === "number" ? nbf * 1000 - Date.now() + 1100 : 0;
+  } catch {
+    return 0;
+  }
+}
+
 export async function getCurrentAuth(request?: Request) {
   const { createClerkClient } = await import("@clerk/backend");
   const { AuthStatus, stripPrivateDataFromObject } = await import(
@@ -84,12 +99,87 @@ export async function getCurrentAuth(request?: Request) {
   const req = request ?? getRequest();
 
   const env = loadEnv();
-  const requestState = await createClerkClient(env).authenticateRequest(req, {
+  const clerk = createClerkClient(env);
+  let requestState = await clerk.authenticateRequest(req, {
     signInUrl: process.env.CLERK_SIGN_IN_URL,
     signUpUrl: process.env.CLERK_SIGN_UP_URL,
     afterSignInUrl: process.env.CLERK_AFTER_SIGN_IN_URL,
     afterSignUpUrl: process.env.CLERK_AFTER_SIGN_UP_URL,
   });
+  // Defense-in-depth for clock-skewed hosts. Clerk rejects session tokens whose
+  // `nbf`/`iat` claims are ahead of the server clock (reasons below). For
+  // non-navigational requests (server functions, API routes) the handshake path
+  // degrades to signed-out, so a host clock that lags Clerk's FAPI by >~5s makes
+  // every authenticated call fail even with a fresh token. When the token is
+  // only *not yet valid* (nbf bounded ahead), wait for validity and re-verify
+  // the SAME token — every check (signature, audience, issuer, exp, nbf, iat)
+  // re-runs unchanged, preserving auth strength.
+  if (
+    requestState.status === AuthStatus.SignedOut &&
+    (requestState.reason === "session-token-nbf" ||
+      requestState.reason === "session-token-iat-in-the-future")
+  ) {
+    const waitMs = sessionNbfAheadMs(req);
+    if (waitMs > 0 && waitMs <= 60_000) {
+      if (process.env.FF_AUTH_DEBUG === "1") {
+        console.error(
+          `[auth-debug] ${req.method} ${new URL(req.url).pathname} reason=${requestState.reason} waiting ${waitMs}ms for token validity`,
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+      requestState = await clerk.authenticateRequest(req, {
+        signInUrl: process.env.CLERK_SIGN_IN_URL,
+        signUpUrl: process.env.CLERK_SIGN_UP_URL,
+        afterSignInUrl: process.env.CLERK_AFTER_SIGN_IN_URL,
+        afterSignUpUrl: process.env.CLERK_AFTER_SIGN_UP_URL,
+      });
+    }
+  }
+
+  // Temporary diagnostics (env-gated; ship/remove decision in PR#49): log
+  // Clerk's authenticateRequest verdict plus which auth-relevant cookies the
+  // request carried — NAMES/PRESENCE ONLY, never values. This pinpoints
+  // dev-mode secondary-token (__clerk_db_jwt) rejects vs dropped cookies.
+  if (process.env.FF_AUTH_DEBUG === "1") {
+    try {
+      const cookieHeader = req.headers.get("cookie") ?? "";
+      const names = new Set(
+        cookieHeader
+          .split(";")
+          .map((c) => c.trim().split("=")[0])
+          .filter(Boolean),
+      );
+      const flags = ["__session", "__client_uat", "__clerk_db_jwt", "__clerk_redirect_count"]
+        .map((n) => `${n}:${names.has(n) ? "1" : "0"}`)
+        .join(",");
+      const url = new URL(req.url);
+      const claims = (() => {
+        try {
+          const m = cookieHeader.match(/(?:^|;\s*)__session=([^;]+)/);
+          if (!m) return "no-session";
+          const [, payloadB64] = m[1].split(".");
+          const payload = JSON.parse(
+            Buffer.from(payloadB64.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"),
+          );
+          const serverNow = Math.floor(Date.now() / 1000);
+          return JSON.stringify({
+            iat: payload.iat,
+            nbf: payload.nbf,
+            exp: payload.exp,
+            serverNow,
+            nbfAheadOfServer: (payload.nbf ?? 0) - serverNow,
+          });
+        } catch {
+          return "decode-failed";
+        }
+      })();
+      console.error(
+        `[auth-debug] ${req.method} ${url.pathname} status=${requestState.status} reason=${String(requestState.reason)} cookies=${flags} claims=${claims} location=${requestState.headers.get("location") ? "1" : "0"}`,
+      );
+    } catch (e) {
+      console.error(`[auth-debug] logging failed: ${String(e)}`);
+    }
+  }
 
   const hasLocationHeader = requestState.headers.get("location");
   if (hasLocationHeader) {
