@@ -173,4 +173,43 @@ describe("smoke-test defect regression contracts", () => {
     // SPA refresh keeps working (manual retry path is untouched).
     expect(analysis).toContain("const refresh = () => {");
   });
+  it("referral feature surface is fully removed (honesty backlog: no referral_codes table)", () => {
+    expect(existsSync(resolve(siteRoot, "src/components/ReferralCard.tsx"))).toBe(false);
+    expect(existsSync(resolve(siteRoot, "src/lib/referral.ts"))).toBe(false);
+    const dashboard = readFileSync(resolve(siteRoot, "src/routes/dashboard.tsx"), "utf8");
+    expect(dashboard).not.toContain("ReferralCard");
+    expect(dashboard).not.toContain("/** Referral */");
+    const index = readFileSync(resolve(siteRoot, "src/routes/index.tsx"), "utf8");
+    expect(index).not.toContain("~/lib/referral");
+    const deleteData = readFileSync(
+      resolve(siteRoot, "src/routes/api/user/delete-data.ts"),
+      "utf8",
+    );
+    expect(deleteData).not.toContain("referral_codes");
+    expect(deleteData).not.toContain("referral_tracking");
+  });
+  it("auth-debug logging is env-gated (silent by default) and the nbf-wait is bounded (PR#49)", () => {
+    const auth = readFileSync(resolve(siteRoot, "src/lib/auth.ts"), "utf8");
+    expect(auth).toContain('process.env.FF_AUTH_DEBUG === "1"');
+    expect(auth).toContain("session-token-nbf");
+    expect(auth).toContain("60_000");
+    // Strip the FF_AUTH_DEBUG-gated blocks; no [auth-debug] output may remain.
+    let stripped = auth;
+    const gateRe = /if \(process\.env\.FF_AUTH_DEBUG === "1"\) \{/g;
+    let m: RegExpExecArray | null;
+    while ((m = gateRe.exec(auth)) !== null) {
+      let depth = 0;
+      let end = m.index;
+      for (; end < auth.length; end++) {
+        if (auth[end] === "{") depth++;
+        else if (auth[end] === "}") {
+          depth--;
+          if (depth === 0) break;
+        }
+      }
+      stripped = stripped.replace(auth.slice(m.index, end + 1), "");
+    }
+    expect(stripped).not.toContain("[auth-debug]");
+  });
+
 });

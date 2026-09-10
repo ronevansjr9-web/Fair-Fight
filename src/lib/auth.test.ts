@@ -30,7 +30,7 @@ mock.module("@clerk/backend", () => ({
 }));
 
 mock.module("@clerk/backend/internal", () => ({
-  AuthStatus: { Handshake: "handshake" },
+  AuthStatus: { Handshake: "handshake", SignedOut: "signed-out" },
   stripPrivateDataFromObject: (x: unknown) => x,
 }));
 
@@ -84,5 +84,69 @@ describe("getPrimaryEmail", () => {
   test("fails safely with null when the user has no primary email", async () => {
     clerkUsersGetUserMock.mockImplementation(() => Promise.resolve({}));
     expect(await getPrimaryEmail("user_1")).toBeNull();
+  });
+});
+
+describe("getCurrentAuth clock-skew nbf wait", () => {
+  function sessionCookie(payload: Record<string, unknown>): string {
+    const b64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
+    return "__session=header." + b64 + ".sig";
+  }
+  test("waits a bounded nbf margin and re-verifies the same token", async () => {
+    authenticateRequestMock.mockClear();
+    let calls = 0;
+    authenticateRequestMock.mockImplementation((req: Request) => {
+      calls += 1;
+      if (calls === 1) {
+        return {
+          headers: new Headers(),
+          status: "signed-out",
+          reason: "session-token-nbf",
+          toAuth: () => ({ userId: null }),
+        };
+      }
+      return {
+        headers: new Headers(),
+        status: "signed-in",
+        toAuth: () => ({ userId: "user_after_wait" }),
+      };
+    });
+    const now = Math.floor(Date.now() / 1000);
+    const nbfReq = new Request("http://localhost/dashboard", {
+      headers: { cookie: sessionCookie({ iat: now, nbf: now, exp: now + 600 }) },
+    });
+    const auth = (await getCurrentAuth(nbfReq)) as { userId: string | null };
+    expect(authenticateRequestMock).toHaveBeenCalledTimes(2);
+    expect(authenticateRequestMock.mock.calls[1]?.[0]).toBe(nbfReq);
+    expect(auth.userId).toBe("user_after_wait");
+  });
+  test("does not wait when no session cookie is present", async () => {
+    authenticateRequestMock.mockClear();
+    authenticateRequestMock.mockImplementation((req: Request) => ({
+      headers: new Headers(),
+      status: "signed-in",
+      toAuth: () => ({ userId: req.headers.get("x-user") }),
+    }));
+    const auth = (await getCurrentAuth(new Request("http://localhost/dashboard"))) as {
+      userId: string | null;
+    };
+    expect(authenticateRequestMock).toHaveBeenCalledTimes(1);
+    expect(auth.userId).toBeNull();
+  });
+  test("does not wait beyond the 60s bound for a far-future nbf", async () => {
+    authenticateRequestMock.mockClear();
+    authenticateRequestMock.mockImplementation(() => ({
+      headers: new Headers(),
+      status: "signed-out",
+      reason: "session-token-nbf",
+      toAuth: () => ({ userId: null }),
+    }));
+    const far = Math.floor(Date.now() / 1000) + 7200;
+    await getCurrentAuth(
+      new Request("http://localhost/dashboard", {
+        headers: { cookie: sessionCookie({ iat: far, nbf: far, exp: far + 600 }) },
+      }),
+    );
+    expect(authenticateRequestMock).toHaveBeenCalledTimes(1);
   });
 });
