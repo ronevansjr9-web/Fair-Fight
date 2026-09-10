@@ -35,22 +35,43 @@ export const Route = createFileRoute("/analysis")({
 
 const CASE_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
 
+// POST server fns compiled with .validator() lose the request lifecycle that
+// getCurrentAuth() needs (PR #46 root cause, production-verified). Per-field
+// validation therefore runs inside each handler AFTER the auth gate — the same
+// proven pattern as createCase and getCase.
+function parseAnalysisCaseId(data: unknown): { caseId: string } {
+  const d = (data ?? {}) as Record<string, unknown>;
+  if (typeof d.caseId !== "string" || !CASE_ID_PATTERN.test(d.caseId)) throw new Error("Invalid case id");
+  return { caseId: d.caseId };
+}
+function parseRunAnalysisInput(data: unknown): { caseId: string; facts: string; jurisdiction: string; caseType: string } {
+  const d = (data ?? {}) as Record<string, unknown>;
+  if (typeof d.caseId !== "string" || !CASE_ID_PATTERN.test(d.caseId)) throw new Error("Invalid case id");
+  if (typeof d.facts !== "string" || !d.facts.trim()) throw new Error("Describe your situation first");
+  return {
+    caseId: d.caseId,
+    facts: d.facts,
+    jurisdiction: (d.jurisdiction as string) || "",
+    caseType: (d.caseType as string) || "Civil",
+  };
+}
+
 type AnalysisStatus =
   | { ok: true; entitled: true; analysis: CaseAnalysisRow | null; caseTitle: string }
   | { ok: true; entitled: false; caseTitle: string }
   | { ok: false; reason: "unauthorized" | "not_found" | "unavailable" }
   | { restricted: true };
 
-const getAnalysisStatus = createServerFn({ method: "POST" })
-  .validator((data: unknown) => {
-    const d = data as Record<string, unknown>;
-    if (typeof d.caseId !== "string" || !CASE_ID_PATTERN.test(d.caseId)) throw new Error("Invalid case id");
-    return { caseId: d.caseId };
-  })
-  .handler(async ({ data }): Promise<AnalysisStatus> => {
+const getAnalysisStatus = createServerFn({ method: "POST" }).handler(async ({ data }): Promise<AnalysisStatus> => {
     try {
       const auth = await getCurrentAuth();
       if (!auth.userId) return { ok: false, reason: "unauthorized" };
+      let caseId: string;
+      try {
+        caseId = parseAnalysisCaseId(data).caseId;
+      } catch {
+        return { ok: false, reason: "not_found" };
+      }
 
       // Fail-closed presentation: while the checkout/entitlement gate is
       // active, the paid analysis surface reports restricted even when an
@@ -58,15 +79,15 @@ const getAnalysisStatus = createServerFn({ method: "POST" })
       if (RESTRICTED_FEATURES.checkoutProActivation) return { restricted: true };
 
       try {
-        const owned = await isCaseOwner(auth.userId, data.caseId);
+        const owned = await isCaseOwner(auth.userId, caseId);
         if (!owned) return { ok: false, reason: "not_found" };
         const titleRows = await sql()`
-          SELECT title FROM cases WHERE id = ${data.caseId} AND user_id = ${auth.userId} LIMIT 1
+          SELECT title FROM cases WHERE id = ${caseId} AND user_id = ${auth.userId} LIMIT 1
         `;
         const caseTitle = titleRows.length > 0 ? String(titleRows[0].title) : "Your case";
-        const entitled = await hasCaseEntitlement(auth.userId, data.caseId);
+        const entitled = await hasCaseEntitlement(auth.userId, caseId);
         if (!entitled) return { ok: true, entitled: false, caseTitle };
-        const analysis = await loadCaseAnalysis(auth.userId, data.caseId);
+        const analysis = await loadCaseAnalysis(auth.userId, caseId);
         return { ok: true, entitled: true, analysis, caseTitle };
       } catch (error) {
         console.error("Analysis status error:", error);
@@ -77,35 +98,26 @@ const getAnalysisStatus = createServerFn({ method: "POST" })
     }
   });
 
-const runAnalysis = createServerFn({ method: "POST" })
-  .validator((data: unknown) => {
-    const d = data as Record<string, unknown>;
-    if (typeof d.caseId !== "string" || !CASE_ID_PATTERN.test(d.caseId)) throw new Error("Invalid case id");
-    if (typeof d.facts !== "string" || !d.facts.trim()) throw new Error("Describe your situation first");
-    return {
-      caseId: d.caseId,
-      facts: d.facts as string,
-      jurisdiction: (d.jurisdiction as string) || "",
-      caseType: (d.caseType as string) || "Civil",
-    };
-  })
-  .handler(async ({ data }): Promise<{ success: true; analysis: CaseAnalysis } | { success: false; error: string }> => {
+const runAnalysis = createServerFn({ method: "POST" }).handler(async ({ data }): Promise<{ success: true; analysis: CaseAnalysis } | { success: false; error: string }> => {
     const auth = await getCurrentAuth();
     if (!auth.userId) return { success: false, error: "Sign in required" };
+    let input: ReturnType<typeof parseRunAnalysisInput>;
+    try {
+      input = parseRunAnalysisInput(data);
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : "Please review your input and try again." };
+    }
 
     if (RESTRICTED_FEATURES.checkoutProActivation) {
       return { success: false, error: TEMP_UNAVAILABLE_MESSAGE };
     }
-
     try {
       // Exact ownership + exact entitlement for THIS case, server-side.
-      const eligible = await hasOwnedCaseEntitlement(auth.userId, data.caseId);
+      const eligible = await hasOwnedCaseEntitlement(auth.userId, input.caseId);
       if (!eligible) return { success: false, error: "This case is not unlocked for Pro analysis" };
-
-      const facts = sanitizeInput(data.facts);
-      const jurisdiction = sanitizeInput(data.jurisdiction).slice(0, 200);
-      const caseType = sanitizeInput(data.caseType).slice(0, 100);
-
+      const facts = sanitizeInput(input.facts);
+      const jurisdiction = sanitizeInput(input.jurisdiction).slice(0, 200);
+      const caseType = sanitizeInput(input.caseType).slice(0, 100);
       const analysis = await generateCaseAnalysis(
         { facts, jurisdiction, caseType },
         {
@@ -115,7 +127,7 @@ const runAnalysis = createServerFn({ method: "POST" })
       );
       await saveCaseAnalysis({
         userId: auth.userId,
-        caseId: data.caseId,
+        caseId: input.caseId,
         facts,
         jurisdiction,
         analysis,
@@ -134,17 +146,16 @@ const runAnalysis = createServerFn({ method: "POST" })
       };
     }
   });
-
-const startCheckout = createServerFn({ method: "POST" })
-  .validator((data: unknown) => {
-    const d = data as Record<string, unknown>;
-    if (typeof d.caseId !== "string" || !CASE_ID_PATTERN.test(d.caseId)) throw new Error("Invalid case id");
-    return { caseId: d.caseId };
-  })
-  .handler(async ({ data }): Promise<{ success: true; url: string } | { success: false; error: string }> => {
+const startCheckout = createServerFn({ method: "POST" }).handler(async ({ data }): Promise<{ success: true; url: string } | { success: false; error: string }> => {
     const auth = await getCurrentAuth();
     if (!auth.userId) return { success: false, error: "Sign in required" };
-    const result = await createCheckoutSession(auth.userId, data.caseId);
+    let caseId: string;
+    try {
+      caseId = parseAnalysisCaseId(data).caseId;
+    } catch {
+      return { success: false, error: "Invalid case id" };
+    }
+    const result = await createCheckoutSession(auth.userId, caseId);
     if ("error" in result) return { success: false, error: result.error };
     return { success: true, url: result.url };
   });
