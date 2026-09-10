@@ -76,13 +76,14 @@ describe("validator-backed server fn client payload shape", () => {
 
   // Sanity: the customer-critical set (audit-named plus the reference
   // timeline/calendar fns) must all be detected as validator-backed.
+  // NOTE: getCase, getAnalysisStatus, runAnalysis, and startCheckout are
+  // intentionally absent — they were converted to auth-first, no-validator
+  // POST fns (PR #46 root cause: validator-compiled POST fns lose the request
+  // lifecycle getCurrentAuth() needs). Those four are covered by
+  // src/routes/smokeTestDefects.test.ts instead.
   const expectedNames = [
     "generateArgument",
     "generateDocument",
-    "getCase",
-    "getAnalysisStatus",
-    "runAnalysis",
-    "startCheckout",
     "legalResearch",
     "removeFile",
     "sendMessage",

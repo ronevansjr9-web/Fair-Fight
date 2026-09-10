@@ -33,27 +33,38 @@ type CaseResult =
   | { ok: false; reason: "unauthorized" | "not_found" | "unavailable" };
 
 // Restrict case IDs to safe path characters (UUIDs and common id formats).
-// This also keeps the value out of anything that could be interpreted as a
-// path traversal or oversized payload; the DB query itself is parameterized.
-const CASE_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
+  // This also keeps the value out of anything that could be interpreted as a
+  // path traversal or oversized payload; the DB query itself is parameterized.
+  const CASE_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
 
-const getCase = createServerFn({ method: "POST" })
-  .validator((data: unknown) => {
-    const d = data as Record<string, unknown>;
+  // POST server fns compiled with .validator() lose the request lifecycle that
+  // getCurrentAuth() needs (PR #46 root cause, production-verified: createCase
+  // returned "Sign in required" for a signed-in session while the no-validator
+  // dashboard fn authenticated). Per-field validation therefore runs inside the
+  // handler AFTER the auth gate — same proven pattern as createCase.
+  function parseCaseIdInput(data: unknown): { caseId: string } {
+    const d = (data ?? {}) as Record<string, unknown>;
     if (typeof d.caseId !== "string" || !CASE_ID_PATTERN.test(d.caseId)) {
       throw new Error("Invalid case id");
     }
-    return { caseId: d.caseId as string };
-  })
-  .handler(async ({ data }): Promise<CaseResult> => {
+    return { caseId: d.caseId };
+  }
+
+  const getCase = createServerFn({ method: "POST" }).handler(async ({ data }): Promise<CaseResult> => {
     try {
       const auth = await getCurrentAuth();
       if (!auth.userId) return { ok: false, reason: "unauthorized" };
+      let caseId: string;
+      try {
+        caseId = parseCaseIdInput(data).caseId;
+      } catch {
+        return { ok: false, reason: "not_found" };
+      }
       try {
         const rows = await sql()`
           SELECT id, title, case_type, status, jurisdiction, description, created_at, updated_at
           FROM cases
-          WHERE id = ${data.caseId} AND user_id = ${auth.userId}
+          WHERE id = ${caseId} AND user_id = ${auth.userId}
           LIMIT 1
         `;
         if (!rows || rows.length === 0) return { ok: false, reason: "not_found" };

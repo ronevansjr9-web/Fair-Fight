@@ -77,4 +77,63 @@ describe("smoke-test defect regression contracts", () => {
     expect(authCall).toBeLessThan(validate);
     expect(refuse).toBeLessThan(validate);
   });
+  it("getCase is a no-validator POST fn, auth-gates first, stays ownership-scoped (hard-load /cases/$caseId fails closed otherwise)", () => {
+    const caseDetail = readFileSync(resolve(siteRoot, "src/routes/cases/$caseId.tsx"), "utf8");
+    // no `.validator(` — validator-compiled POST fns lose the request lifecycle
+    // that getCurrentAuth() needs (same root cause as createCase, PR #46).
+    expect(caseDetail).not.toMatch(/createServerFn\([^)]*\)\s*\.validator/);
+    const handlerStart = caseDetail.indexOf("const getCase = createServerFn");
+    const authCall = caseDetail.indexOf("const auth = await getCurrentAuth();", handlerStart);
+    const parse = caseDetail.indexOf("parseCaseIdInput(data)", handlerStart);
+    const ownerWhere = caseDetail.indexOf("WHERE id = ${caseId} AND user_id = ${auth.userId}", handlerStart);
+    expect(handlerStart).toBeGreaterThan(-1);
+    expect(authCall).toBeGreaterThan(-1);
+    expect(parse).toBeGreaterThan(-1);
+    expect(ownerWhere).toBeGreaterThan(-1);
+    // Auth gate runs BEFORE per-field validation and the ownership-scoped query
+    // is intact — a hard load of a case the session does not own must fail
+    // closed (not-found UI), never leak another user's case.
+    expect(authCall).toBeLessThan(parse);
+    expect(parse).toBeLessThan(ownerWhere);
+  });
+  it("analysis server fns are no-validator POST fns, auth-gate first (fix: /analysis?caseId= fetch + generation + checkout)", () => {
+    const analysis = readFileSync(resolve(siteRoot, "src/routes/analysis.tsx"), "utf8");
+    expect(analysis).not.toMatch(/createServerFn\([^)]*\)\s*\.validator/);
+    // getAnalysisStatus: auth-gate before parsing, exact ownership scope, and
+    // the honest unpaid state per case.
+    const statusStart = analysis.indexOf("const getAnalysisStatus = createServerFn");
+    const statusAuth = analysis.indexOf("const auth = await getCurrentAuth();", statusStart);
+    const statusParse = analysis.indexOf("parseAnalysisCaseId(data)", statusStart);
+    expect(statusStart).toBeGreaterThan(-1);
+    expect(statusAuth).toBeGreaterThan(-1);
+    expect(statusParse).toBeGreaterThan(-1);
+    expect(statusAuth).toBeLessThan(statusParse);
+    expect(analysis.indexOf("isCaseOwner(auth.userId, caseId)", statusStart)).toBeGreaterThan(-1);
+    expect(analysis).toContain("entitled: false");
+    // runAnalysis: auth-gate before validation, exact ownership + entitlement
+    // enforced server-side before any generation.
+    const runStart = analysis.indexOf("const runAnalysis = createServerFn");
+    const runAuth = analysis.indexOf("const auth = await getCurrentAuth();", runStart);
+    const runParse = analysis.indexOf("parseRunAnalysisInput(data)", runStart);
+    expect(runStart).toBeGreaterThan(-1);
+    expect(runAuth).toBeGreaterThan(-1);
+    expect(runParse).toBeGreaterThan(-1);
+    expect(runAuth).toBeLessThan(runParse);
+    expect(analysis.indexOf("hasOwnedCaseEntitlement(auth.userId, input.caseId)", runStart)).toBeGreaterThan(runParse);
+    // startCheckout: auth-gate before caseId validation.
+    const checkoutStart = analysis.indexOf("const startCheckout = createServerFn");
+    const checkoutAuth = analysis.indexOf("const auth = await getCurrentAuth();", checkoutStart);
+    const checkoutParse = analysis.indexOf("parseAnalysisCaseId(data)", checkoutStart);
+    expect(checkoutStart).toBeGreaterThan(-1);
+    expect(checkoutAuth).toBeGreaterThan(-1);
+    expect(checkoutParse).toBeGreaterThan(-1);
+    expect(checkoutAuth).toBeLessThan(checkoutParse);
+  });
+  it("analysis page keeps the honest $99 unpaid purchase CTA (fail-closed for unpaid, working fetch for the owner's case)", () => {
+    const analysis = readFileSync(resolve(siteRoot, "src/routes/analysis.tsx"), "utf8");
+    expect(analysis).toContain("Unlock Case Analysis — $99 one-time");
+    expect(analysis).toContain("Unlock for $99");
+    // getAnalysisStatus must distinguish "not yours" from "yours but unpaid".
+    expect(analysis).toContain("{ ok: true; entitled: false; caseTitle: string }");
+  });
 });
