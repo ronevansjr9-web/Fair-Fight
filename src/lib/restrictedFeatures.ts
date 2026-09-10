@@ -53,7 +53,7 @@ export const RESTRICTED_FEATURES = {
   checkoutProActivation: false,
   /** Non-case-scoped paid AI tools /documents + /chat (rebuilt entitlement model required first). */
   generativeProTools: true,
-  /** Self-serve deletion of all user data (files, payments, referrals...). */
+  /** Self-serve deletion of all user data (files, payments...). */
   deleteUserData: true,
   /** Self-serve portable export of all user data. */
   exportUserData: true,

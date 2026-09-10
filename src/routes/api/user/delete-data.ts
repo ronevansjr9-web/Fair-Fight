@@ -32,8 +32,6 @@ export async function POST({ request }: { request: Request }) {
     await sql()`DELETE FROM audit_logs WHERE user_id = ${auth.userId}`;
     await sql()`DELETE FROM payments WHERE user_id = ${auth.userId}`;
     await sql()`DELETE FROM subscriptions WHERE user_id = ${auth.userId}`;
-    await sql()`DELETE FROM referral_codes WHERE user_id = ${auth.userId}`;
-    await sql()`DELETE FROM referral_tracking WHERE referrer_id = ${auth.userId} OR referred_user_id = ${auth.userId}`;
 
     await logDataDeleted(auth.userId);
 
