@@ -16,7 +16,7 @@ import {
   RESTRICTED_FEATURES,
   TEMP_UNAVAILABLE_MESSAGE,
 } from "~/lib/restrictedFeatures";
-import { shouldFetchForSignedInUser } from "~/lib/caseFetchGate";
+import { shouldFetchForSignedInUser, fetchAuthedData } from "~/lib/caseFetchGate";
 import { sql } from "~/db";
 
 export const Route = createFileRoute("/analysis")({
