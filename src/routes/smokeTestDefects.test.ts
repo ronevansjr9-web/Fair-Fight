@@ -211,5 +211,42 @@ describe("smoke-test defect regression contracts", () => {
     }
     expect(stripped).not.toContain("[auth-debug]");
   });
+  it("user-facing copy has no stale 'payments not running' or analysis-overpromise strings (honesty audit batch 2)", () => {
+    const privacy = readFileSync(resolve(siteRoot, "src/routes/privacy.tsx"), "utf8");
+    const root = readFileSync(resolve(siteRoot, "src/routes/__root.tsx"), "utf8");
+    const email = readFileSync(resolve(siteRoot, "src/lib/email.ts"), "utf8");
+    for (const src of [privacy, root, email]) {
+      // Payments are LIVE ($99 checkout open): no copy may claim they are not
+      // running or imply access is still gated.
+      expect(src).not.toContain("not currently accepting payments");
+      expect(src).not.toContain("when payment access is enabled");
+      expect(src).not.toContain("paid features resume");
+      // The analysis deliverable is summary/issues/arguments/counterarguments/
+      // sources — never "practical next steps" or "smart questions".
+      expect(src).not.toContain("practical next steps");
+      expect(src).not.toContain("Practical next steps");
+      expect(src).not.toContain("smart questions");
+      expect(src).not.toContain("Smart questions");
+    }
+    // Truthful replacements are present.
+    expect(privacy).toContain("Payments are processed by Stripe");
+    expect(privacy).toContain("refund request");
+    expect(email).toContain("Plain-English summary of your situation");
+    expect(root).toContain("possible legal issues the facts may raise");
+  });
+  it("dashboard renders a neutral state on entitlement-lookup error, never the Unlock CTA (honesty audit batch 2)", () => {
+    const dashboard = readFileSync(resolve(siteRoot, "src/routes/dashboard.tsx"), "utf8");
+    // The result shape must distinguish "lookup failed" (error) from
+    // "definitively not entitled" (ok) so an entitled case can never see a
+    // purchase CTA because the entitlement query errored.
+    expect(dashboard).toContain('entitlementStatus: "ok" | "error"');
+    expect(dashboard).toContain('entitlementStatus = "ok"');
+    expect(dashboard).toContain("Unable to verify analysis access");
+    // The neutral error state must render before (guard) the Unlock CTA.
+    const neutralIdx = dashboard.indexOf("Unable to verify analysis access");
+    const ctaIdx = dashboard.indexOf("Unlock $99");
+    expect(neutralIdx).toBeGreaterThan(-1);
+    expect(ctaIdx).toBeGreaterThan(neutralIdx);
+  });
 
 });

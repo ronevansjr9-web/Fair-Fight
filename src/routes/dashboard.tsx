@@ -35,6 +35,11 @@ type DashboardData = {
   cases: DashboardCase[];
   stats: { total: number; active: number; resolved: number };
   entitledCaseIds: string[];
+  // Distinct from the case list: a FAILED entitlement lookup must not be
+  // presented as "not entitled" (that would show an Unlock CTA on a case
+  // the user may already own, inviting a double charge). "error" → neutral
+  // state; only a successful lookup ("ok") may drive the Unlock CTA.
+  entitlementStatus: "ok" | "error";
 };
 // Distinguish "session rejected" (unauthorized → client refreshes the Clerk
 // token and retries once) from a real backend failure (unavailable → error UI).
@@ -73,14 +78,18 @@ const getDashboardData = createServerFn({ method: "POST" }).handler(async (): Pr
     `;
     // Separate, best-effort entitlement lookup: a missing/unmigrated payments
     // table must never blank the case list, and only succeeded payments count
-    // (a refunded payment automatically loses its badge).
+    // (a refunded payment automatically loses its badge). A lookup failure is
+    // carried separately from the empty list — "unknown" must never render as
+    // "not entitled", which would show an Unlock CTA on an already-paid case.
     let entitledCaseIds: string[] = [];
+    let entitlementStatus: "ok" | "error" = "error";
     try {
       const payments = await sql()`
         SELECT case_id FROM payments
         WHERE user_id = ${auth.userId} AND status = 'succeeded'
       `;
       entitledCaseIds = (payments ?? []).map((p: Record<string, unknown>) => String(p.case_id));
+      entitlementStatus = "ok";
     } catch (error) {
       console.error("Entitlement lookup failed:", error);
     }
@@ -102,6 +111,7 @@ const getDashboardData = createServerFn({ method: "POST" }).handler(async (): Pr
           resolved: Number(stats[0]?.resolved || 0),
         },
         entitledCaseIds,
+        entitlementStatus,
       },
     };
   } catch {
@@ -118,7 +128,7 @@ function DashboardPage() {
   // first fetch fires. fetchAuthedData waits for the token, and if the server
   // still rejects (unauthorized) it refreshes it and retries exactly once.
   const auth = useAuth();
-  const [data, setData] = useState<DashboardData>({ cases: [], stats: { total: 0, active: 0, resolved: 0 }, entitledCaseIds: [] });
+  const [data, setData] = useState<DashboardData>({ cases: [], stats: { total: 0, active: 0, resolved: 0 }, entitledCaseIds: [], entitlementStatus: "error" });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
@@ -267,7 +277,14 @@ function DashboardPage() {
                         }`}>
                           {c.status}
                         </span>
-                        {data.entitledCaseIds.includes(c.id) ? (
+                        {data.entitlementStatus === "error" ? (
+                          <span
+                            title="We couldn't verify your analysis access right now. Refresh the page to try again."
+                            className="rounded-full border border-white/10 px-2 py-0.5 text-xs font-medium text-white/40"
+                          >
+                            Unable to verify analysis access — try refreshing
+                          </span>
+                        ) : data.entitledCaseIds.includes(c.id) ? (
                           <Link
                             to="/analysis"
                             search={{ caseId: c.id, checkout: undefined }}
