@@ -67,14 +67,24 @@ describe("Clerk getAuth request-context regression guard", () => {
       .join("\n");
     // Auth is resolved via @clerk/backend authenticateRequest (no Vinxi event
     // context / legacy getAuth). The actual Request is normalized once via
-    // `request ?? getRequest()` and passed into authenticateRequest.
+    // `request ?? getRequest()`. A server-fn handler may already have consumed
+    // the request body, which makes the Request body-disturbed and unclonable —
+    // so auth.ts first normalizes to `authRequest` (the original req, or a
+    // header-only Request rebuilt from it when the body is disturbed) and
+    // passes THAT into authenticateRequest. URL, method and headers (cookies /
+    // JWT) — everything Clerk needs to authenticate — are preserved.
     expect(
       /request\s*\?\?\s*getRequest\(\)/.test(content),
       "getCurrentAuth must pull the actual Request via request ?? getRequest()",
     ).toBe(true);
     expect(
-      /\bauthenticateRequest\s*\(\s*req\b/.test(content),
-      "getCurrentAuth must pass the Request to @clerk/backend authenticateRequest",
+      /let\s+authRequest\s*=\s*req;/.test(content) &&
+        /\bauthenticateRequest\s*\(\s*authRequest\b/.test(content),
+      "getCurrentAuth must pass the normalized Request (authRequest, derived from req) to @clerk/backend authenticateRequest",
+    ).toBe(true);
+    expect(
+      /new Request\(\s*req\.url,\s*\{\s*method:\s*req\.method,\s*headers:\s*req\.headers\s*\}\s*\)/.test(content),
+      "the body-disturbed fallback must preserve URL, method and headers",
     ).toBe(true);
   });
 
