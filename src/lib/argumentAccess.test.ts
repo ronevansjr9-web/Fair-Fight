@@ -55,7 +55,7 @@ mock.module("@tanstack/react-start", () => ({
 }));
 
 // Imports must come after mock.module so the mocked modules are used.
-const { hasOwnedCaseEntitlement, isCaseOwner } = await import("./argumentAccess");
+const { hasOwnedCaseEntitlement, isCaseOwner, hasProMembership } = await import("./argumentAccess");
 const { fetchUserCases } = await import("../routes/legal-argument");
 const { resolveProAccess } = await import("../components/ProGate");
 
@@ -80,6 +80,40 @@ describe("hasOwnedCaseEntitlement", () => {
     expect(await hasOwnedCaseEntitlement("user_1", "case_1; DROP TABLE cases")).toBe(false);
     expect(await hasOwnedCaseEntitlement("user_1", "")).toBe(false);
     expect(await hasOwnedCaseEntitlement("", "case_1")).toBe(false);
+    expect(results.length).toBe(0);
+  });
+});
+
+describe("hasProMembership (Wave 1 per-user Pro entitlement)", () => {
+  test("grants membership when the user has a succeeded payment row", async () => {
+    results = [[{ id: 1 }]];
+    expect(await hasProMembership("user_1")).toBe(true);
+  });
+
+  test("denies membership when the user has no payment rows", async () => {
+    results = [[]];
+    expect(await hasProMembership("user_1")).toBe(false);
+  });
+
+  test("denies membership for pending/failed payments (SQL only counts status='succeeded')", async () => {
+    // The row mock cannot filter by status — the SQL predicate does: a
+    // 'pending'/'failed' row would not match `status='succeeded'`, so the
+    // payments lookup returns no rows and membership is denied. Static guard
+    // below pins the SQL predicate so it cannot silently broaden.
+    results = [[]];
+    expect(await hasProMembership("user_1")).toBe(false);
+    const paymentSource = readFileSync(
+      fileURLToPath(new URL("../lib/payment.ts", import.meta.url)),
+      "utf8",
+    );
+    expect(paymentSource).toContain("status='succeeded'");
+  });
+
+  test("rejects empty/unknown user ids before touching the database", async () => {
+    results = [];
+    expect(await hasProMembership(null)).toBe(false);
+    expect(await hasProMembership(undefined)).toBe(false);
+    expect(await hasProMembership("")).toBe(false);
     expect(results.length).toBe(0);
   });
 });
@@ -187,5 +221,33 @@ describe("case-scoped authorization wiring", () => {
     expect(legalArgumentSource).toContain("isLoadingCases");
     expect(legalArgumentSource).toContain("userCases.length === 0");
     expect(legalArgumentSource).not.toContain('placeholder="Paste your case ID from the dashboard"');
+  });
+});
+
+// --- Wave 1 static wiring guard: the non-case-scoped member tools
+// (/chat, /documents) must authorize with the per-user membership check only
+// — never with a case-scoped or any-case entitlement test. ---
+const chatRouteSource = readFileSync(
+  fileURLToPath(new URL("../routes/chat.tsx", import.meta.url)),
+  "utf8",
+);
+const documentsRouteSource = readFileSync(
+  fileURLToPath(new URL("../routes/documents.tsx", import.meta.url)),
+  "utf8",
+);
+
+describe("Wave 1 member-tool authorization wiring", () => {
+  test("chat and documents authorize with hasProMembership, never case-scoped", () => {
+    for (const source of [chatRouteSource, documentsRouteSource]) {
+      expect(source).toContain("hasProMembership(auth.userId)");
+      // These tools are NOT case-scoped: no per-case ownership/entitlement
+      // check and no direct payments-table import may authorize them.
+      expect(source).not.toContain("hasOwnedCaseEntitlement");
+      expect(source).not.toContain("hasCaseEntitlement");
+      expect(source).not.toContain("isCaseOwner");
+      expect(source).toContain("getCurrentAuth");
+      expect(source).not.toContain('import { getAuth }');
+      expect(source).not.toContain("getAuth()");
+    }
   });
 });
