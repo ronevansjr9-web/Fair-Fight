@@ -19,15 +19,16 @@
  *     of this checkout launch, and remain fail-closed with an honest
  *     "temporarily unavailable" response.
  *
- *   - generativeProTools (STILL GATED): the non-case-scoped paid AI tools
- *     (/documents and /chat) generate on our paid backend for ANY signed-in
- *     user without a per-case entitlement check. They are NOT part of the
- *     $99 case-scoped Pro launch, so they must not be exposed to every
- *     signed-in user just because the checkout gate opened. They remain
- *     fail-closed on this separate flag until a real Pro entitlement model is
- *     built for them. (Analysis / legal-argument, by contrast, are
- *     case-scoped and enforce `hasOwnedCaseEntitlement` server-side, so they
- *     open with the checkout gate.)
+ *   - generativeProTools (OPEN — Wave 1, 2026-08-24): the non-case-scoped paid
+ *     AI tools (/documents and /chat) are LIVE for verified Pro members. Their
+ *     entitlement model was rebuilt first (this Wave 1 change): server-side
+ *     Clerk auth, then `hasProMembership(userId)` — the payments table has ≥1
+ *     row for that user with status='succeeded' (any verified $99 Pro Case
+ *     Analysis purchase; no case-binding for these two member tools, per the
+ *     paid-only plan). Signed-out and unpaid users fail closed before any
+ *     rate-limit/AI work and see truthful member-tool copy with a dashboard
+ *     CTA (analysis / legal-argument stay case-scoped via
+ *     `hasOwnedCaseEntitlement` server-side).
  *
  * NOT gated (per the business plan): public legal education and legal research,
  * statutes/case law/court rules, sign-in, and the durable case / timeline /
@@ -51,8 +52,8 @@
 export const RESTRICTED_FEATURES = {
   /** Stripe Checkout session creation + webhook entitlement recording (OPEN for live payments). */
   checkoutProActivation: false,
-  /** Non-case-scoped paid AI tools /documents + /chat (rebuilt entitlement model required first). */
-  generativeProTools: true,
+  /** Non-case-scoped paid AI tools /documents + /chat (Wave 1: live for verified Pro members via hasProMembership). */
+  generativeProTools: false,
   /** Self-serve deletion of all user data (files, payments...). */
   deleteUserData: true,
   /** Self-serve portable export of all user data. */

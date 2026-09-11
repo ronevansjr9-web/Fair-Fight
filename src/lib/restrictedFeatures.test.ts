@@ -33,9 +33,11 @@ import {
 } from "./restrictedFeatures";
 
 describe("restricted feature gate constants", () => {
-  test("checkout is open while the other high-risk flows and generative tools stay gated", () => {
+  test("checkout and the rebuilt generative member tools are open; deletion/export/evidence stay gated", () => {
     expect(RESTRICTED_FEATURES.checkoutProActivation).toBe(false);
-    expect(RESTRICTED_FEATURES.generativeProTools).toBe(true);
+    // Wave 1 (2026-08-24): /documents + /chat are LIVE behind the rebuilt
+    // per-user entitlement model (hasProMembership), so the flag is cleared.
+    expect(RESTRICTED_FEATURES.generativeProTools).toBe(false);
     expect(RESTRICTED_FEATURES.deleteUserData).toBe(true);
     expect(RESTRICTED_FEATURES.exportUserData).toBe(true);
     expect(RESTRICTED_FEATURES.evidenceUploads).toBe(true);
@@ -165,8 +167,11 @@ describe("every restricted server function references the fail-closed gate", () 
     "../routes/data-request.tsx": ["exportUserData", "deleteUserData"],
     "../routes/evidence.tsx": ["getUploadedFiles", "removeFile"],
     "../routes/legal-argument.tsx": ["generateArgument"],
-    "../routes/documents.tsx": ["generateDocument"],
-    "../routes/chat.tsx": ["sendMessage"],
+    // NOTE (Wave 1, 2026-08-24): documents.tsx generateDocument and chat.tsx
+    // sendMessage were REMOVED from this list — they are no longer restricted
+    // flows. Both are live for verified Pro members behind the rebuilt
+    // per-user entitlement model (auth + hasProMembership); their gate-ordering
+    // and copy contracts are asserted in the "Wave 1" describe block below.
   };
 
   for (const [file, fns] of Object.entries(gatedFns)) {
@@ -264,66 +269,93 @@ describe("public copy no longer promises restricted flows", () => {
 });
 
 /* ────────────────────────────────────────────
-   Flag A (2026-08-22): /documents and /chat are
-   live paid AI tools that are NOT case-scoped.
-   With the $99 checkout gated for everyone, they
-   must fail closed on their separate generative-tools gate — no signed-in
-   user may invoke paid AI generation. The route
-   UI shows the honest unavailable panel, and the
-   real implementation stays behind that gate (it is
-   the LAST step of any future controlled deploy).
-   /research (court-law search) remains ungated.
+   Wave 1 (2026-08-24): /documents and /chat are
+   LIVE for verified Pro members.
+   Entitlement model (rebuilt): Clerk auth required,
+   then hasProMembership(userId) — the payments table
+   has ≥1 row for that user with status='succeeded'
+   (any verified $99 Pro Case Analysis purchase; no
+   case-binding for these two member tools, per the
+   paid-only business plan). Gate ordering invariant:
+   auth → membership → rate-limit/AI work. Signed-out
+   and unpaid users fail closed before any
+   rate-limit/AI work and see truthful member-tool
+   copy with a dashboard CTA. /research remains
+   ungated.
    ──────────────────────────────────────────── */
 
-describe("Flag A: paid AI tools /documents & /chat fail closed, not case-scoped", () => {
-  test("generateDocument fails closed at the generative-tools gate before any AI work", () => {
+describe("Wave 1: paid AI tools /documents & /chat are live for verified Pro members", () => {
+  test("generateDocument gates Clerk auth + membership BEFORE any AI work", () => {
     const source = read("../routes/documents.tsx");
     const body = handlerBody(source, "generateDocument");
-    expect(body).toContain("RESTRICTED_FEATURES.generativeProTools");
-    expect(body).toContain("tempUnavailableError");
-    // The gate must precede the AI call so no user can invoke live generation.
-    expect(body.indexOf("RESTRICTED_FEATURES.generativeProTools")).toBeLessThan(
-      body.indexOf("askAI"),
-    );
+    // Auth gate first, then the per-user membership entitlement gate.
+    expect(body).toContain("getCurrentAuth");
+    expect(body).toContain('return { error: "Sign in required" }');
+    expect(body).toContain("hasProMembership(auth.userId)");
+    // The membership gate must precede the AI call so no unpaid user can
+    // invoke live generation.
+    const membership = body.indexOf("hasProMembership(auth.userId)");
+    expect(membership).toBeGreaterThanOrEqual(0);
+    expect(membership).toBeLessThan(body.indexOf("askAI"));
+    // The old fail-closed flag gate is gone from the live path.
+    expect(body).not.toContain("RESTRICTED_FEATURES.generativeProTools");
+    expect(body).not.toContain("tempUnavailableError");
   });
 
-  test("sendMessage fails closed at the generative-tools gate before any rate-limit or AI work", () => {
+  test("sendMessage gates Clerk auth + membership BEFORE any rate-limit or AI work", () => {
     const source = read("../routes/chat.tsx");
     const body = handlerBody(source, "sendMessage");
-    expect(body).toContain("RESTRICTED_FEATURES.generativeProTools");
-    expect(body).toContain("tempUnavailableError");
-    // Gate precedes the rate-limit check and the streaming AI call.
-    expect(body.indexOf("RESTRICTED_FEATURES.generativeProTools")).toBeLessThan(
-      body.indexOf("checkRateLimit"),
-    );
-    expect(body.indexOf("RESTRICTED_FEATURES.generativeProTools")).toBeLessThan(
-      body.indexOf("askAIStreaming"),
-    );
+    expect(body).toContain("getCurrentAuth");
+    expect(body).toContain('return { error: "Sign in required" }');
+    expect(body).toContain("hasProMembership(auth.userId)");
+    // Membership gate precedes the rate-limit check and the streaming AI call.
+    const membership = body.indexOf("hasProMembership(auth.userId)");
+    expect(membership).toBeGreaterThanOrEqual(0);
+    expect(membership).toBeLessThan(body.indexOf("checkRateLimit"));
+    expect(body.indexOf("checkRateLimit")).toBeLessThan(body.indexOf("askAIStreaming"));
+    // The old fail-closed flag gate is gone from the live path.
+    expect(body).not.toContain("RESTRICTED_FEATURES.generativeProTools");
+    expect(body).not.toContain("tempUnavailableError");
   });
 
-  test("documents route shows the honest unavailable panel, not a live generator", () => {
+  test("documents route truthfully presents the member tool with a dashboard CTA and no unavailable panel", () => {
     const source = read("../routes/documents.tsx");
-    expect(source.toLowerCase()).toContain("temporarily unavailable");
-    expect(source).toContain("{TEMP_UNAVAILABLE_MESSAGE}");
-    // The live generator UI (doc-type selector and generate button) is gone.
-    expect(source).not.toContain("Generate Document Template");
-    expect(source).not.toContain("Motion Template");
+    // The stale "verify Pro activation" unavailable panel is gone.
+    expect(source.toLowerCase()).not.toContain("temporarily unavailable");
+    expect(source).not.toContain("{TEMP_UNAVAILABLE_MESSAGE}");
+    // Truthful member-tool copy: included with a one-time $99 purchase, CTA to
+    // the dashboard, educational disclaimer — no free/unlimited overclaims.
+    expect(source).toContain("$99");
+    expect(source).toMatch(/member tool/i);
+    expect(source).toContain('to="/dashboard"');
+    expect(source.toLowerCase()).toContain("not legal advice");
+    expect(source).not.toMatch(/free of charge|\bfree\b|unlimited/i);
+    // The live member UI (doc-type selector and generate button) is back.
+    expect(source).toContain("Generate Document Template");
+    expect(source).toContain("Motion Template");
   });
 
-  test("chat route shows the honest unavailable panel, not a live chat UI", () => {
+  test("chat route truthfully presents the member tool with a dashboard CTA and no unavailable panel", () => {
     const source = read("../routes/chat.tsx");
-    expect(source.toLowerCase()).toContain("temporarily unavailable");
-    expect(source).toContain("{TEMP_UNAVAILABLE_MESSAGE}");
-    // The live chat surface (message input, send button) is gone.
-    expect(source).not.toContain("handleSend");
-    expect(source).not.toContain("habeas corpus");
+    expect(source.toLowerCase()).not.toContain("temporarily unavailable");
+    expect(source).not.toContain("{TEMP_UNAVAILABLE_MESSAGE}");
+    expect(source).toContain("$99");
+    expect(source).toMatch(/member tool/i);
+    expect(source).toContain('to="/dashboard"');
+    expect(source.toLowerCase()).toContain("not legal advice");
+    expect(source).not.toMatch(/free of charge|\bfree\b|unlimited/i);
+    // The live chat surface (message input, send button) is back.
+    expect(source).toContain("handleSend");
+    expect(source).toContain("habeas corpus");
   });
 
-  test("landing page presents the Document Generator as temporarily unavailable", () => {
+  test("landing page presents the Document Generator as a paid member tool, not temporarily unavailable", () => {
     const source = read("../routes/index.tsx");
-    expect(source).toMatch(
-      /Document Generator[\s\S]*?temporarily unavailable/i,
-    );
+    // Bounded window so the match cannot span into the (still-gated) Court
+    // Calendar card, which truthfully says "temporarily unavailable".
+    expect(source).toMatch(/title: "Document Generator"[\s\S]{0,200}?member tool/i);
+    expect(source).toMatch(/title: "Document Generator"[\s\S]{0,200}?\$99/i);
+    expect(source).not.toMatch(/Document Generator[\s\S]{0,160}?temporarily unavailable/i);
   });
 });
 

@@ -101,7 +101,7 @@ function Home() {
               },
               {
                 title: "Document Generator",
-                desc: "The AI Document Generator is temporarily unavailable while we verify Pro activation. When available, outputs will be educational templates only — not filing-ready documents or legal advice.",
+                desc: "A Pro member tool included with the one-time $99 Pro Case Analysis purchase. AI-drafted educational templates — not filing-ready documents or legal advice.",
                 icon: "📝",
               },
               {

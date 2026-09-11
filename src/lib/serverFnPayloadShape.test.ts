@@ -76,17 +76,18 @@ describe("validator-backed server fn client payload shape", () => {
 
   // Sanity: the customer-critical set (audit-named plus the reference
   // timeline/calendar fns) must all be detected as validator-backed.
-  // NOTE: getCase, getAnalysisStatus, runAnalysis, and startCheckout are
-  // intentionally absent — they were converted to auth-first, no-validator
-  // POST fns (PR #46 root cause: validator-compiled POST fns lose the request
-  // lifecycle getCurrentAuth() needs). Those four are covered by
-  // src/routes/smokeTestDefects.test.ts instead.
+  // NOTE: getCase, getAnalysisStatus, runAnalysis, startCheckout, sendMessage,
+  // and generateDocument are intentionally absent — they are auth-first,
+  // no-validator POST fns (PR #46 root cause: validator-compiled POST fns lose
+  // the request lifecycle getCurrentAuth() needs). sendMessage and
+  // generateDocument were converted in Wave 1 (2026-08-24) when /chat and
+  // /documents went live for Pro members. Those six are covered by
+  // src/routes/smokeTestDefects.test.ts and the Wave 1 gate-ordering tests in
+  // src/lib/restrictedFeatures.test.ts instead.
   const expectedNames = [
     "generateArgument",
-    "generateDocument",
     "legalResearch",
     "removeFile",
-    "sendMessage",
     "listTimeline",
     "addTimeline",
     "deleteTimeline",
