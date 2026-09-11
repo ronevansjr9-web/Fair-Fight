@@ -16,7 +16,7 @@ function PrivacyPage() {
       <div className="mx-auto max-w-3xl">
         <h1 className="mb-8 text-4xl font-extrabold text-white">Privacy Policy</h1>
         <div className="space-y-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8 text-white/80 leading-relaxed">
-          <p className="text-sm text-white/40">Last Updated: August 12, 2026</p>
+          <p className="text-sm text-white/40">Last Updated: September 11, 2026</p>
 
           <section>
             <h2 className="mb-3 text-xl font-bold text-white">1. Introduction</h2>
@@ -32,7 +32,7 @@ function PrivacyPage() {
               <li><strong>Case Information:</strong> When you create cases, we collect the information you provide about your legal situation, including case descriptions, evidence tags, timeline entries, and calendar events.</li>
               <li><strong>AI Interactions:</strong> When you use our AI features, we process the questions and information you submit to generate educational responses. These interactions may be logged for quality improvement.</li>
               <li><strong>Usage Data:</strong> We automatically collect information about how you interact with our site, including pages visited, features used, and time spent on the platform.</li>
-              <li><strong>Payment Information:</strong> Paid Pro features are not currently accepting payments while we finish verification. If and when payments resume, Stripe processes them and we do not store your full credit card details.</li>
+              <li><strong>Payment Information:</strong> Payments are processed by Stripe, our payment provider. We do not store your full credit card details — card data is handled by Stripe directly. Fair Fight Pro Case Analysis is a one-time $99 USD purchase per case; there is no subscription. We store a record of completed purchases (payment reference and status) so we can verify and grant access to the purchased case. If you believe you are entitled to a refund, you can make a refund request by contacting us at privacy@fairfight.ctonew.app; we will review each request individually.</li>
             </ul>
           </section>
 
@@ -41,7 +41,7 @@ function PrivacyPage() {
             <ul className="list-disc space-y-2 pl-6">
               <li>To provide, maintain, and improve our educational platform</li>
               <li>To generate AI-powered legal education responses based on your inputs</li>
-              <li>To process payments for Fair Fight Pro (one-time, per case) if and when paid features resume</li>
+              <li>To process payments for Fair Fight Pro (one-time, per case) via Stripe and to verify and grant access after a successful purchase</li>
               <li>To communicate with you about your account and our services</li>
               <li>To analyze usage patterns and improve user experience</li>
               <li>To comply with legal obligations and enforce our terms</li>

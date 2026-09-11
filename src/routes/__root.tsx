@@ -101,7 +101,7 @@ export const Route = createRootRoute({
               "name": "How much does Fair Fight cost?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Fair Fight provides public legal education and a paid Pro Case Analysis workspace. Pro Case Analysis is a one-time $99 purchase per case when payment access is enabled. Fair Fight is not a law firm and does not provide legal advice."
+                "text": "Fair Fight provides public legal education and a paid Pro Case Analysis workspace. Pro Case Analysis is a one-time $99 purchase per case. Fair Fight is not a law firm and does not provide legal advice."
               }
             },
             {
@@ -125,7 +125,7 @@ export const Route = createRootRoute({
               "name": "How does the AI case analysis work?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "You describe your legal situation in plain English, and Fair Fight's AI provides an educational analysis including: a summary of your situation, relevant legal concepts explained in plain English, practical next steps, and smart questions to ask your attorney. The analysis is for educational purposes only and does not constitute legal advice."
+                "text": "You describe your legal situation in plain English, and Fair Fight's AI provides an educational analysis including: a plain-English summary of your situation, possible legal issues the facts may raise, candidate arguments either side might make, counterarguments and uncertainties, and traceable public legal sources. The analysis is for educational purposes only and does not constitute legal advice."
               }
             }
           ]

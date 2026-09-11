@@ -437,9 +437,9 @@ describe("review fix: checkout-success analytics are enabled with open checkout"
 });
 
 describe("review fix: privacy policy last-amended date", () => {
-  test("privacy policy is dated August 12, 2026", () => {
+  test("privacy policy is dated September 11, 2026 (payments-section honesty rewrite)", () => {
     const source = read("../routes/privacy.tsx");
-    expect(source).toContain("Last Updated: August 12, 2026");
+    expect(source).toContain("Last Updated: September 11, 2026");
     expect(source).not.toContain("Last Updated: January 2026");
   });
 });

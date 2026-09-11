@@ -97,10 +97,10 @@ export async function sendAnalysisReadyEmail(
   const body = `Your AI-powered educational case analysis for "${caseTitle}" is now available.
 
 Log in to your Fair Fight dashboard to review:
-• Plain-English summary of your legal situation
-• Relevant statutes and case law explained
-• Practical next steps
-• Smart questions for your attorney
+  • Plain-English summary of your situation
+  • Possible legal issues the facts may raise
+  • Candidate arguments either side might make, with counterarguments and uncertainties
+  • Traceable public legal sources (statutes, cases, guides)
 
 View here: /dashboard
 
