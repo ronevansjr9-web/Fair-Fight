@@ -98,9 +98,25 @@ export async function getCurrentAuth(request?: Request) {
   );
   const req = request ?? getRequest();
 
+  // TanStack Start's server-fn handler reads the request body (`request.json()`)
+  // BEFORE the user handler runs whenever the client sent a payload. That
+  // consumes the body stream; Clerk's `authenticateRequest` then CLONES the
+  // request internally, and cloning a body-disturbed Request throws
+  // "Response body object should not be disturbed or locked" — which sank every
+  // POST server fn that carried data (dashboard worked only because it sends
+  // no body). Clerk only needs HEADERS (cookies/authorization) to
+  // authenticate, so when the body is already consumed we hand it a fresh
+  // header-only Request built from the disturbed one (URL + headers are still
+  // readable). Auth strength is unchanged: the same cookies/JWT are verified.
   const env = loadEnv();
   const clerk = createClerkClient(env);
-  let requestState = await clerk.authenticateRequest(req, {
+  let authRequest = req;
+  try {
+    req.clone();
+  } catch {
+    authRequest = new Request(req.url, { method: req.method, headers: req.headers });
+  }
+  let requestState = await clerk.authenticateRequest(authRequest, {
     signInUrl: process.env.CLERK_SIGN_IN_URL,
     signUpUrl: process.env.CLERK_SIGN_UP_URL,
     afterSignInUrl: process.env.CLERK_AFTER_SIGN_IN_URL,
@@ -127,7 +143,7 @@ export async function getCurrentAuth(request?: Request) {
         );
       }
       await new Promise((resolve) => setTimeout(resolve, waitMs));
-      requestState = await clerk.authenticateRequest(req, {
+      requestState = await clerk.authenticateRequest(authRequest, {
         signInUrl: process.env.CLERK_SIGN_IN_URL,
         signUpUrl: process.env.CLERK_SIGN_UP_URL,
         afterSignInUrl: process.env.CLERK_AFTER_SIGN_IN_URL,
