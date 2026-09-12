@@ -112,7 +112,8 @@ const getMemberStatus = createServerFn({ method: "POST" }).handler(
       const auth = await getCurrentAuth();
       if (!auth.userId) return { ok: false, reason: "unauthorized" };
       return { ok: true, isMember: await hasProMembership(auth.userId) };
-    } catch {
+    } catch (error) {
+      console.error("[member-status] getMemberStatus failed:", error);
       return { ok: false, reason: "unavailable" };
     }
   },
