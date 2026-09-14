@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { ARTICLES, GUIDE_REDIRECTS, getGuideBySlug } from "./guides";
 
 describe("guide consolidation (SEO)", () => {
-  test("guide count dropped from 60 to 58 after folding near-duplicates", () => {
-    expect(ARTICLES.length).toBe(58);
+  test("guide count is 60 after restoring expungement + restraining-order guides", () => {
+    expect(ARTICLES.length).toBe(60);
   });
 
   test("folded/renamed slugs are no longer separately-indexed guides", () => {
@@ -47,6 +47,17 @@ describe("guide consolidation (SEO)", () => {
     }
   });
 
+  test("restored guides (expungement, restraining order) exist and all related links resolve", () => {
+    for (const id of ["how-to-expunge-a-criminal-record", "how-to-get-a-restraining-order"]) {
+      const a = getGuideBySlug(id)!;
+      expect(a, `${id} should exist`).toBeDefined();
+      expect(a.paragraphs.length).toBeGreaterThan(0);
+      expect(a.takeaways.length).toBeGreaterThan(0);
+      for (const rel of a.relatedGuides) {
+        expect(getGuideBySlug(rel), `${id} links to missing guide ${rel}`).toBeDefined();
+      }
+    }
+  });
   test("no guide slug collides with a redirect source", () => {
     const liveSlugs = new Set(ARTICLES.map((a) => a.id));
     for (const from of Object.keys(GUIDE_REDIRECTS)) {
