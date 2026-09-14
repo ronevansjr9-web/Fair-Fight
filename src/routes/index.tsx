@@ -106,7 +106,7 @@ function Home() {
               },
               {
                 title: "Court Calendar",
-                desc: "Court Calendar is temporarily unavailable while we verify deadline handling. Do not rely on Fair Fight for filing deadlines; confirm dates with the court or an attorney.",
+                desc: "Track court dates and deadlines per case — events are saved and persist across sessions. Do not rely on Fair Fight for filing deadlines; confirm dates with the court or an attorney.",
                 icon: "📅",
               },
               {

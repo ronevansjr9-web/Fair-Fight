@@ -229,11 +229,17 @@ describe("public copy no longer promises restricted flows", () => {
     expect(source).not.toContain("const paymentsAccepted");
   });
 
-  test("ProGate has no purchase funnel copy", () => {
+  test("ProGate shows the honest exact-case entitlement status, not a purchase funnel", () => {
     const source = read("../components/ProGate.tsx");
-    expect(source).not.toContain("$99");
+    // Truthful status: the tool is included with one-time $99 Pro Case Analysis
+    // and access is exact-case, so no "temporarily unavailable" panel remains.
+    expect(source).toContain("$99");
+    expect(source).toContain("exact case");
+    expect(source).toMatch(/Pro Case Analysis/i);
+    expect(source).not.toContain("TEMP_UNAVAILABLE_MESSAGE");
+    // Still fail-closed: no purchase/sign-up funnel inside the gate itself.
     expect(source).not.toContain("Upgrade to Pro");
-    expect(source).toContain("TEMP_UNAVAILABLE_MESSAGE");
+    expect(source).not.toContain("/checkout");
   });
 
   test("evidence page shows the honest unavailable panel, not a working uploader", () => {
@@ -262,9 +268,11 @@ describe("public copy no longer promises restricted flows", () => {
     expect(source.toLowerCase()).toContain("temporarily unavailable");
   });
 
-  test("legal argument route describes the temporary unavailability", () => {
+  test("legal argument route truthfully presents the tool as included with Pro Case Analysis", () => {
     const source = read("../routes/legal-argument.tsx");
-    expect(source).toContain("Temporarily unavailable");
+    expect(source).toContain("included with Pro Case Analysis");
+    expect(source).toContain("exact case");
+    expect(source).not.toContain("Temporarily unavailable");
   });
 });
 

@@ -17,7 +17,7 @@ export const Route = createFileRoute("/legal-argument")({
   head: () => ({
     meta: [
       { title: "Legal Argument Generator — AI-Powered Case Law Citations | Fair Fight" },
-      { name: "description", content: "Generate AI-powered legal argument templates with jurisdiction-specific case law citations. Temporarily unavailable while Pro activation is verified. Educational purposes only — not legal advice." },
+      { name: "description", content: "Generate AI-powered legal argument templates with jurisdiction-specific case law citations — included with Pro Case Analysis for the exact case you purchased. Educational purposes only — not legal advice." },
     ],
   }),
 });
