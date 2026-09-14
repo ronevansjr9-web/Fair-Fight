@@ -250,3 +250,58 @@ describe("smoke-test defect regression contracts", () => {
   });
 
 });
+
+describe("admin dashboard honesty contracts (Wave 2)", () => {
+  const admin = readFileSync(resolve(siteRoot, "src/routes/admin.tsx"), "utf8");
+  it("getAdminStats is a POST fn, not GET (GET transport loses the Clerk session in this runtime)", () => {
+    expect(admin).toContain('createServerFn({ method: "POST" })');
+    expect(admin).not.toContain('createServerFn({ method: "GET" })');
+  });
+  it("no-validator POST fn (validator-compiled POST fns lose the request lifecycle getCurrentAuth() needs)", () => {
+    expect(admin).not.toMatch(/createServerFn\([^)]*\)\s*\.validator/);
+  });
+  it("allowlist contract: ADMIN_IDS is derived from process.env.ADMIN_CLERK_IDS, comma-separated, trimmed", () => {
+    expect(admin).toContain("process.env.ADMIN_CLERK_IDS");
+    expect(admin).toContain('.split(",")');
+    expect(admin).toContain(".map((s) => s.trim())");
+    expect(admin).toContain(".filter(Boolean)");
+  });
+  it("auth + allowlist gate runs BEFORE any DB query; unauthorized returns {authorized:false} ONLY", () => {
+    const handlerStart = admin.indexOf(".handler(async");
+    const authCall = admin.indexOf("const auth = await getCurrentAuth();", handlerStart);
+    const allowlistGate = admin.indexOf("!ADMIN_IDS.includes(auth.userId)", handlerStart);
+    const unauthorizedReturn = admin.indexOf("return { authorized: false };", handlerStart);
+    const sqlCall = admin.indexOf("await sql()", handlerStart);
+    expect(handlerStart).toBeGreaterThan(-1);
+    expect(authCall).toBeGreaterThan(-1);
+    expect(allowlistGate).toBeGreaterThan(-1);
+    expect(unauthorizedReturn).toBeGreaterThan(-1);
+    // Auth gate first, then the allowlist check, then any query work.
+    expect(unauthorizedReturn).toBeLessThan(sqlCall);
+    expect(authCall).toBeLessThan(sqlCall);
+  });
+  it("queries real existing tables only — no users table, no fabricated emails", () => {
+    expect(admin).not.toContain("FROM users");
+    expect(admin).not.toContain(".email");
+    expect(admin).not.toContain("recentUsers");
+    expect(admin).toContain("FROM cases");
+    expect(admin).toContain("COUNT(DISTINCT user_id)");
+    expect(admin).toContain("FROM case_analyses ca");
+    expect(admin).toContain("JOIN cases c ON c.id = ca.case_id");
+    // The derived-from-cases list is honestly labeled in the UI.
+    expect(admin).toContain("Derived from the 10 most recent cases");
+    expect(admin).toContain("no users table");
+  });
+  it("authorized DB failure returns an explicit unavailable state — NEVER zero counts", () => {
+    expect(admin).toContain('reason: "unavailable"');
+    expect(admin).toContain("ok: true");
+    // The client renders the error state instead of zeroes.
+    expect(admin).toContain("Admin dashboard unavailable");
+    expect(admin).toContain("No data is shown rather than misleading");
+  });
+  it("client uses fetchAuthedData with the { data: ... } payload and retries once on unauthorized", () => {
+    expect(admin).toContain("fetchAuthedData");
+    expect(admin).toMatch(/getAdminStats\(\{\s*data:\s*\{\}\s*\}\)/);
+    expect(admin).toContain("isUnauthorized: (r) => !r.authorized");
+  });
+});
