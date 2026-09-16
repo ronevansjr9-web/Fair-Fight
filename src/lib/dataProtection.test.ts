@@ -25,7 +25,9 @@ const queryFn = makeFn(false);
 const txnFn = makeFn(true);
 const transaction = (fn: (txn: typeof txnFn) => unknown[]) => {
   const txnQueries = fn(txnFn);
-  return Promise.resolve(txnQueries);
+  // Mirror the real Neon transaction primitive: each query is executed and
+  // the transaction resolves with the array of row-array results.
+  return Promise.all(txnQueries);
 };
 
 mock.module("~/db", () => ({
@@ -55,6 +57,12 @@ describe("collectUserExport", () => {
     // Case-owned children must join cases and filter on cases.user_id.
     expect(sql).toContain("join cases c on c.id=t.case_id");
     expect(sql).toContain("join cases c on c.id=e.case_id");
+    // Evidence is metadata-only: the bytea `data` column is never selected.
+    expect(sql).toContain("from evidence_files e");
+    expect(sql).toContain("e.size_bytes");
+    expect(sql).not.toContain("e.data");
+    // Audit logs exported for the owning user only.
+    expect(sql).toContain("from audit_logs");
     // Ownership scoping: every category filters by user.
     expect(sql).toContain("user_id");
     const userParams = captured.filter((c) => c.params.includes("user_abc")).length;
@@ -79,16 +87,37 @@ describe("collectUserExport", () => {
           status: "completed", created_at: new Date(), updated_at: new Date(),
         }];
       }
+      if (sqlText.includes("FROM evidence_files")) {
+        return [{
+          id: "ef1", case_id: "c1", filename: "affidavit.pdf", mime_type: "application/pdf",
+          size_bytes: 2048, created_at: new Date(),
+        }];
+      }
+      if (sqlText.includes("FROM audit_logs")) {
+        return [{
+          action: "CASE_CREATED", resource: "c1", details: '{"caseId":"c1"}', created_at: new Date(),
+        }];
+      }
       return [];
     });
     const out = await collectUserExport("user_abc");
-    expect(out.cases[0].caseType).toBe("Civil");
-    expect(typeof out.cases[0].createdAt).toBe("string");
-    expect(out.caseAnalyses[0].possibleIssues).toBe("pi");
-    expect(typeof out.caseAnalyses[0].sources).toBe("object");
-    expect(out.schemaVersion).toBe(1);
-    expect(out.user.userId).toBe("user_abc");
+    expect(out.data.cases[0].caseType).toBe("Civil");
+    expect(typeof out.data.cases[0].createdAt).toBe("string");
+    expect(out.data.caseAnalyses[0].possibleIssues).toBe("pi");
+    expect(typeof out.data.caseAnalyses[0].sources).toBe("object");
+    // Evidence metadata maps correctly and carries no file contents.
+    expect(out.data.evidenceFiles[0].filename).toBe("affidavit.pdf");
+    expect(out.data.evidenceFiles[0].mimeType).toBe("application/pdf");
+    expect(out.data.evidenceFiles[0].sizeBytes).toBe(2048);
+    expect(out.data.auditLogs[0].action).toBe("CASE_CREATED");
+    expect(out.schemaVersion).toBe(2);
+    expect(out.user.clerkUserId).toBe("user_abc");
     expect(typeof out.exportedAt).toBe("string");
+    // The export states the honest boundaries in its own notes.
+    expect(out.notes.evidenceFiles.toLowerCase()).toContain("not included");
+    expect(out.notes.payments.toLowerCase()).toContain("stripe");
+    // No bytea data anywhere in the mapped export.
+    expect(JSON.stringify(out)).not.toContain("data\":\"");
   });
 });
 
@@ -116,6 +145,38 @@ describe("deleteAllUserData", () => {
     expect(sql).toContain("using cases c");
     expect(sql).not.toMatch(/delete from timeline_entries\s*;?\s*$/m);
     expect(sql).not.toMatch(/delete from calendar_events\s*;?\s*$/m);
+    // Evidence files are deleted via the cases join and audit_logs are
+    // deleted for the owning user only (not blanket).
+    expect(sql).toContain("delete from evidence_files e using cases c");
+    expect(sql).toContain("delete from audit_logs where user_id");
+    // Every delete returns rows so exact per-table counts are provable:
+    // no bare DELETE without RETURNING.
+    expect(sql).toMatch(/delete from case_analyses[\s\S]*returning/);
+    expect(sql).toMatch(/delete from evidence_files[\s\S]*returning/);
+    expect(sql).toMatch(/delete from audit_logs[\s\S]*returning/);
+  });
+  test("returns exact per-table counts of deleted rows from the transaction", async () => {
+    reset((sqlText) => {
+      const t = sqlText.toLowerCase();
+      if (t.includes("from evidence_files")) return [{ id: "e1" }, { id: "e2" }];
+      if (t.includes("from case_analyses")) return [{ id: "a1" }];
+      if (t.includes("from timeline_entries")) return [{ id: "t1" }, { id: "t2" }, { id: "t3" }];
+      if (t.includes("from calendar_events")) return [];
+      if (t.includes("from payments")) return [{ id: "p1" }];
+      if (t.includes("from audit_logs")) return [{ id: "l1" }, { id: "l2" }];
+      if (t.includes("from cases")) return [{ id: "c1" }, { id: "c2" }];
+      return [];
+    });
+    const counts = await deleteAllUserData("user_abc");
+    expect(counts).toEqual({
+      evidenceFiles: 2,
+      caseAnalyses: 1,
+      timelineEntries: 3,
+      calendarEvents: 0,
+      payments: 1,
+      cases: 2,
+      auditLogs: 2,
+    });
   });
 
   test("routes through the Neon transaction primitive (all-or-nothing)", async () => {

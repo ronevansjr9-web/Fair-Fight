@@ -70,7 +70,7 @@ function PrivacyPage() {
           <section>
             <h2 className="mb-3 text-xl font-bold text-white">6. Data Retention</h2>
             <p>
-              We retain your personal information for as long as your account is active or as needed to provide services. Self-serve export and deletion tools are temporarily unavailable while we verify they cover every category of data we hold. Contact us at privacy@fairfight.ctonew.app and we will assist with access, export, or deletion requests.
+              We retain your personal information for as long as your account is active or as needed to provide services. You can export or permanently delete your data yourself at any time from the <a href="/data-request" className="text-gold hover:underline">Data Request page</a>. If you need help, contact us at privacy@fairfight.ctonew.app.
             </p>
           </section>
 
@@ -79,8 +79,8 @@ function PrivacyPage() {
             <ul className="list-disc space-y-2 pl-6">
               <li><strong>Access:</strong> You can request a copy of your personal data</li>
               <li><strong>Correction:</strong> You can update inaccurate information</li>
-              <li><strong>Deletion:</strong> You have the right to request deletion of your data. The in-app self-serve deletion tool is temporarily unavailable while we verify it covers all data we hold (including uploaded files and payment records); contact us and we will assist.</li>
-              <li><strong>Export:</strong> You have the right to export your data in a portable format. The in-app self-serve export tool is temporarily unavailable while we verify it includes all data; contact us and we will assist.</li>
+              <li><strong>Deletion:</strong> You have the right to delete your data. The in-app self-serve deletion tool (<a href="/data-request" className="text-gold hover:underline">Data Request page</a>) permanently deletes all of your cases, case analyses, calendar and timeline entries, evidence files, payment records, and audit log entries in a single transaction, and then best-effort deletes your Fair Fight sign-in account. This cannot be undone. Note that Stripe retains its own payment records independently.</li>
+              <li><strong>Export:</strong> You have the right to export your data in a portable format. The in-app self-serve export tool (<a href="/data-request" className="text-gold hover:underline">Data Request page</a>) downloads a JSON document of everything you own, including evidence file metadata (file contents are not included) and audit log entries.</li>
               <li><strong>Opt-out:</strong> You can opt out of marketing communications</li>
             </ul>
             <p className="mt-2">

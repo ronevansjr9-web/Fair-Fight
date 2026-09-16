@@ -1,0 +1,1 @@
+const e="This feature is temporarily unavailable while we finish safety verification. We're restoring it as soon as possible — your legal education, legal research, and core case tools are unaffected.";function a(){return!0}export{e as T,a as s};

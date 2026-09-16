@@ -1,8 +1,8 @@
 /**
  * Gate-state guard tests for unverified customer flows.
  *
- * Covers the open checkout flow plus the still-restricted deletion/export
- * flows and the non-case-scoped generative tools at every layer:
+ * Covers the open checkout flow, the LIVE Wave 5 export/delete flows, and
+ * the still-restricted non-case-scoped generative tools at every layer:
  *   - lib gate constants (src/lib/restrictedFeatures.ts)
  *   - lib entry points: createCheckoutSession / createCustomerPortalSession
  *     (src/lib/stripe.ts) and the Wave 4 evidence limits/validation
@@ -35,13 +35,16 @@ import {
 } from "./restrictedFeatures";
 
 describe("restricted feature gate constants", () => {
-  test("checkout, generative member tools, and evidence uploads are open; deletion/export stay gated", () => {
+  test("checkout, generative member tools, evidence uploads, and export/delete are open", () => {
     expect(RESTRICTED_FEATURES.checkoutProActivation).toBe(false);
     // Wave 1 (2026-08-24): /documents + /chat are LIVE behind the rebuilt
     // per-user entitlement model (hasProMembership), so the flag is cleared.
     expect(RESTRICTED_FEATURES.generativeProTools).toBe(false);
-    expect(RESTRICTED_FEATURES.deleteUserData).toBe(true);
-    expect(RESTRICTED_FEATURES.exportUserData).toBe(true);
+    // Wave 5 (2026-08-26): self-serve export + deletion are REBUILT and LIVE
+    // (src/lib/dataProtection.ts + src/routes/api/user/*-data.ts + the
+    // /data-request and /data-deleted pages) — no longer gated.
+    expect(RESTRICTED_FEATURES.deleteUserData).toBe(false);
+    expect(RESTRICTED_FEATURES.exportUserData).toBe(false);
     // Wave 4 (2026-08-25): evidence uploads are REBUILT as a durable per-case
     // workspace (migration 008 + src/lib/evidence.ts) — no longer gated.
     expect(RESTRICTED_FEATURES.evidenceUploads).toBe(false);
@@ -127,30 +130,45 @@ describe("lib entry points", () => {
     expect(clean.filename).not.toContain("/");
   });
 });
-
-describe("API routes fail closed with 503", () => {
-  test("/api/user/delete-data POST rejects deletion", async () => {
+describe("API routes auth-gate first (working state, Wave 5)", () => {
+  test("/api/user/delete-data POST rejects unauthenticated requests with 401 (not 503)", async () => {
     const { POST } = await import("../routes/api/user/delete-data");
     const res = await POST({
       request: new Request("http://localhost/api/user/delete-data", {
         method: "POST",
       }),
     });
-    expect(res.status).toBe(503);
-    expect((await res.json()).error).toBe(TEMP_UNAVAILABLE_MESSAGE);
+    expect(res.status).toBe(401);
+    expect((await res.json()).error).toBe("Unauthorized");
+    expect(res.status).not.toBe(503);
   });
-
-  test("/api/user/export-data POST rejects export", async () => {
+  test("/api/user/export-data POST rejects unauthenticated requests with 401 (not 503)", async () => {
     const { POST } = await import("../routes/api/user/export-data");
     const res = await POST({
       request: new Request("http://localhost/api/user/export-data", {
         method: "POST",
       }),
     });
-    expect(res.status).toBe(503);
-    expect((await res.json()).error).toBe(TEMP_UNAVAILABLE_MESSAGE);
+    expect(res.status).toBe(401);
+    expect((await res.json()).error).toBe("Unauthorized");
+    expect(res.status).not.toBe(503);
+  });
+  test("/api/user/delete-data never answers 503 for a missing/wrong confirmation", async () => {
+    const { POST } = await import("../routes/api/user/delete-data");
+    const res = await POST({
+      request: new Request("http://localhost/api/user/delete-data", {
+        method: "POST",
+        body: JSON.stringify({ confirm: "nope" }),
+        headers: { "Content-Type": "application/json" },
+      }),
+    });
+    // Unauthenticated wins 401; a signed-in wrong-confirmation request 400s.
+    // Either way the flow is a live working contract — never the 503 gate.
+    expect([400, 401]).toContain(res.status);
   });
 });
+
+
 
 /* ────────────────────────────────────────────
    Static regression scans (mirror the
@@ -185,8 +203,14 @@ function handlerBody(source: string, exportName: string): string {
 describe("every restricted server function references the fail-closed gate", () => {
   const gatedFns: Record<string, string[]> = {
     "../components/ProGate.tsx": ["checkProAccess", "resolveProAccess"],
-    "../routes/data-request.tsx": ["exportUserData", "deleteUserData"],
     "../routes/legal-argument.tsx": ["generateArgument"],
+    // NOTE (Wave 5, 2026-08-26): data-request.tsx was REMOVED from this list —
+    // the self-serve export/delete flows are no longer restricted. They were
+    // rebuilt as working API routes (/api/user/export-data POST,
+    // /api/user/delete-data POST) + a fetch-driven UI (/data-request) + a
+    // plain confirmation page (/data-deleted). Their working-state contracts
+    // are asserted in the "Wave 5" describe block below, and the ownership /
+    // transaction guarantees live in src/lib/dataProtection.ts unit tests.
     // NOTE (Wave 4, 2026-08-25): evidence.tsx was REMOVED from this list — the
     // evidence manager is no longer a restricted flow. Its rebuild (server fns
     // in src/lib/evidence.ts, UI in evidence.tsx) is asserted in the
@@ -290,10 +314,12 @@ describe("public copy no longer promises restricted flows", () => {
     expect(source).toContain("Choose a case to view its evidence");
   });
 
-  test("data request page shows the honest unavailable panel, not working export/delete", () => {
+  test("data request page shows the LIVE export/delete flows, not an unavailable panel (Wave 5)", () => {
     const source = read("../routes/data-request.tsx");
-    expect(source.toLowerCase()).toContain("temporarily unavailable");
-    expect(source).not.toContain("All your data has been deleted");
+    expect(source.toLowerCase()).not.toContain("temporarily unavailable");
+    expect(source).toContain("Download my data");
+    expect(source).toContain("Delete my data");
+    expect(source).toContain("cannot be undone");
   });
 
   test("structured data describes paid Pro Case Analysis without document-upload promises", () => {
@@ -303,10 +329,14 @@ describe("public copy no longer promises restricted flows", () => {
     expect(source).not.toMatch(/Upload any documents, evidence/);
   });
 
-  test("privacy policy no longer promises a subscription model or complete in-app deletion", () => {
+  test("privacy policy describes the live in-app export/delete flows (Wave 5)", () => {
     const source = read("../routes/privacy.tsx");
     expect(source).not.toContain("Fair Fight Pro subscriptions");
-    expect(source.toLowerCase()).toContain("temporarily unavailable");
+    // The honest-unavailable claim is gone; the working tools are described.
+    expect(source.toLowerCase()).not.toContain("temporarily unavailable");
+    expect(source).toMatch(/Data Request page/);
+    expect(source).toMatch(/Stripe retains its own payment records/i);
+    expect(source).toMatch(/file contents are not included/i);
   });
 
   test("legal argument route truthfully presents the tool as included with Pro Case Analysis", () => {
@@ -561,21 +591,20 @@ describe("review fix: gate docs and code do not claim a flag flip restores remov
     expect(source).toContain("must be rebuilt");
   });
 
-  test("data-request handlers are fail-closed at the gate and contain a rebuilt, ownership-scoped implementation", () => {
-    // The restriction removed the working bodies. This delegation rebuilds them
-    // (see src/lib/dataProtection.ts) but keeps them fail-closed at the gate:
-    // the gate is the FIRST check, and only after it clears is the real,
-    // ownership-scoped implementation reached. Clearing the flag must be the
-    // LAST step of a verified controlled deploy.
+  test("data-request UI is a working fetch-driven flow with a typed two-step confirmation (Wave 5)", () => {
+    // The old gate-wrapped server fns are gone; the rebuilt UI calls the live
+    // API routes directly. Ownership/transaction guarantees are asserted in
+    // src/lib/dataProtection.test.ts (mock-SQL) and the static scans above.
     const source = read("../routes/data-request.tsx");
-    const exportBody = handlerBody(source, "exportUserData");
-    expect(exportBody).toContain("RESTRICTED_FEATURES.exportUserData");
-    expect(exportBody).toContain("tempUnavailableError");
-    expect(exportBody).toContain("collectUserExport");
-    const deleteBody = handlerBody(source, "deleteUserData");
-    expect(deleteBody).toContain("RESTRICTED_FEATURES.deleteUserData");
-    expect(deleteBody).toContain("tempUnavailableError");
-    expect(deleteBody).toContain("deleteAllUserData");
+    expect(source).not.toContain("RESTRICTED_FEATURES");
+    expect(source).not.toContain("exportUserData");
+    expect(source).not.toContain("deleteUserData");
+    expect(source).not.toContain("tempUnavailableError");
+    // Working state: same-origin API calls + typed confirmation.
+    expect(source).toContain('fetch("/api/user/export-data"');
+    expect(source).toContain('fetch("/api/user/delete-data"');
+    expect(source).toContain('placeholder="Type DELETE to confirm"');
+    expect(source).toContain('navigate({ to: "/data-deleted" })');
   });
 
   test("evidence manager UI is fully rebuilt — upload surface present, overclaims absent (Wave 4)", () => {
@@ -785,5 +814,111 @@ describe("signed-in users get a mobile navigation drawer in the shared header", 
     expect(source).toContain("<SignInButton");
     expect(source).toContain("<SignUpButton");
     expect(source).toContain("Get Started");
+  });
+});
+
+/* ────────────────────────────────────────────
+   Wave 5: export/delete working-state contracts
+   (replaces the old 503-gate assertions)
+   ──────────────────────────────────────────── */
+describe("Wave 5 export/delete are live working flows with honest copy", () => {
+  test("export API route is auth-gated first and no longer references the restriction gate", () => {
+    const source = read("../routes/api/user/export-data.ts");
+    expect(source).not.toContain("RESTRICTED_FEATURES");
+    expect(source).not.toContain("TEMP_UNAVAILABLE");
+    // Auth gate comes before any work: the FIRST executable production call
+    // in the handler is getCurrentAuth(request).
+    const handler = source.slice(source.indexOf("export async function POST"));
+    expect(handler.indexOf("getCurrentAuth(request)")).toBeGreaterThanOrEqual(0);
+    expect(handler.indexOf("getCurrentAuth(request)")).toBeLessThan(
+      handler.indexOf("collectUserExport") === -1 ? Infinity : handler.indexOf("collectUserExport"),
+    );
+    expect(source).toContain("collectUserExport");
+    expect(source).toContain("logDataExported");
+  });
+  test("delete API route is auth-gated, requires typed confirmation, audits AFTER the transaction, and best-effort deletes the Clerk account", () => {
+    const source = read("../routes/api/user/delete-data.ts");
+    expect(source).not.toContain("RESTRICTED_FEATURES");
+    expect(source).not.toContain("TEMP_UNAVAILABLE");
+    const handler = source.slice(source.indexOf("export async function POST"));
+    expect(handler.indexOf("getCurrentAuth(request)")).toBeLessThan(
+      handler.indexOf("deleteAllUserData"),
+    );
+    // Typed confirmation is enforced server-side (honest two-step flow).
+    expect(source).toContain('"DELETE"');
+    expect(source).toContain("confirm.trim()");
+    // ONE transaction (delegated to the tested primitive) + audit AFTER.
+    expect(source).toContain("deleteAllUserData");
+    expect(source).toContain("logDataDeleted");
+    expect(source).toContain("tablesWithCounts");
+    expect(source.indexOf("logDataDeleted")).toBeGreaterThan(
+      source.indexOf("deleteAllUserData"),
+    );
+    // Best-effort Clerk deletion with the honest failure contract.
+    expect(source).toContain("api.clerk.com/v1/users/");
+    expect(source).toContain("CLERK_SECRET_KEY");
+    expect(source).toContain("clerkAccountDeleted");
+    expect(source).toContain("clerkAccountDeleted = false");
+  });
+  test("dataProtection export queries every category with ownership filters and metadata-only evidence", () => {
+    const source = read("./dataProtection.ts");
+    for (const table of ["cases", "payments", "case_analyses", "timeline_entries", "calendar_events", "evidence_files", "audit_logs"]) {
+      expect(source).toContain(table);
+    }
+    // Ownership on every read: user_id appears in every query path.
+    expect(source).toMatch(/WHERE user_id=\$\{userId\}/);
+    expect(source).toMatch(/JOIN cases c ON c\.id=/);
+    // Evidence is metadata-only: the bytea data column is never selected.
+    expect(source).toMatch(/FROM evidence_files e JOIN cases c/);
+    expect(source).not.toContain("e.data,");
+  });
+  test("dataProtection delete runs inside ONE transaction with ownership-scoped RETURNING deletes", () => {
+    const source = read("./dataProtection.ts");
+    expect(source).toContain("query.transaction(");
+    // Case-owned children delete via the cases join (never a blanket delete).
+    expect(source).toContain("DELETE FROM evidence_files e USING cases c");
+    expect(source).toContain("DELETE FROM timeline_entries t USING cases c");
+    expect(source).toContain("DELETE FROM calendar_events e USING cases c");
+    // Every delete carries ownership + RETURNING for exact counts.
+    expect(source).toMatch(/DELETE FROM case_analyses WHERE user_id=\$\{userId\} RETURNING id/);
+    expect(source).toMatch(/DELETE FROM payments WHERE user_id=\$\{userId\} RETURNING id/);
+    expect(source).toMatch(/DELETE FROM cases WHERE user_id=\$\{userId\} RETURNING id/);
+    expect(source).toMatch(/DELETE FROM audit_logs WHERE user_id=\$\{userId\} RETURNING id/);
+    // Counts flow back so the caller can audit with per-table numbers.
+    expect(source).toContain("UserDeleteCounts");
+    expect(source).toContain("Array.isArray");
+  });
+  test("data-request UI wires both API routes with a typed confirmation and honest copy", () => {
+    const source = read("../routes/data-request.tsx");
+    const lower = source.toLowerCase();
+    // The unavailable panel is gone; the working forms are present.
+    expect(source).not.toContain("TEMP_UNAVAILABLE");
+    expect(lower).not.toContain("temporarily unavailable");
+    expect(source).toContain('fetch("/api/user/export-data"');
+    expect(source).toContain('fetch("/api/user/delete-data"');
+    // Explicit two-step confirm: the user must TYPE the word DELETE.
+    expect(source).toContain('placeholder="Type DELETE to confirm"');
+    expect(source).toContain("confirmationInput");
+    expect(source).toContain('"DELETE"');
+    // Honest copy: what is deleted, permanence, export-first, Stripe's own
+    // records, and the account-deletion failure contract.
+    expect(source).toMatch(/cannot be undone/i);
+    expect(source).toMatch(/export it first/i);
+    expect(source).toMatch(/Stripe retains its own payment records/i);
+    expect(source).toMatch(/sign-in account/i);
+    expect(source).toMatch(/single\s+transaction/i);
+    // Evidence boundary stated in the UI.
+    expect(source).toMatch(/file\s+contents are not included/i);
+    // Success → sign out + plain confirmation page.
+    expect(source).toContain('navigate({ to: "/data-deleted" })');
+    expect(source).toContain("signOut()");
+  });
+  test("data-deleted confirmation page exists, is plain, and states the account-deletion outcome precisely", () => {
+    const source = read("../routes/data-deleted.tsx");
+    expect(source).toContain('createFileRoute("/data-deleted")');
+    expect(source).toContain("Your Fair Fight data has been deleted");
+    expect(source).toContain("could not be deleted automatically");
+    expect(source).toContain("Stripe retains its own payment records");
+    expect(source).not.toContain("TEMP_UNAVAILABLE");
   });
 });

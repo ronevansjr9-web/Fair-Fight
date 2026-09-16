@@ -103,11 +103,15 @@ export async function logDataExported(userId: string): Promise<void> {
   });
 }
 
-export async function logDataDeleted(userId: string): Promise<void> {
+export async function logDataDeleted(
+  userId: string,
+  details?: { tablesWithCounts: Record<string, number> },
+): Promise<void> {
   await logAuditEvent({
     userId,
     action: "DATA_DELETED",
     resource: "user-data",
+    details,
   });
 }
 
