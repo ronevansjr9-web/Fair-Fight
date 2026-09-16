@@ -1,3 +1,4 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { json } from "@tanstack/react-start";
 import { getCurrentAuth } from "~/lib/auth";
 import { collectUserExport } from "~/lib/dataProtection";
@@ -32,3 +33,11 @@ export async function POST({ request }: { request: Request }) {
     return json({ error: "Export failed. No data was exported." }, { status: 500 });
   }
 }
+
+// Route registration — TanStack Start only mounts a server handler when the
+// route file declares it via createFileRoute (the same live-verified pattern
+// as /api/track and /api/stripe/webhook). The bare `POST` export above stays
+// so unit tests can exercise the handler directly.
+export const Route = createFileRoute("/api/user/export-data")({
+  server: { handlers: { POST: ({ request }) => POST({ request }) } },
+});
