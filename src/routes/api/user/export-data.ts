@@ -1,68 +1,34 @@
 import { json } from "@tanstack/react-start";
-import { getCurrentAuth, getPrimaryEmail } from "~/lib/auth";
-import { sql } from "~/db";
+import { getCurrentAuth } from "~/lib/auth";
+import { collectUserExport } from "~/lib/dataProtection";
 import { logDataExported } from "~/lib/audit";
-import {
-  RESTRICTED_FEATURES,
-  TEMP_UNAVAILABLE_MESSAGE,
-  TEMP_UNAVAILABLE_STATUS,
-} from "~/lib/restrictedFeatures";
-
+/**
+ * Self-serve portable export (Wave 5 — LIVE).
+ *
+ * Authenticated POST returning a JSON document with the signed-in user's
+ * COMPLETE data set: cases, case_analyses, payments, calendar_events,
+ * timeline_entries, evidence_files METADATA (filename/mime/size — the bytea
+ * file contents are deliberately never read or exported), and the user's
+ * audit_logs rows. Ownership is enforced on every query (direct user_id
+ * filters, or JOINs on cases.user_id for case-owned children) inside
+ * collectUserExport; the route is a thin auth-gate + response wrapper.
+ *
+ * Shape: { exportedAt, user: { clerkUserId }, data: { ...per-table arrays } }
+ * plus a schemaVersion and honest notes explaining what is/isn't included.
+ */
 export async function POST({ request }: { request: Request }) {
-  // P0 fail-closed gate: self-serve export is not verified to include
-  // uploaded files and payment/subscription records.
-  if (RESTRICTED_FEATURES.exportUserData) {
-    return json(
-      { error: TEMP_UNAVAILABLE_MESSAGE, code: "temporarily_unavailable" },
-      { status: TEMP_UNAVAILABLE_STATUS },
-    );
-  }
-
   const auth = await getCurrentAuth(request);
   if (!auth.userId) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
-
   try {
-    const cases = await sql()`SELECT * FROM cases WHERE user_id = ${auth.userId}`;
-    const auditLogs = await sql()`SELECT * FROM audit_logs WHERE user_id = ${auth.userId} ORDER BY created_at DESC LIMIT 1000`;
-    const evidence = await sql()`SELECT * FROM evidence WHERE user_id = ${auth.userId}`;
-    const timelineEvents = await sql()`SELECT * FROM timeline_events WHERE user_id = ${auth.userId}`;
-    const calendarEvents = await sql()`SELECT * FROM calendar_events WHERE user_id = ${auth.userId}`;
-
+    // Snapshot FIRST, audit log AFTER — the exported JSON is the state as of
+    // the query and does not contain the DATA_EXPORTED row itself.
+    const exportData = await collectUserExport(auth.userId);
     await logDataExported(auth.userId);
-
-    const exportData = {
-      userId: auth.userId,
-      // AuthObject has no `user` property; resolve email via Clerk Backend API.
-      // null (lookup failure) is explicit — never silently empty.
-      email: await getPrimaryEmail(auth.userId),
-      exportedAt: new Date().toISOString(),
-      cases: cases.map((c: Record<string, unknown>) => ({
-        id: c.id, title: c.title, caseType: c.case_type,
-        status: c.status, jurisdiction: c.jurisdiction,
-        description: c.description, createdAt: String(c.created_at), updatedAt: String(c.updated_at),
-      })),
-      evidence: evidence.map((e: Record<string, unknown>) => ({
-        id: e.id, name: e.name, type: e.type,
-        description: e.description, tags: e.tags, createdAt: String(e.created_at),
-      })),
-      timelineEvents: timelineEvents.map((t: Record<string, unknown>) => ({
-        id: t.id, date: t.event_date, title: t.title,
-        description: t.description, createdAt: String(t.created_at),
-      })),
-      calendarEvents: calendarEvents.map((c: Record<string, unknown>) => ({
-        id: c.id, date: c.event_date, title: c.title,
-        type: c.event_type, notes: c.notes, createdAt: String(c.created_at),
-      })),
-      auditLogs: auditLogs.map((l: Record<string, unknown>) => ({
-        action: l.action, resource: l.resource, createdAt: String(l.created_at),
-      })),
-    };
-
     return json(exportData);
   } catch (error) {
     console.error("Export API error:", error);
-    return json({ error: "Export failed" }, { status: 500 });
+    return json({ error: "Export failed. No data was exported." }, { status: 500 });
   }
 }

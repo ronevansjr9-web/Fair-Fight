@@ -14,8 +14,20 @@
  *     confirmed only through the coordinated live checkout test — nothing is
  *     to be presented as an established live channel until that test passes.
  *
- *   - deleteUserData, exportUserData (STILL GATED): the self-serve data flows
- *     remain fail-closed with an honest "temporarily unavailable" response.
+ *   - deleteUserData, exportUserData (OPEN — Wave 5, 2026-08-26): the
+ *     self-serve data flows are REBUILT and LIVE. Export returns the signed-in
+ *     user's complete data (cases, case_analyses, payments, timeline_entries,
+ *     calendar_events, evidence_files metadata — NOT the bytea blobs — and
+ *     the user's audit_logs) as an ownership-scoped JSON document. Delete
+ *     removes ALL of the user's rows in ONE transaction (evidence_files via
+ *     the cases join, case_analyses, calendar_events, timeline_entries,
+ *     payments, cases, audit_logs), writes one DATA_DELETED audit row with
+ *     per-table counts AFTER the transaction, and then best-effort deletes the
+ *     Clerk account (failure still returns success with
+ *     { clerkAccountDeleted: false }). UI: /data-request with a type-to-confirm
+ *     flow and honest copy; post-delete confirmation on /data-deleted.
+ *     Implementation in src/lib/dataProtection.ts; API routes under
+ *     src/routes/api/user/.
  *
  *   - evidenceUploads (OPEN — Wave 4, 2026-08-25): the Evidence Manager is
  *     REBUILT as a real, durable per-case workspace (migration 008:
@@ -64,10 +76,10 @@ export const RESTRICTED_FEATURES = {
   checkoutProActivation: false,
   /** Non-case-scoped paid AI tools /documents + /chat (Wave 1: live for verified Pro members via hasProMembership). */
   generativeProTools: false,
-  /** Self-serve deletion of all user data (files, payments...). */
-  deleteUserData: true,
-  /** Self-serve portable export of all user data. */
-  exportUserData: true,
+  /** Self-serve deletion of all user data (files, payments...). — Wave 5: LIVE. */
+  deleteUserData: false,
+  /** Self-serve portable export of all user data. — Wave 5: LIVE. */
+  exportUserData: false,
   /** Evidence file uploads (Wave 4: rebuilt as a durable per-case workspace — LIVE). */
   evidenceUploads: false,
 } as const;

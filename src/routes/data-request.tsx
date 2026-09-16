@@ -1,13 +1,6 @@
 import * as React from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { getCurrentAuth } from "~/lib/auth";
-import {
-  RESTRICTED_FEATURES,
-  TEMP_UNAVAILABLE_MESSAGE,
-  tempUnavailableError,
-} from "~/lib/restrictedFeatures";
-import { collectUserExport, deleteAllUserData } from "~/lib/dataProtection";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useClerk } from "@clerk/tanstack-react-start";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
 
 export const Route = createFileRoute("/data-request")({
@@ -15,143 +8,51 @@ export const Route = createFileRoute("/data-request")({
   head: () => ({
     meta: [
       { title: "Data Request — Fair Fight" },
-      { name: "description", content: "Request a copy of your data or delete your Fair Fight data. Export and deletion cover all data you own, scoped to your account." },
+      { name: "description", content: "Download a copy of your Fair Fight data or permanently delete it. Export and deletion cover all data you own, scoped to your account." },
     ],
   }),
 });
 
 /**
- * Self-serve portable export. Returns the owning user's COMPLETE data set
- * (cases, payments, case_analyses, timeline_entries, calendar_events) as a
- * JSON payload, ownership-scoped. Fail-closed: any DB error returns `{ error }`,
- * never partial data.
+ * Wave 5 — export/delete are LIVE (no gate). The UI talks to the rebuilt
+ * API routes directly (same-origin fetch, session cookie auth):
+ *   - POST /api/user/export-data → JSON document → served as a file download.
+ *   - POST /api/user/delete-data (body { confirm: "DELETE" }) → deletes
+ *     everything in one transaction, then best-effort deletes the Clerk
+ *     account. On success the user is signed out and taken to a plain
+ *     confirmation page (/data-deleted).
  */
-const exportUserData = createServerFn({ method: "POST" }).handler(async () => {
-  const auth = await getCurrentAuth();
-  if (!auth.userId) return { error: "Sign in required" };
-
-  // P0 fail-closed gate: self-serve export stays disabled until it has been
-  // verified end-to-end in a controlled deploy (see lib/restrictedFeatures.ts
-  // and shared/data-flow-inventory-2026-08-20.md). The implementation below is
-  // rebuilt and unit-tested; clearing the flag is the LAST step.
-  if (RESTRICTED_FEATURES.exportUserData) {
-    return tempUnavailableError();
-  }
-
-  try {
-    const data = await collectUserExport(auth.userId);
-    return { data };
-  } catch (error) {
-    console.error("[DATA-REQUEST] Export failed:", error);
-    return { error: "Export failed. Please try again." };
-  }
-});
-
-const REQUIRED_CONFIRMATION = "DELETE MY DATA";
-
-/**
- * Self-serve deletion. Requires an explicit confirmation string, then deletes
- * ALL of the owning user's rows (case_analyses, timeline/calendar, payments,
- * cases) in ONE transaction, ownership-scoped. Fail-closed on error.
- */
-const deleteUserData = createServerFn({ method: "POST" })
-  .validator((value: unknown) => {
-    const d = value as Record<string, unknown>;
-    if (typeof d.confirm !== "string" || d.confirm.trim().toUpperCase() !== REQUIRED_CONFIRMATION) {
-      throw new Error("Confirmation is required to delete your data.");
-    }
-    return {};
-  })
-  .handler(async () => {
-    const auth = await getCurrentAuth();
-    if (!auth.userId) return { error: "Sign in required" };
-
-    // P0 fail-closed gate: self-serve deletion stays disabled until verified
-    // end-to-end in a controlled deploy. Implementation is rebuilt + tested.
-    if (RESTRICTED_FEATURES.deleteUserData) {
-      return tempUnavailableError();
-    }
-
-    try {
-      await deleteAllUserData(auth.userId);
-      return { success: true };
-    } catch (error) {
-      console.error("[DATA-REQUEST] Delete failed:", error);
-      return { error: "Deletion failed. No data was changed." };
-    }
-  });
+const REQUIRED_CONFIRMATION = "DELETE";
 
 function DataRequestPage() {
-  // The self-serve flows stay gated (fail-closed) until verified live; show the
-  // honest unavailable panel today. The functional UI below is fully built and
-  // is rendered the moment both gates are cleared in a controlled deploy.
-  const exportEnabled = !RESTRICTED_FEATURES.exportUserData;
-  const deleteEnabled = !RESTRICTED_FEATURES.deleteUserData;
-
   return (
     <AuthenticatedGuard>
-      <main className="min-h-screen bg-navy px-4 py-12">
-        <div className="mx-auto max-w-3xl">
-          <h1 className="mb-2 text-3xl font-extrabold text-white">Data Request</h1>
-          <p className="mb-8 text-white/70">
-            We're committed to protecting your data and your right to access, export, and delete it.
-          </p>
-
-          {exportEnabled && deleteEnabled ? (
-            <DataRequestForms />
-          ) : (
-            <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold/10">
-                <svg className="h-8 w-8 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <h2 className="mb-2 text-center text-xl font-bold text-white">
-                Export and deletion are temporarily unavailable
-              </h2>
-              <p className="mx-auto mb-6 max-w-xl text-center text-sm text-white/70">
-                {TEMP_UNAVAILABLE_MESSAGE}
-              </p>
-              <p className="mx-auto max-w-xl text-center text-sm text-white/60">
-                We are verifying that export and deletion cover every category of
-                data we hold — including payment records and any future uploaded
-                files — before we re-enable them. In the meantime you can contact
-                us directly at{" "}
-                <a href="mailto:privacy@fairfight.ctonew.app" className="font-semibold text-gold underline hover:text-gold-dark">
-                  privacy@fairfight.ctonew.app
-                </a>{" "}
-                and we will assist with access, export, or deletion requests.
-              </p>
-              <p className="mx-auto mt-6 max-w-xl text-center text-xs text-white/40">
-                For details on how we handle your data, see our{" "}
-                <a href="/privacy" className="text-gold underline hover:text-gold-dark">Privacy Policy</a>.
-              </p>
-            </div>
-          )}
-        </div>
-      </main>
+      <DataRequestForms />
     </AuthenticatedGuard>
   );
 }
 
 function DataRequestForms() {
+  const navigate = useNavigate();
+  const { signOut } = useClerk();
   const [exportState, setExportState] = React.useState<"idle" | "loading" | "error">("idle");
-  const [deleteState, setDeleteState] = React.useState<
-    "idle" | "confirm" | "loading" | "error" | "done"
-  >("idle");
+  const [deleteState, setDeleteState] = React.useState<"idle" | "confirm" | "loading" | "error">("idle");
+  const [confirmationInput, setConfirmationInput] = React.useState("");
   const [message, setMessage] = React.useState("");
 
   async function handleExport() {
     setExportState("loading");
     setMessage("");
     try {
-      const res = await exportUserData();
-      if ("error" in res) {
-        setMessage(res.error);
+      const res = await fetch("/api/user/export-data", { method: "POST" });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        setMessage(body.error ?? "Export failed. Please try again.");
         setExportState("error");
         return;
       }
-      const blob = new Blob([JSON.stringify(res.data, null, 2)], {
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
         type: "application/json",
       });
       const url = URL.createObjectURL(blob);
@@ -164,7 +65,7 @@ function DataRequestForms() {
       URL.revokeObjectURL(url);
       setExportState("idle");
     } catch {
-      setMessage("Export failed. Please try again.");
+      setMessage("Export failed. No data was exported. Please try again.");
       setExportState("error");
     }
   }
@@ -173,84 +74,141 @@ function DataRequestForms() {
     setDeleteState("loading");
     setMessage("");
     try {
-      const res = await deleteUserData({ data: { confirm: "DELETE MY DATA" } });
-      if ("error" in res) {
-        setMessage(res.error);
+      const res = await fetch("/api/user/delete-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: confirmationInput.trim() }),
+      });
+      const body = (await res.json().catch(() => ({}))) as {
+        success?: boolean;
+        clerkAccountDeleted?: boolean;
+        error?: string;
+      };
+      if (!res.ok || !body.success) {
+        setMessage(body.error ?? "Deletion failed. No data was changed.");
         setDeleteState("error");
         return;
       }
-      setDeleteState("done");
+      // Hand the Clerk-account outcome to the confirmation page via
+      // sessionStorage (survives the sign-out state change and navigation).
+      try {
+        sessionStorage.setItem(
+          "ff-data-deleted-clerk",
+          body.clerkAccountDeleted ? "deleted" : "not-deleted",
+        );
+      } catch {
+        /* sessionStorage unavailable — confirmation page shows general copy */
+      }
+      await navigate({ to: "/data-deleted" });
+      // Sign the user out AFTER navigating so the confirmation page is
+      // reached first (it is not behind the authenticated guard).
+      signOut().catch(() => {
+        /* session cookies may already be gone; the account was still deleted
+           server-side and the confirmation page is already showing */
+      });
     } catch {
       setMessage("Deletion failed. No data was changed.");
       setDeleteState("error");
     }
   }
 
-  return (
-    <div className="space-y-8">
-      {/* Export */}
-      <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
-        <h2 className="mb-1 text-xl font-bold text-white">Export your data</h2>
-        <p className="mb-6 text-sm text-white/60">
-          Download a JSON copy of everything you own in Fair Fight: your cases,
-          payments, case analyses, timeline entries, and court calendar. Scoped
-          to your account only.
-        </p>
-        <button
-          onClick={handleExport}
-          disabled={exportState === "loading"}
-          className="inline-flex items-center gap-2 rounded-xl bg-gold px-5 py-3 text-sm font-semibold text-navy transition-all hover:bg-gold-dark disabled:opacity-50"
-        >
-          {exportState === "loading" ? "Preparing…" : "Download my data"}
-        </button>
-      </div>
+  const canConfirm = confirmationInput === REQUIRED_CONFIRMATION;
 
-      {/* Delete */}
-      <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
-        <h2 className="mb-1 text-xl font-bold text-white">Delete your data</h2>
-        <p className="mb-6 text-sm text-white/60">
-          Permanently delete everything you own in Fair Fight, in a single
-          transaction: cases, payments, case analyses, timeline entries, and
-          court calendar — only your account's data. This cannot be undone.
-          (Your Clerk account and Stripe's records are handled separately — see
-          the <a href="/privacy" className="text-gold underline">Privacy Policy</a>.)
+  return (
+    <main className="min-h-screen bg-navy px-4 py-12">
+      <div className="mx-auto max-w-3xl">
+        <h1 className="mb-2 text-3xl font-extrabold text-white">Data Request</h1>
+        <p className="mb-8 text-white/70">
+          Your right to access, export, and delete your data — scoped to your account only.
         </p>
-        {deleteState === "confirm" ? (
-          <div className="rounded-xl border border-red-400/30 bg-red-400/5 p-5">
-            <p className="mb-3 text-sm text-white/80">
-              This permanently deletes your data and cannot be undone.
+        <div className="space-y-8">
+          {/* Export */}
+          <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
+            <h2 className="mb-1 text-xl font-bold text-white">Export your data</h2>
+            <p className="mb-6 text-sm text-white/60">
+              Download a JSON copy of everything you own in Fair Fight, scoped to your
+              account only: your cases, case analyses, payment records, timeline entries,
+              court calendar, evidence file metadata (filename, type, and size — file
+              contents are not included in the export), and your audit log entries.
             </p>
             <button
-              onClick={handleDelete}
-              disabled={deleteState === "loading"}
-              className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-red-600 disabled:opacity-50"
+              onClick={handleExport}
+              disabled={exportState === "loading"}
+              className="inline-flex items-center gap-2 rounded-xl bg-gold px-5 py-3 text-sm font-semibold text-navy transition-all hover:bg-gold-dark disabled:opacity-50"
             >
-              {deleteState === "loading" ? "Deleting…" : "Yes, delete all my data"}
-            </button>
-            <button
-              onClick={() => setDeleteState("idle")}
-              className="ml-3 inline-flex items-center rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-white/70 transition-all hover:bg-white/5"
-            >
-              Cancel
+              {exportState === "loading" ? "Preparing…" : "Download my data"}
             </button>
           </div>
-        ) : deleteState === "done" ? (
-          <p className="text-sm font-semibold text-white">
-            Your data has been deleted.
-          </p>
-        ) : (
-          <button
-            onClick={() => setDeleteState("confirm")}
-            disabled={deleteState === "loading"}
-            className="inline-flex items-center gap-2 rounded-xl border border-red-400/40 px-5 py-3 text-sm font-semibold text-red-300 transition-all hover:bg-red-400/10 disabled:opacity-50"
-          >
-            Delete my data…
-          </button>
-        )}
+          {/* Delete */}
+          <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-8">
+            <h2 className="mb-1 text-xl font-bold text-white">Delete your data</h2>
+            <p className="mb-6 text-sm text-white/60">
+              Permanently delete everything you own in Fair Fight, in a single
+              transaction: all of your cases, case analyses, calendar and timeline
+              entries, evidence files, payment records, and the audit log entries for
+              your account. Your Fair Fight sign-in account is deleted at the same time.
+            </p>
+            <ul className="mb-6 list-disc space-y-2 pl-5 text-sm text-white/60">
+              <li>
+                <span className="text-white/80">This is permanent and cannot be undone.</span>{" "}
+                If you want a copy of your data, export it first.
+              </li>
+              <li>
+                Deleting your payment records here does not delete Stripe's records —
+                Stripe retains its own payment records independently.
+              </li>
+              <li>
+                If automatic deletion of your sign-in account fails, your data is still
+                deleted — the confirmation page will say so explicitly.
+              </li>
+            </ul>
+            {deleteState === "confirm" || deleteState === "loading" ? (
+              <div className="rounded-xl border border-red-400/30 bg-red-400/5 p-5">
+                <p className="mb-3 text-sm text-white/80">
+                  This permanently deletes all of your data and your Fair Fight
+                  account. It cannot be undone. Type{" "}
+                  <span className="font-mono font-bold text-white">DELETE</span> to confirm.
+                </p>
+                <input
+                  type="text"
+                  value={confirmationInput}
+                  onChange={(e) => setConfirmationInput(e.target.value)}
+                  placeholder="Type DELETE to confirm"
+                  aria-label="Type DELETE to confirm permanent deletion"
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="mb-4 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-gold"
+                />
+                <button
+                  onClick={handleDelete}
+                  disabled={!canConfirm || deleteState === "loading"}
+                  className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {deleteState === "loading" ? "Deleting…" : "Yes, permanently delete everything"}
+                </button>
+                <button
+                  onClick={() => {
+                    setDeleteState("idle");
+                    setConfirmationInput("");
+                  }}
+                  disabled={deleteState === "loading"}
+                  className="ml-3 inline-flex items-center rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-white/70 transition-all hover:bg-white/5 disabled:opacity-40"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setDeleteState("confirm")}
+                className="inline-flex items-center gap-2 rounded-xl border border-red-400/40 px-5 py-3 text-sm font-semibold text-red-300 transition-all hover:bg-red-400/10"
+              >
+                Delete my data…
+              </button>
+            )}
+          </div>
+          {message && <p className="text-sm text-gold">{message}</p>}
+        </div>
       </div>
-
-      {message && <p className="text-sm text-gold">{message}</p>}
-    </div>
+    </main>
   );
 }
-
