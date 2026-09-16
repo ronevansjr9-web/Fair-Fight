@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { ARTICLES, GUIDE_REDIRECTS, getGuideBySlug } from "./guides";
 
 describe("guide consolidation (SEO)", () => {
-  test("guide count is 60 after restoring expungement + restraining-order guides", () => {
-    expect(ARTICLES.length).toBe(60);
+  test("guide count is 62 after the content-wave additions (attorney prep + document organization)", () => {
+    expect(ARTICLES.length).toBe(62);
   });
 
   test("folded/renamed slugs are no longer separately-indexed guides", () => {
@@ -49,6 +49,17 @@ describe("guide consolidation (SEO)", () => {
 
   test("restored guides (expungement, restraining order) exist and all related links resolve", () => {
     for (const id of ["how-to-expunge-a-criminal-record", "how-to-get-a-restraining-order"]) {
+      const a = getGuideBySlug(id)!;
+      expect(a, `${id} should exist`).toBeDefined();
+      expect(a.paragraphs.length).toBeGreaterThan(0);
+      expect(a.takeaways.length).toBeGreaterThan(0);
+      for (const rel of a.relatedGuides) {
+        expect(getGuideBySlug(rel), `${id} links to missing guide ${rel}`).toBeDefined();
+      }
+    }
+  });
+  test("content-wave guides (attorney prep, document organization) exist, have content, and all related links resolve", () => {
+    for (const id of ["prepare-attorney-consultation", "organize-case-documents"]) {
       const a = getGuideBySlug(id)!;
       expect(a, `${id} should exist`).toBeDefined();
       expect(a.paragraphs.length).toBeGreaterThan(0);
