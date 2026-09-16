@@ -14,10 +14,20 @@
  *     confirmed only through the coordinated live checkout test — nothing is
  *     to be presented as an established live channel until that test passes.
  *
- *   - deleteUserData, exportUserData, evidenceUploads (STILL GATED): the
- *     self-serve data flows and evidence uploads are separate flows, NOT part
- *     of this checkout launch, and remain fail-closed with an honest
- *     "temporarily unavailable" response.
+ *   - deleteUserData, exportUserData (STILL GATED): the self-serve data flows
+ *     remain fail-closed with an honest "temporarily unavailable" response.
+ *
+ *   - evidenceUploads (OPEN — Wave 4, 2026-08-25): the Evidence Manager is
+ *     REBUILT as a real, durable per-case workspace (migration 008:
+ *     `evidence_files` in the existing Neon DB; server fns in src/lib/evidence.ts;
+ *     UI in src/routes/evidence.tsx). Evidence is part of the case workspace —
+ *     available to the signed-in OWNER of the case (ownership joins on
+ *     cases.user_id, same as timeline/calendar) and NOT gated behind the $99
+ *     paid AI-tool entitlement. Limits (10 MB per file; PDF/JPG/PNG/WebP/TXT)
+ *     are enforced server-side and surfaced in UI copy; the page honestly says
+ *     this is educational tooling, not secure legal-grade evidence
+ *     preservation. The old uploadFile/api-upload surface (a never-migrated
+ *     `files` table) was REMOVED, not un-gated.
  *
  *   - generativeProTools (OPEN — Wave 1, 2026-08-24): the non-case-scoped paid
  *     AI tools (/documents and /chat) are LIVE for verified Pro members. Their
@@ -37,12 +47,12 @@
  * ── IMPORTANT: what clearing a flag does and does NOT do ──────────────────
  *
  * A flag below is a fail-closed gate over one flow. For flows whose
- * implementations were KEPT behind the flag (Stripe Checkout / portal, evidence
- * uploadFile, the webhook, ProGate/analysis/legal-argument entitlement), Open
+ * implementations were KEPT behind the flag (Stripe Checkout / portal, the
+ * webhook, ProGate/analysis/legal-argument entitlement), clearing the flag
  * re-exposes the existing, tested implementation. For flows whose
  * implementations were REMOVED or replaced while gated (the self-serve
- * export/delete handlers in routes/data-request.tsx, the evidence-manager UI,
- * the documents/chat generative surfaces), clearing the flag alone does NOT
+ * export/delete handlers in routes/data-request.tsx, the documents/chat
+ * generative surfaces, the evidence manager), clearing the flag alone does NOT
  * restore anything — the implementation must be rebuilt first, then verified
  * end-to-end, then the flag cleared through a controlled deploy.
  *
@@ -58,8 +68,8 @@ export const RESTRICTED_FEATURES = {
   deleteUserData: true,
   /** Self-serve portable export of all user data. */
   exportUserData: true,
-  /** Evidence file uploads (no `files` migration on master). */
-  evidenceUploads: true,
+  /** Evidence file uploads (Wave 4: rebuilt as a durable per-case workspace — LIVE). */
+  evidenceUploads: false,
 } as const;
 
 /** Honest, temporary-unavailable message shown to users. */

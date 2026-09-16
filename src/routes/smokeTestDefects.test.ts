@@ -305,3 +305,71 @@ describe("admin dashboard honesty contracts (Wave 2)", () => {
     expect(admin).toContain("isUnauthorized: (r) => !r.authorized");
   });
 });
+
+describe("Wave 4: evidence uploads (ownership + limits + honest copy)", () => {
+  const evidence = readFileSync(resolve(siteRoot, "src/lib/evidence.ts"), "utf8");
+  const validation = readFileSync(resolve(siteRoot, "src/lib/evidenceValidation.ts"), "utf8");
+  const page = readFileSync(resolve(siteRoot, "src/routes/evidence.tsx"), "utf8");
+
+  it("evidence server fns are no-validator POST fns (PR #46 lifecycle lesson)", () => {
+    expect(evidence).toContain('export const listEvidence = createServerFn({ method: "POST" })');
+    expect(evidence).toContain('export const uploadEvidence = createServerFn({ method: "POST" })');
+    expect(evidence).toContain('export const deleteEvidence = createServerFn({ method: "POST" })');
+    expect(evidence).toContain('export const downloadEvidence = createServerFn({ method: "POST" })');
+    expect(evidence).not.toMatch(/createServerFn\([^)]*\)\s*\.validator/);
+  });
+
+  it("every handler auth-gates first, then parses, then queries (signed-out rejected)", () => {
+    for (const fn of ["listEvidence", "uploadEvidence", "deleteEvidence", "downloadEvidence"]) {
+      const start = evidence.indexOf(`export const ${fn} = createServerFn`);
+      const authCall = evidence.indexOf("const auth = await getCurrentAuth();", start);
+      const parse = evidence.indexOf("parseEvidenceCaseId(data)", start);
+      const sqlCall = evidence.indexOf("await sql()", start);
+      expect(authCall, `${fn} auth`).toBeGreaterThan(-1);
+      expect(parse, `${fn} parse`).toBeGreaterThan(-1);
+      expect(authCall).toBeLessThan(parse);
+      if (sqlCall > -1) expect(authCall).toBeLessThan(sqlCall);
+    }
+  });
+
+  it("ownership is enforced server-side via cases.user_id joins on every query", () => {
+    // List + download: JOIN cases c ON c.id = e.case_id ... c.user_id.
+    expect(evidence).toContain("JOIN cases c ON c.id = e.case_id");
+    expect(evidence).toContain("c.user_id = ${auth.userId}");
+    // Upload: only inserts when the case belongs to the session user.
+    expect(evidence).toContain("WHERE EXISTS (SELECT 1 FROM cases WHERE id = ${caseId} AND user_id = ${auth.userId})");
+    // Delete: DELETE ... USING cases c WHERE ... c.user_id = ${auth.userId}.
+    expect(evidence).toContain("DELETE FROM evidence_files e");
+    expect(evidence).toContain("USING cases c");
+    expect(evidence).toContain("c.user_id = ${auth.userId}");
+  });
+
+  it("limits match the spec: 10 MB cap and the five allowed types, enforced server-side", () => {
+    expect(validation).toContain("10 * 1024 * 1024");
+    expect(validation).toContain('"application/pdf"');
+    expect(validation).toContain('"image/jpeg"');
+    expect(validation).toContain('"image/png"');
+    expect(validation).toContain('"image/webp"');
+    expect(validation).toContain('"text/plain"');
+    expect(validation).not.toContain("image/gif");
+    expect(validation).not.toContain("image/svg");
+    // The size is computed from the DECODED payload, never trusted from client.
+    expect(validation).toContain("base64DecodedLength");
+    expect(validation).toContain("sizeBytes > MAX_EVIDENCE_FILE_SIZE");
+    // The upload handler stores the decoded bytes as bytea and rejects
+    // non-owned cases with a specific error (never a generic failure).
+    expect(evidence).toContain("decode(${valid.dataBase64}, 'base64')");
+    expect(evidence).not.toContain("Upload failed. Please try again.");
+  });
+
+  it("page copy states the limits, ownership context, and educational-only framing — no overclaims", () => {
+    expect(page).toContain("10 MB");
+    expect(page).toContain("your case workspace");
+    expect(page).toContain("educational tooling, not secure legal-grade evidence preservation");
+    expect(page).toContain("not legal advice");
+    expect(page).toContain("type=\"file\"");
+    expect(page).toContain("window.confirm"); // delete requires confirmation
+    expect(page).not.toContain("temporarily unavailable");
+    expect(page).not.toContain("Files are stored securely");
+  });
+});

@@ -90,6 +90,7 @@ const EXPECTED_TABLES = [
   "calendar_events",
   "analytics_events",
   "audit_logs",
+  "evidence_files",
 ];
 
 describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
@@ -106,7 +107,7 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     await resetPublicSchema(pool);
     const sql = pgSql(pool);
     const plan = await runMigrations({ sql });
-    expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006", "007"]);
+    expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
     expect(plan.skipped).toEqual([]);
     expect(plan.drift).toEqual([]);
 
@@ -122,7 +123,7 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
       pool,
       "SELECT version, checksum FROM schema_migrations ORDER BY version",
     );
-    expect(ledger.map((r) => r.version)).toEqual(["001", "002", "003", "004", "005", "006", "007"]);
+    expect(ledger.map((r) => r.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
     for (const file of files) {
       const entry = ledger.find((r) => r.version === file.version)!;
       expect(entry.checksum, `ledger checksum for ${file.version}`).toBe(file.checksum);
@@ -136,12 +137,12 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     await runMigrations({ sql });
     const second = await runMigrations({ sql });
     expect(second.toApply).toEqual([]);
-    expect(second.skipped).toEqual(["001", "002", "003", "004", "005", "006", "007"]);
+    expect(second.skipped).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
     const ledger = await queryAll<{ version: string }>(
       pool,
       "SELECT version FROM schema_migrations ORDER BY version",
     );
-    expect(ledger).toHaveLength(6);
+    expect(ledger).toHaveLength(8);
   });
 
   test("checksum mismatch: drift aborts the run and never touches the schema", async () => {
@@ -182,7 +183,7 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
       // Removing the broken file lets the exact same run succeed.
       rmSync(join(scratch, "006_broken.sql"));
       const plan = await runMigrations({ sql, migrationsDir: scratch });
-      expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006", "007"]);
+      expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
     } finally {
       rmSync(scratch, { recursive: true, force: true });
     }
@@ -198,12 +199,12 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     // all seven; the other either saw the committed ledger (applies nothing) or
     // replayed its pre-lock plan as idempotent IF NOT EXISTS / ON CONFLICT
     // no-ops after the first committed. Either way both succeed.
-    expect([pa.toApply.length, pb.toApply.length].sort((x, y) => y - x)[0]).toBe(6);
+    expect([pa.toApply.length, pb.toApply.length].sort((x, y) => y - x)[0]).toBe(8);
     const ledger = await queryAll<{ version: string; checksum: string }>(
       pool,
       "SELECT version, checksum FROM schema_migrations ORDER BY version",
     );
-    expect(ledger.map((r) => r.version)).toEqual(["001", "002", "003", "004", "005", "006", "007"]);
+    expect(ledger.map((r) => r.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
     const files = loadMigrations(MIGRATIONS_DIR);
     for (const file of files) {
       const entry = ledger.find((r) => r.version === file.version)!;
@@ -223,6 +224,7 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
       webhook_events: ["event_id", "event_type", "processed_at"],
       timeline_entries: ["id", "case_id", "event_date", "title", "description", "created_at"],
       calendar_events: ["id", "case_id", "event_date", "title", "event_type", "notes", "created_at"],
+      evidence_files: ["id", "case_id", "user_id", "filename", "mime_type", "size_bytes", "data", "created_at"],
     };
     for (const [table, columns] of Object.entries(requiredColumns)) {
       const found = (await queryAll<{ column_name: string }>(
@@ -247,21 +249,28 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     expect(fks.map((r) => `${r.table_name}.${r.column_name}->${r.foreign_table}`)).toEqual([
       "calendar_events.case_id->cases",
       "case_analyses.case_id->cases",
+      "evidence_files.case_id->cases",
       "timeline_entries.case_id->cases",
     ]);
 
-    // Cascading deletes: removing a case removes its analyses and activity rows.
+    // Cascading deletes: removing a case removes its analyses, activity, and
+    // evidence rows.
     const caseId = "case_cascade_test";
     await pool.query("INSERT INTO cases (id, user_id, title) VALUES ($1, 'u1', 't')", [caseId]);
     await pool.query("INSERT INTO case_analyses (case_id, user_id, summary) VALUES ($1, 'u1', 's')", [caseId]);
     await pool.query("INSERT INTO timeline_entries (case_id, event_date, title) VALUES ($1, '2026-08-16', 'e')", [caseId]);
     await pool.query("INSERT INTO calendar_events (case_id, event_date, title) VALUES ($1, '2026-08-16', 'c')", [caseId]);
+    await pool.query(
+      "INSERT INTO evidence_files (case_id, user_id, filename, mime_type, size_bytes, data) VALUES ($1, 'u1', 'scan.png', 'image/png', 4, decode('aGVsbG8=', 'base64'))",
+      [caseId],
+    );
     await pool.query("DELETE FROM cases WHERE id=$1", [caseId]);
     const orphans = await queryAll<{ n: string }>(
       pool,
       `SELECT (SELECT count(*) FROM case_analyses WHERE case_id='${caseId}')
             + (SELECT count(*) FROM timeline_entries WHERE case_id='${caseId}')
-            + (SELECT count(*) FROM calendar_events WHERE case_id='${caseId}') AS n`,
+            + (SELECT count(*) FROM calendar_events WHERE case_id='${caseId}')
+            + (SELECT count(*) FROM evidence_files WHERE case_id='${caseId}') AS n`,
     );
     expect(Number(orphans[0].n)).toBe(0);
 
@@ -276,6 +285,8 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
       "case_analyses_user_case_idx",
       "timeline_entries_case_date_idx",
       "calendar_events_case_date_idx",
+      "evidence_files_case_created_idx",
+      "evidence_files_user_idx",
     ]) {
       expect(indexes, idx).toContain(idx);
     }
@@ -302,6 +313,11 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     expect(checkDef("case_analyses_status_check")).toContain("pending");
     expect(checkDef("case_analyses_status_check")).toContain("completed");
     expect(checkDef("case_analyses_status_check")).toContain("failed");
+    // Evidence limits are enforced at the schema too: allowed mime types and
+    // the 10 MB per-file cap (mirrors src/lib/evidenceValidation.ts).
+    expect(checkDef("evidence_files_mime_type_check")).toContain("application/pdf");
+    expect(checkDef("evidence_files_mime_type_check")).toContain("text/plain");
+    expect(checkDef("evidence_files_size_bytes_check")).toContain("10485760");
 
     // Webhook idempotency ledger: event_id is the primary key.
     const webhookPk = await queryAll<{ exists: boolean }>(
@@ -329,6 +345,10 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     await pool.query("INSERT INTO webhook_events (event_id, event_type) VALUES ('evt_1', 'checkout.session.completed')");
     await pool.query("INSERT INTO timeline_entries (case_id, event_date, title, description) VALUES ($1, '2026-08-16', 'Filing', 'desc')", [caseId]);
     await pool.query("INSERT INTO calendar_events (case_id, event_date, title, event_type, notes) VALUES ($1, '2026-08-17', 'Hearing', 'hearing', 'notes')", [caseId]);
+    await pool.query(
+      "INSERT INTO evidence_files (case_id, user_id, filename, mime_type, size_bytes, data) VALUES ($1, 'u1', 'note.txt', 'text/plain', 5, decode('aGVsbG8=', 'base64'))",
+      [caseId],
+    );
 
     const payments = await queryAll<{ amount_cents: number; status: string }>(
       pool,
@@ -344,6 +364,13 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     const sources = analyses[0].sources as { url: string }[];
     expect(Array.isArray(sources)).toBe(true);
     expect(sources[0].url).toBe("https://example.com");
+
+    // Evidence bytea round-trip: base64 in, base64 out (decode/encode).
+    const evidence = await queryAll<{ filename: string; data_base64: string; size_bytes: number }>(
+      pool,
+      `SELECT filename, encode(data, 'base64') AS data_base64, size_bytes FROM evidence_files WHERE case_id='${caseId}'`,
+    );
+    expect(evidence[0]).toEqual({ filename: "note.txt", data_base64: "aGVsbG8=", size_bytes: 5 });
   });
 });
 

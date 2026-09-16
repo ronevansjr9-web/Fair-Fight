@@ -96,7 +96,7 @@ function Home() {
               },
               {
                 title: "Evidence Manager",
-                desc: "Organizing and uploading case evidence is temporarily unavailable while we verify durable file storage.",
+                desc: "Upload, view, and delete evidence files for your case — stored in your case workspace. Educational tooling, not secure legal-grade evidence preservation.",
                 icon: "📎",
               },
               {

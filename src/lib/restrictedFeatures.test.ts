@@ -1,12 +1,14 @@
 /**
  * Gate-state guard tests for unverified customer flows.
  *
- * Covers the open checkout flow plus the still-restricted deletion/export,
- * evidence uploads, and non-case-scoped generative tools at every layer:
+ * Covers the open checkout flow plus the still-restricted deletion/export
+ * flows and the non-case-scoped generative tools at every layer:
  *   - lib gate constants (src/lib/restrictedFeatures.ts)
  *   - lib entry points: createCheckoutSession / createCustomerPortalSession
- *     (src/lib/stripe.ts) and uploadFile (src/lib/storage.ts)
- *   - reachable API routes: /api/upload POST+GET, /api/user/delete-data POST,
+ *     (src/lib/stripe.ts) and the Wave 4 evidence limits/validation
+ *     (src/lib/evidenceValidation.ts — the evidence manager itself is LIVE,
+ *     so its contracts are asserted as working-state guards, not gate guards)
+ *   - reachable API routes: /api/user/delete-data POST,
  *     /api/user/export-data POST, /api/stripe/webhook POST (see also
  *     src/routes/api/stripe/webhook.test.ts)
  *   - server functions embedded in route/component files (static scan, the
@@ -33,14 +35,16 @@ import {
 } from "./restrictedFeatures";
 
 describe("restricted feature gate constants", () => {
-  test("checkout and the rebuilt generative member tools are open; deletion/export/evidence stay gated", () => {
+  test("checkout, generative member tools, and evidence uploads are open; deletion/export stay gated", () => {
     expect(RESTRICTED_FEATURES.checkoutProActivation).toBe(false);
     // Wave 1 (2026-08-24): /documents + /chat are LIVE behind the rebuilt
     // per-user entitlement model (hasProMembership), so the flag is cleared.
     expect(RESTRICTED_FEATURES.generativeProTools).toBe(false);
     expect(RESTRICTED_FEATURES.deleteUserData).toBe(true);
     expect(RESTRICTED_FEATURES.exportUserData).toBe(true);
-    expect(RESTRICTED_FEATURES.evidenceUploads).toBe(true);
+    // Wave 4 (2026-08-25): evidence uploads are REBUILT as a durable per-case
+    // workspace (migration 008 + src/lib/evidence.ts) — no longer gated.
+    expect(RESTRICTED_FEATURES.evidenceUploads).toBe(false);
   });
 
   test("message is honest, temporary, and does not overclaim", () => {
@@ -74,40 +78,57 @@ describe("lib entry points", () => {
     );
   });
 
-  test("uploadFile fails closed before any DB access", async () => {
-    const { uploadFile } = await import("./storage");
-    const result = await uploadFile({
-      userId: "user_1",
-      caseId: "case_1",
-      filename: "evidence.pdf",
+  test("Wave 4 evidence limits are enforced in the validation layer (10 MB cap, allow-list)", async () => {
+    const {
+      MAX_EVIDENCE_FILE_SIZE,
+      ALLOWED_EVIDENCE_MIME_TYPES,
+      validateEvidenceUpload,
+      EVIDENCE_ERRORS,
+    } = await import("./evidenceValidation");
+    // The exact limits the migration's CHECK constraints and the UI copy use.
+    expect(MAX_EVIDENCE_FILE_SIZE).toBe(10 * 1024 * 1024);
+    expect([...ALLOWED_EVIDENCE_MIME_TYPES]).toEqual([
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "text/plain",
+    ]);
+    // A valid PDF payload passes validation and gets a server-computed size.
+    const ok = validateEvidenceUpload({
+      filename: "scan.pdf",
       mimeType: "application/pdf",
-      dataBase64: "aGVsbG8=",
-      sizeBytes: 5,
+      dataBase64: Buffer.from("hello").toString("base64"),
     });
-    expect(result.success).toBe(false);
-    if (!result.success) expect(result.error).toBe(TEMP_UNAVAILABLE_MESSAGE);
+    expect(ok.sizeBytes).toBe(5);
+    expect(ok.filename).toBe("scan.pdf");
+    // Anything outside the allow-list is rejected with the SPECIFIC error —
+    // never a generic "upload failed".
+    expect(() =>
+      validateEvidenceUpload({
+        filename: "evil.docx",
+        mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        dataBase64: "aGVsbG8=",
+      }),
+    ).toThrow(EVIDENCE_ERRORS.type);
+    expect(() =>
+      validateEvidenceUpload({
+        filename: "big.bin",
+        mimeType: "application/pdf",
+        dataBase64: Buffer.alloc(MAX_EVIDENCE_FILE_SIZE + 1).toString("base64"),
+      }),
+    ).toThrow(EVIDENCE_ERRORS.size);
+    // Path separators are stripped from filenames (no directory traversal).
+    const clean = validateEvidenceUpload({
+      filename: "../../etc/passwd",
+      mimeType: "text/plain",
+      dataBase64: Buffer.from("x").toString("base64"),
+    });
+    expect(clean.filename).not.toContain("/");
   });
 });
 
 describe("API routes fail closed with 503", () => {
-  test("/api/upload POST rejects uploads", async () => {
-    const { POST } = await import("../routes/api/upload");
-    const res = await POST({
-      request: new Request("http://localhost/api/upload", { method: "POST" }),
-    });
-    expect(res.status).toBe(503);
-    expect((await res.json()).error).toBe(TEMP_UNAVAILABLE_MESSAGE);
-  });
-
-  test("/api/upload GET rejects listing", async () => {
-    const { GET } = await import("../routes/api/upload");
-    const res = await GET({
-      request: new Request("http://localhost/api/upload", { method: "GET" }),
-    });
-    expect(res.status).toBe(503);
-    expect((await res.json()).error).toBe(TEMP_UNAVAILABLE_MESSAGE);
-  });
-
   test("/api/user/delete-data POST rejects deletion", async () => {
     const { POST } = await import("../routes/api/user/delete-data");
     const res = await POST({
@@ -165,8 +186,13 @@ describe("every restricted server function references the fail-closed gate", () 
   const gatedFns: Record<string, string[]> = {
     "../components/ProGate.tsx": ["checkProAccess", "resolveProAccess"],
     "../routes/data-request.tsx": ["exportUserData", "deleteUserData"],
-    "../routes/evidence.tsx": ["getUploadedFiles", "removeFile"],
     "../routes/legal-argument.tsx": ["generateArgument"],
+    // NOTE (Wave 4, 2026-08-25): evidence.tsx was REMOVED from this list — the
+    // evidence manager is no longer a restricted flow. Its rebuild (server fns
+    // in src/lib/evidence.ts, UI in evidence.tsx) is asserted in the
+    // "Wave 4" describe block below as working-state contracts: no-validator
+    // POST fns, auth gate first, ownership joins on cases.user_id, specific
+    // plain-English errors, and honest non-overclaiming copy.
     // NOTE (Wave 1, 2026-08-24): documents.tsx generateDocument and chat.tsx
     // sendMessage were REMOVED from this list — they are no longer restricted
     // flows. Both are live for verified Pro members behind the rebuilt
@@ -242,11 +268,26 @@ describe("public copy no longer promises restricted flows", () => {
     expect(source).not.toContain("/checkout");
   });
 
-  test("evidence page shows the honest unavailable panel, not a working uploader", () => {
+  test("evidence page is LIVE with honest limits copy and no overclaims (Wave 4)", () => {
     const source = read("../routes/evidence.tsx");
-    expect(source.toLowerCase()).toContain("temporarily unavailable");
+    const lower = source.toLowerCase();
+    // The unavailable panel is gone — the working surface is present.
+    expect(lower).not.toContain("temporarily unavailable");
+    expect(source).not.toContain("TEMP_UNAVAILABLE_MESSAGE");
+    expect(source).not.toContain('"The Evidence Manager is temporarily unavailable"');
+    // Truthful limits + storage copy is surfaced in the UI.
+    expect(source).toContain("10 MB");
+    expect(source).toContain("PDF");
+    expect(source).toMatch(/your case workspace/i);
+    // Honest positioning: educational tooling, NOT secure legal-grade
+    // preservation — the overclaim that got this surface gated in the first
+    // place ("Files are stored securely") must not return.
+    expect(source).toMatch(/educational tooling, not secure legal-grade evidence preservation/i);
     expect(source).not.toContain("Files are stored securely");
-    expect(source).not.toContain("Upload a File");
+    // Uploads require auth: the page is wrapped in the authenticated guard and
+    // the client never posts without a caseId.
+    expect(source).toContain("<AuthenticatedGuard>");
+    expect(source).toContain("Choose a case to view its evidence");
   });
 
   test("data request page shows the honest unavailable panel, not working export/delete", () => {
@@ -368,6 +409,84 @@ describe("Wave 1: paid AI tools /documents & /chat are live for verified Pro mem
 });
 
 /* ────────────────────────────────────────────
+   Wave 4 (2026-08-25): Evidence Manager is LIVE
+   again — rebuilt as a durable per-case workspace
+   (migration 008 `evidence_files`; server fns in
+   src/lib/evidence.ts; UI in src/routes/evidence.tsx).
+   Contract: evidence is part of the case workspace,
+   available to the signed-in OWNER of the case (same
+   ownership model as timeline/calendar) and NOT gated
+   behind the $99 paid AI-tool entitlement. Limits
+   (10 MB; PDF/JPG/PNG/WebP/TXT) enforced server-side;
+   specific plain-English errors; honest copy.
+   ──────────────────────────────────────────── */
+
+describe("Wave 4: evidence server fns are auth-first, no-validator POST, ownership-scoped", () => {
+  const source = read("../lib/evidence.ts");
+
+  test("all four evidence server fns are POST without .validator (PR #46 lifecycle lesson)", () => {
+    for (const fn of ["listEvidence", "uploadEvidence", "deleteEvidence", "downloadEvidence"]) {
+      const decl = source.indexOf(`export const ${fn} = createServerFn`);
+      expect(decl, fn).toBeGreaterThan(-1);
+      const body = handlerBody(source, fn);
+      expect(body).toContain('method: "POST"');
+      expect(body).not.toMatch(/\.validator\(/);
+    }
+  });
+
+  test("every handler auth-gates BEFORE parsing or querying (signed-out requests are rejected)", () => {
+    for (const fn of ["listEvidence", "uploadEvidence", "deleteEvidence", "downloadEvidence"]) {
+      const body = handlerBody(source, fn);
+      const authCall = body.indexOf("const auth = await getCurrentAuth();");
+      const signInReturn = body.indexOf('return { ok: false, error: EVIDENCE_ERRORS.signIn }');
+      const firstQuery = body.indexOf("await sql()");
+      expect(authCall, `${fn} auth gate`).toBeGreaterThan(-1);
+      expect(signInReturn, `${fn} sign-in return`).toBeGreaterThan(-1);
+      expect(authCall).toBeLessThan(signInReturn);
+      // Any DB work happens only after the auth gate.
+      if (firstQuery > -1) expect(authCall).toBeLessThan(firstQuery);
+    }
+  });
+
+  test("ownership is enforced in the SQL: every evidence query joins cases on user_id", () => {
+    // listEvidence and downloadEvidence read via JOIN cases c ON c.id = e.case_id
+    // with c.user_id = ${auth.userId}; upload Evidence inserts only WHERE the
+    // case exists for this user; delete deletes only via the cases join.
+    expect(source).toContain("JOIN cases c ON c.id = e.case_id");
+    expect(source).toContain("c.user_id = ${auth.userId}");
+    expect(source).toContain("WHERE EXISTS (SELECT 1 FROM cases WHERE id = ${caseId} AND user_id = ${auth.userId})");
+    expect(source).toContain("DELETE FROM evidence_files e\n        USING cases c");
+  });
+
+  test("limits are enforced server-side with specific plain-English errors, not a generic failure", () => {
+    // The module enforces size + type through the shared validation layer.
+    expect(source).toContain("validateEvidenceUpload");
+    const validation = read("../lib/evidenceValidation.ts");
+    expect(validation).toContain("MAX_EVIDENCE_FILE_SIZE");
+    expect(validation).toContain("ALLOWED_EVIDENCE_MIME_TYPES");
+    // Specific messages the user will actually see — all defined in the
+    // shared validation module (evidence.ts references the constant names).
+    for (const msg of [
+      "This file type isn't supported.",
+      "This file is larger than 10 MB",
+      "Case not found or you don't have access to it.",
+      "File not found or you don't have access to it.",
+    ]) {
+      expect(validation).toContain(msg);
+    }
+    // No generic "upload failed" fallback anywhere in the evidence modules.
+    expect(source).not.toContain("Upload failed. Please try again.");
+    expect(validation).not.toContain("Upload failed. Please try again.");
+  });
+
+  test("evidence is NOT gated behind the $99 entitlement (case-workspace feature)", () => {
+    expect(source).not.toContain("RESTRICTED_FEATURES");
+    expect(source).not.toContain("hasProMembership");
+    expect(source).not.toContain("hasOwnedCaseEntitlement");
+  });
+});
+
+/* ────────────────────────────────────────────
    Independent-review regression tests
    (fix/restrict-unverified-flows review pass)
    ──────────────────────────────────────────── */
@@ -397,28 +516,34 @@ describe("review fix: profile shows honest temporary-unavailable state, not fabr
   });
 });
 
-describe("review fix: evidence copy matches the whole-manager restriction", () => {
-  test("landing page does not claim evidence organization remains available", () => {
+describe("Wave 4: evidence copy reflects the rebuilt live workspace (was whole-manager restriction)", () => {
+  test("landing page describes the Evidence Manager as a working case-workspace tool", () => {
     const source = read("../routes/index.tsx");
     expect(source).not.toContain("File uploads are temporarily unavailable");
     expect(source).not.toMatch(/Organize case evidence and prepare/);
-    expect(source).toMatch(/Evidence Manager[\s\S]*?temporarily unavailable/);
+    expect(source).not.toMatch(/Evidence Manager[\s\S]*?temporarily unavailable/);
+    // Truthful live description: stored in the case workspace, educational.
+    expect(source).toMatch(/Evidence Manager[\s\S]*?your case workspace/i);
+    expect(source).toMatch(/Educational tooling, not secure legal-grade evidence preservation/i);
   });
 
-  test("case workspace does not claim evidence organization remains available", () => {
+  test("case workspace tool link describes the live evidence workspace without overclaiming", () => {
     const source = read("../routes/cases/$caseId.tsx");
     expect(source).not.toContain("uploads temporarily unavailable");
     expect(source).not.toMatch(/tools for organizing evidence/);
-    expect(source).toContain(
+    expect(source).not.toContain(
       "Temporarily unavailable — organizing and uploading case evidence",
+    );
+    expect(source).toContain(
+      "Upload, view, and delete evidence files for your case — stored in your case workspace",
     );
   });
 
-  test("evidence route meta and body describe the whole-manager restriction", () => {
+  test("evidence route meta and body describe the working workspace, not a restriction", () => {
     const source = read("../routes/evidence.tsx");
     expect(source).not.toMatch(/Organize case evidence and prepare/);
-    expect(source.toLowerCase()).toContain("the evidence manager");
-    expect(source.toLowerCase()).toContain("temporarily unavailable");
+    expect(source.toLowerCase()).toContain("evidence files");
+    expect(source.toLowerCase()).not.toContain("temporarily unavailable");
   });
 
   test("dashboard meta no longer claims evidence management", () => {
@@ -453,11 +578,19 @@ describe("review fix: gate docs and code do not claim a flag flip restores remov
     expect(deleteBody).toContain("deleteAllUserData");
   });
 
-  test("evidence manager UI was removed, not left half-working behind the flag", () => {
+  test("evidence manager UI is fully rebuilt — upload surface present, overclaims absent (Wave 4)", () => {
     const source = read("../routes/evidence.tsx");
-    // No working upload form / file list surface remains in the page.
-    expect(source).not.toContain("Upload a File");
+    // The working surface is back: file picker, list, per-file actions.
+    expect(source).toContain("Upload File");
+    expect(source).toContain("type=\"file\"");
+    expect(source).toContain("Download");
+    expect(source).toContain("Delete");
+    // The honest-storage framing is intact (the exact overclaim that got this
+    // surface gated is still forbidden).
+    expect(source).toContain("educational tooling, not secure legal-grade evidence preservation");
     expect(source).not.toContain("Files are stored securely");
+    expect(source).not.toContain("Upload, organize, and tag evidence");
+    expect(source).toContain("not legal advice");
   });
 });
 
@@ -526,13 +659,14 @@ describe("final re-review regression: entitlement comment truthfulness", () => {
   });
 });
 
-describe("final re-review regression: evidence unavailable heading", () => {
-  test("primary evidence heading states the whole manager is unavailable", () => {
+describe("final re-review regression: evidence workspace is live (Wave 4)", () => {
+  test("primary evidence heading states the working workspace, not an unavailability", () => {
     const source = read("../routes/evidence.tsx");
-    expect(source).toContain("The Evidence Manager is temporarily unavailable");
-    expect(source).not.toContain(
-      "Evidence uploads are temporarily unavailable",
-    );
+    expect(source).toContain("Evidence Files");
+    expect(source).not.toContain("The Evidence Manager is temporarily unavailable");
+    expect(source).not.toContain("Evidence uploads are temporarily unavailable");
+    // The page still requires the case workspace context (owner-only access).
+    expect(source).toContain("Choose a case to view its evidence");
   });
 });
 
