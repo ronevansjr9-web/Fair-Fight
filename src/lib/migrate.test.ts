@@ -52,7 +52,7 @@ describe("loadMigrations", () => {
   test("loads the repo migrations in version order with checksums", () => {
     const files = loadMigrations(MIGRATIONS_DIR);
     expect(files.length).toBeGreaterThanOrEqual(6);
-    expect(files.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
+    expect(files.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008", "009"]);
     for (const f of files) {
       expect(f.checksum).toMatch(/^[0-9a-f]{64}$/);
       expect(f.statements.length).toBeGreaterThan(0);
@@ -69,6 +69,11 @@ describe("loadMigrations", () => {
     expect(evidence.statements.join("\n")).toContain("CREATE TABLE IF NOT EXISTS evidence_files");
     expect(evidence.statements.join("\n")).toContain("REFERENCES cases(id) ON DELETE CASCADE");
     expect(evidence.statements.join("\n")).toContain("data BYTEA NOT NULL");
+    // Wave 6 first-party error capture table (PII-free, contract CHECKs).
+    const errors = files.find((f) => f.version === "009")!;
+    expect(errors.statements.join("\n")).toContain("CREATE TABLE IF NOT EXISTS error_events");
+    expect(errors.statements.join("\n")).toContain("error_events_source_check");
+    expect(errors.statements.join("\n")).toContain("error_events_message_len_check");
   });
 });
 
@@ -118,7 +123,7 @@ describe("runMigrations", () => {
       },
     }) as unknown as MigrationSql;
     const plan = await runMigrations({ sql, migrationsDir: MIGRATIONS_DIR });
-    expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
+    expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008", "009"]);
     expect(log.calls.length).toBe(1);
     const batch = log.calls[0] as string[];
     // The advisory xact lock MUST be first so concurrent runners serialize
@@ -130,8 +135,9 @@ describe("runMigrations", () => {
     expect(batch.join("\n")).toContain("CREATE TABLE IF NOT EXISTS case_analyses");
     expect(batch.join("\n")).toContain("CREATE TABLE IF NOT EXISTS webhook_events");
     expect(batch.join("\n")).toContain("CREATE TABLE IF NOT EXISTS evidence_files");
+    expect(batch.join("\n")).toContain("CREATE TABLE IF NOT EXISTS error_events");
     // Ledger inserts for each version at the end.
-    for (const version of ["001", "002", "003", "004", "005", "006", "007", "008"]) {
+    for (const version of ["001", "002", "003", "004", "005", "006", "007", "008", "009"]) {
       expect(batch.some((q) => q.includes(`VALUES ('${version}'`))).toBe(true);
     }
   });
@@ -146,7 +152,7 @@ describe("runMigrations", () => {
     }) as unknown as MigrationSql;
     const plan = await runMigrations({ sql, migrationsDir: MIGRATIONS_DIR });
     expect(plan.toApply).toEqual([]);
-    expect(plan.skipped).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
+    expect(plan.skipped).toEqual(["001", "002", "003", "004", "005", "006", "007", "008", "009"]);
   });
 
   test("drift aborts with an error instead of applying", async () => {

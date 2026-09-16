@@ -12,6 +12,7 @@ import { trackEvent, AnalyticsEvents } from "~/lib/analytics";
 import { SECURITY_HEADERS } from "~/lib/security-headers";
 import { SignInTicketHandler } from "~/components/SignInTicketHandler";
 import { RouteVisitTracker } from "~/components/RouteVisitTracker";
+import { ErrorReporter } from "~/components/ErrorReporter";
 
 import appCss from "~/styles/app.css?url";
 
@@ -150,6 +151,7 @@ function RootComponent() {
       <AuthTracker />
       <RouteVisitTracker />
       <SignInTicketHandler />
+      <ErrorReporter />
       <SiteHeader />
       <Outlet />
     </RootDocument>

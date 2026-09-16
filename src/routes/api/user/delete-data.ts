@@ -3,6 +3,7 @@ import { json } from "@tanstack/react-start";
 import { getCurrentAuth } from "~/lib/auth";
 import { deleteAllUserData } from "~/lib/dataProtection";
 import { logDataDeleted } from "~/lib/audit";
+import { withErrorReporting } from "~/lib/serverErrorReporter";
 /**
  * Permanent self-serve deletion (Wave 5 — LIVE).
  *
@@ -40,7 +41,11 @@ export async function POST({ request }: { request: Request }) {
   }
   try {
     // ONE transaction: either everything commits or nothing does.
-    const counts = await deleteAllUserData(auth.userId);
+    const counts = await withErrorReporting(
+      "delete_user_data",
+      () => deleteAllUserData(auth.userId),
+      { userId: auth.userId, url: "/api/user/delete-data" },
+    );
     // Audit AFTER the transaction so the DATA_DELETED operational row
     // survives the deletion of the user's own audit rows.
     await logDataDeleted(auth.userId, {
