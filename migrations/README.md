@@ -6,7 +6,7 @@ invoked via `bun run migrate`) during a controlled deploy — never at request
 time.
 
 The files are numbered in **dependency order**: `cases` must exist before any
-table that references it. A fresh install applies 001 → 007 in one Postgres
+table that references it. A fresh install applies 001 → 008 in one Postgres
 transaction; if any file fails, the whole batch rolls back (no partial schema).
 
 | File | Purpose | Depends on |
@@ -18,6 +18,7 @@ transaction; if any file fails, the whole batch rolls back (no partial schema).
 | `005_case_activity.sql` | **`timeline_entries`**, **`calendar_events`** (FK → `cases` ON DELETE CASCADE) | `001` |
 | `006_analytics.sql` | **`analytics_events`** — append-only route-visit + funnel-event log (no cookie; session id from sessionStorage) | — |
 | `007_audit_logs.sql` | **`audit_logs`** — durable audit log written by `src/lib/audit.ts` on AI generation / document generation / login / payment events (best-effort writes; `details` is TEXT to match the writer's `JSON.stringify` and reader's `JSON.parse`) | — |
+| `008_evidence_files.sql` | **`evidence_files`** — Wave 4 per-case evidence workspace: bytea payload in the existing Neon DB, owned via `cases` join (FK → `cases` ON DELETE CASCADE), mime/size CHECK constraints mirroring the server limits | `001` |
 
 ## Runner guarantees (proven against a real, disposable PostgreSQL)
 
@@ -25,7 +26,7 @@ transaction; if any file fails, the whole batch rolls back (no partial schema).
 runs `src/lib/migrate.pg.test.ts` against it, and tears it down. That suite
 proves, on a real server:
 
-- **Fresh install** — all seven migrations apply in order; `schema_migrations`
+- **Fresh install** — all eight migrations apply in order; `schema_migrations`
   records every version with its exact sha256 checksum.
 - **Safe rerun** — a matching ledger applies nothing (idempotent replay).
 - **Checksum mismatch** — an edited ledger entry aborts the run with a

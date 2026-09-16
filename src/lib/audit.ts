@@ -67,6 +67,34 @@ export async function logPaymentCompleted(userId: string, caseId?: string): Prom
   });
 }
 
+export async function logEvidenceUploaded(
+  userId: string,
+  caseId: string,
+  filename: string,
+  sizeBytes: number,
+): Promise<void> {
+  await logAuditEvent({
+    userId,
+    action: "EVIDENCE_UPLOADED",
+    resource: caseId,
+    details: { caseId, filename, sizeBytes },
+  });
+}
+
+export async function logEvidenceDeleted(
+  userId: string,
+  caseId: string,
+  filename: string,
+  sizeBytes: number,
+): Promise<void> {
+  await logAuditEvent({
+    userId,
+    action: "EVIDENCE_DELETED",
+    resource: caseId,
+    details: { caseId, filename, sizeBytes },
+  });
+}
+
 export async function logDataExported(userId: string): Promise<void> {
   await logAuditEvent({
     userId,

@@ -12,8 +12,9 @@
  *
  * A direct call such as `fn(payload)` leaves `opts.data === undefined`, so
  * nothing is sent and the server-side validator receives `undefined`, breaking
- * chat, case creation/reopen, evidence delete, checkout start, document
- * generation, legal-argument generation, and legal research at runtime.
+ * chat, case creation/reopen, checkout start, document
+ * generation, legal-argument generation, timeline/calendar editing, and legal
+ * research at runtime.
  *
  * This test statically scans customer-critical client code and fails if any
  * validator-backed server fn is invoked with a payload that is not wrapped in
@@ -87,7 +88,6 @@ describe("validator-backed server fn client payload shape", () => {
   const expectedNames = [
     "generateArgument",
     "legalResearch",
-    "removeFile",
     "listTimeline",
     "addTimeline",
     "deleteTimeline",
