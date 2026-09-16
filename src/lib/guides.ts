@@ -1300,6 +1300,50 @@ export const ARTICLES: Article[] = [
     ],
     relatedGuides: ["how-to-file-a-motion", "rights-during-police-stop", "divorce-spouse-wont-sign"],
   },
+  {
+    id: "prepare-attorney-consultation",
+    title: "How to Prepare for Your First Attorney Consultation: Documents, Questions, and What to Expect",
+    category: "Court Procedures",
+    readTime: "10 min",
+    paragraphs: [
+      "An initial attorney consultation is a meeting where you sit down — in person, by phone, or by video — with a lawyer to talk about your situation, understand your options, and decide whether to hire them. It is an educational step, not a commitment to representation. Knowing what to bring, what to ask, and what to expect makes the meeting far more useful.",
+      "Gather the documents that tell the story of your situation before the meeting. That usually includes any court papers you have received or filed, such as a complaint, summons, motion, or order; contracts or agreements; letters, emails, and text messages related to the dispute; bills, invoices, or payment records; and any earlier correspondence with the other side. Put the materials in a folder in the order they happened, and write a one-line description of each document. An attorney can only work from the facts they can see, so the more clearly you present the paperwork, the more productive the consultation.",
+      "Write a short, factual timeline of the events — dates, who was involved, and what each person said or did. Keep it to what you personally know to be true, and avoid guessing about what other people intended or why they acted. A written timeline keeps you organized and lets the attorney grasp the sequence of events quickly instead of spending the meeting hunting for details.",
+      "The attorney may use the consultation to explain how they charge: by the hour, as a flat fee for a defined task, or — in some types of cases — on a contingency basis, meaning the attorney is paid a percentage of any money recovered. If you decide to hire the lawyer, expect a written agreement, sometimes called a retainer agreement or engagement letter, that states the scope of the work, the fee arrangement, and what each side can expect. Read it carefully and ask about anything unclear before you sign.",
+      "Come with questions. Useful ones include: what experience do you have with cases like mine; what are the general steps this kind of matter usually involves; what outcomes are realistic; how will we communicate and how often; and what do you need from me next. If the attorney does not take the case, ask what else you can do — for example, public legal resources or a referral to another lawyer.",
+      "An initial consultation is not the same as being represented. The attorney may need time after the meeting to review materials or check for conflicts of interest before deciding whether to take the case, and whether the consultation itself has a fee is typically confirmed up front. Either way, the meeting helps you understand your situation and your options — whether that leads to hiring the attorney, talking with another lawyer, or preparing to handle the matter yourself with public resources and the court's self-help materials.",
+    ],
+    takeaways: [
+      "Gather court papers, contracts, correspondence, and other documents that tell the story of your situation",
+      "Bring a short factual timeline of events — dates, people, and what each person said or did",
+      "A retainer agreement or engagement letter should spell out scope, fees, and expectations — read it before signing",
+      "Prepare questions about experience, general steps, realistic outcomes, and communication",
+      "A consultation is not representation — confirm what the meeting covers and what happens next",
+    ],
+    relatedGuides: ["deposition-preparation", "how-to-respond-to-lawsuit", "what-is-discovery"],
+  },
+  {
+    id: "organize-case-documents",
+    title: "How to Organize Case Documents and Evidence for Your Court Case",
+    category: "Evidence & Discovery",
+    readTime: "12 min",
+    paragraphs: [
+      "Court cases generate a lot of paper — filings, correspondence, contracts, receipts, and messages — and the ability to find the right document when you need it can make a real difference. You do not need a professional filing system or special software. A simple, consistent approach — label clearly, store copies safely, and keep an index of what you have — is enough to stay organized from your first filing through trial.",
+      "Start by sorting your materials into logical groups, such as court filings, communications with the other side, contracts and agreements, financial records, and physical items. Give each document a clear name that includes the date and a short description — for example, '2026-03-12 lease-agreement-signed.' A consistent naming rule makes any document findable months later, when the details are no longer fresh.",
+      "Maintain a master list, or index, of every document with a one-line description of what it is and where it came from. Many self-represented litigants also keep a chronology — a list of events in date order, with the document or other evidence that supports each entry. That combination becomes your case's backbone: it helps you explain the facts clearly, spot gaps in what you have, and put a complete picture in front of an attorney if you hire one.",
+      "Keep originals of important documents when you can — especially signed agreements, receipts, and court filings with proof of service — and work from copies for everyday tasks. Store digital backups in more than one place, such as a secure folder on your device plus an external drive or encrypted cloud storage. For physical items, preserve them in their original condition, handle them as little as possible, and note when, where, and from whom you obtained them.",
+      "Well-organized documents become especially valuable during discovery, the pre-trial phase in which each side requests and exchanges relevant information. In federal court, discovery is governed by the Federal Rules of Civil Procedure, Rules 26 through 37, and most states have comparable rules. A complete index helps you respond accurately to requests for documents and review what the other side produces. Request deadlines and the exact scope of what you must produce vary by court, so confirm the rules that apply to your case with the court or a licensed attorney.",
+      "No filing system is legally required, and courts base their decisions on what documents show and whether they were properly produced — not on how you organized them. But a clear, consistent system makes it easier to tell your story, keep track of deadlines and developments, prepare for hearings or trial, and hand an attorney everything needed to evaluate or take over your case.",
+    ],
+    takeaways: [
+      "Sort documents into clear categories and name every file with the date and a short description",
+      "Keep a master index and a chronology linking each event to the document that supports it",
+      "Preserve originals, work from copies, and back up digital files in more than one place",
+      "Handle physical evidence carefully and record when, where, and from whom it came",
+      "An organized index helps you respond to discovery requests — confirm deadlines and scope with your court's rules or a licensed attorney",
+    ],
+    relatedGuides: ["what-is-discovery", "how-to-respond-to-lawsuit", "how-to-file-a-motion"],
+  }
 ];
 export const ALL_CATEGORIES = Object.keys(CATEGORY_COLORS);
 
