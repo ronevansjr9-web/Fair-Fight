@@ -3,6 +3,7 @@ import { json } from "@tanstack/react-start";
 import { getCurrentAuth } from "~/lib/auth";
 import { collectUserExport } from "~/lib/dataProtection";
 import { logDataExported } from "~/lib/audit";
+import { withErrorReporting } from "~/lib/serverErrorReporter";
 /**
  * Self-serve portable export (Wave 5 — LIVE).
  *
@@ -25,7 +26,11 @@ export async function POST({ request }: { request: Request }) {
   try {
     // Snapshot FIRST, audit log AFTER — the exported JSON is the state as of
     // the query and does not contain the DATA_EXPORTED row itself.
-    const exportData = await collectUserExport(auth.userId);
+    const exportData = await withErrorReporting(
+      "export_user_data",
+      () => collectUserExport(auth.userId),
+      { userId: auth.userId, url: "/api/user/export-data" },
+    );
     await logDataExported(auth.userId);
     return json(exportData);
   } catch (error) {

@@ -17,6 +17,7 @@ import {
   TEMP_UNAVAILABLE_MESSAGE,
 } from "~/lib/restrictedFeatures";
 import { shouldFetchForSignedInUser, fetchAuthedData } from "~/lib/caseFetchGate";
+import { withErrorReporting } from "~/lib/serverErrorReporter";
 import { sql } from "~/db";
 
 export const Route = createFileRoute("/analysis")({
@@ -118,12 +119,17 @@ const runAnalysis = createServerFn({ method: "POST" }).handler(async ({ data }):
       const facts = sanitizeInput(input.facts);
       const jurisdiction = sanitizeInput(input.jurisdiction).slice(0, 200);
       const caseType = sanitizeInput(input.caseType).slice(0, 100);
-      const analysis = await generateCaseAnalysis(
-        { facts, jurisdiction, caseType },
-        {
-          askAI: (messages, options) => askAI(messages, options),
-          saveAnalysis: async () => {},
-        },
+      const analysis = await withErrorReporting(
+        "ai_generation",
+        () =>
+          generateCaseAnalysis(
+            { facts, jurisdiction, caseType },
+            {
+              askAI: (messages, options) => askAI(messages, options),
+              saveAnalysis: async () => {},
+            },
+          ),
+        { userId: auth.userId, url: "/analysis" },
       );
       await saveCaseAnalysis({
         userId: auth.userId,
@@ -155,7 +161,11 @@ const startCheckout = createServerFn({ method: "POST" }).handler(async ({ data }
     } catch {
       return { success: false, error: "Invalid case id" };
     }
-    const result = await createCheckoutSession(auth.userId, caseId);
+    const result = await withErrorReporting(
+      "payment_checkout",
+      () => createCheckoutSession(auth.userId, caseId),
+      { userId: auth.userId, url: "/analysis" },
+    );
     if ("error" in result) return { success: false, error: result.error };
     return { success: true, url: result.url };
   });

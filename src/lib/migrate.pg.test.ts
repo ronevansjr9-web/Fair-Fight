@@ -91,6 +91,7 @@ const EXPECTED_TABLES = [
   "analytics_events",
   "audit_logs",
   "evidence_files",
+  "error_events",
 ];
 
 describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
@@ -107,7 +108,7 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     await resetPublicSchema(pool);
     const sql = pgSql(pool);
     const plan = await runMigrations({ sql });
-    expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
+    expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008", "009"]);
     expect(plan.skipped).toEqual([]);
     expect(plan.drift).toEqual([]);
 
@@ -123,7 +124,7 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
       pool,
       "SELECT version, checksum FROM schema_migrations ORDER BY version",
     );
-    expect(ledger.map((r) => r.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
+    expect(ledger.map((r) => r.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008", "009"]);
     for (const file of files) {
       const entry = ledger.find((r) => r.version === file.version)!;
       expect(entry.checksum, `ledger checksum for ${file.version}`).toBe(file.checksum);
@@ -137,12 +138,12 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     await runMigrations({ sql });
     const second = await runMigrations({ sql });
     expect(second.toApply).toEqual([]);
-    expect(second.skipped).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
+    expect(second.skipped).toEqual(["001", "002", "003", "004", "005", "006", "007", "008", "009"]);
     const ledger = await queryAll<{ version: string }>(
       pool,
       "SELECT version FROM schema_migrations ORDER BY version",
     );
-    expect(ledger).toHaveLength(8);
+    expect(ledger).toHaveLength(9);
   });
 
   test("checksum mismatch: drift aborts the run and never touches the schema", async () => {
@@ -183,7 +184,7 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
       // Removing the broken file lets the exact same run succeed.
       rmSync(join(scratch, "006_broken.sql"));
       const plan = await runMigrations({ sql, migrationsDir: scratch });
-      expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
+      expect(plan.toApply.map((f) => f.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008", "009"]);
     } finally {
       rmSync(scratch, { recursive: true, force: true });
     }
@@ -199,12 +200,12 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     // all seven; the other either saw the committed ledger (applies nothing) or
     // replayed its pre-lock plan as idempotent IF NOT EXISTS / ON CONFLICT
     // no-ops after the first committed. Either way both succeed.
-    expect([pa.toApply.length, pb.toApply.length].sort((x, y) => y - x)[0]).toBe(8);
+    expect([pa.toApply.length, pb.toApply.length].sort((x, y) => y - x)[0]).toBe(9);
     const ledger = await queryAll<{ version: string; checksum: string }>(
       pool,
       "SELECT version, checksum FROM schema_migrations ORDER BY version",
     );
-    expect(ledger.map((r) => r.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
+    expect(ledger.map((r) => r.version)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008", "009"]);
     const files = loadMigrations(MIGRATIONS_DIR);
     for (const file of files) {
       const entry = ledger.find((r) => r.version === file.version)!;
@@ -225,6 +226,7 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
       timeline_entries: ["id", "case_id", "event_date", "title", "description", "created_at"],
       calendar_events: ["id", "case_id", "event_date", "title", "event_type", "notes", "created_at"],
       evidence_files: ["id", "case_id", "user_id", "filename", "mime_type", "size_bytes", "data", "created_at"],
+      error_events: ["id", "ts", "source", "message", "stack", "url", "user_agent", "user_id", "client_ts"],
     };
     for (const [table, columns] of Object.entries(requiredColumns)) {
       const found = (await queryAll<{ column_name: string }>(
@@ -287,6 +289,8 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
       "calendar_events_case_date_idx",
       "evidence_files_case_created_idx",
       "evidence_files_user_idx",
+      "error_events_ts_idx",
+      "error_events_source_ts_idx",
     ]) {
       expect(indexes, idx).toContain(idx);
     }
@@ -318,6 +322,13 @@ describe.skipIf(!TEST_URL)("migration runner on real PostgreSQL", () => {
     expect(checkDef("evidence_files_mime_type_check")).toContain("application/pdf");
     expect(checkDef("evidence_files_mime_type_check")).toContain("text/plain");
     expect(checkDef("evidence_files_size_bytes_check")).toContain("10485760");
+    // Error capture is PII-capped at the schema too: source enum plus the
+    // message/stack/url/userAgent/userId length CHECKs mirror the endpoint
+    // validation caps (src/routes/api/errors.ts).
+    expect(checkDef("error_events_source_check")).toContain("client");
+    expect(checkDef("error_events_source_check")).toContain("server");
+    expect(checkDef("error_events_message_len_check")).toContain("500");
+    expect(checkDef("error_events_stack_len_check")).toContain("2000");
 
     // Webhook idempotency ledger: event_id is the primary key.
     const webhookPk = await queryAll<{ exists: boolean }>(
