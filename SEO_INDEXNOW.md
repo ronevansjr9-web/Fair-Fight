@@ -7,6 +7,11 @@
 - **Endpoint:** `https://api.indexnow.org/indexnow` (JSON POST)
 - **Submission (2026-08-24):** HTTP 202 Accepted — all **63** sitemap URLs
   (home `/`, `/learn`, `/research`, + 60 `/learn/<slug>`).
+- **Re-submission (2026-09-17):** all **65** sitemap URLs (home, /learn, /research,
+  + 62 guides incl. prepare-attorney-consultation & organize-case-documents)
+  re-accepted via GET batches (10 URLs/request): single 202 + seven batches all
+  200. POST to api.indexnow.org returned 400 InvalidRequestParameters with the
+  same payload shape — GET works, POST path needs a different client if reused.
 - **After /learn guide consolidation (2026-08):** near-duplicate guides were folded
   and redirects added, so the sitemap now enumerates **58** `/learn/<slug>` guides
   + 3 canonical pages = **61** URLs. Folded/renamed slugs (`sue-in-small-claims`,
