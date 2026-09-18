@@ -173,6 +173,19 @@ describe("smoke-test defect regression contracts", () => {
     // SPA refresh keeps working (manual retry path is untouched).
     expect(analysis).toContain("const refresh = () => {");
   });
+  it("evidence initial listEvidence fetch is gated + retries once on unauthorized (hard-load token race)", () => {
+    const evidence = readFileSync(resolve(siteRoot, "src/routes/evidence.tsx"), "utf8");
+    // No fetch may fire while Clerk auth is hydrating/signed out…
+    expect(evidence).toContain("useAuth()");
+    expect(evidence).toContain("auth.isSignedIn !== true");
+    // …and a stale/expired __session JWT on a hard load must not strand the
+    // user on a false "Sign in required." for ~60s: the shared gate
+    // force-refreshes the token and retries exactly once, keyed on the
+    // evidence server fn's own unauthorized signal (EVIDENCE_ERRORS.signIn).
+    expect(evidence).toContain("fetchAuthedData");
+    expect(evidence).toContain("getToken: auth.getToken");
+    expect(evidence).toContain('result.error === EVIDENCE_ERRORS.signIn');
+  });
   it("referral feature surface is fully removed (honesty backlog: no referral_codes table)", () => {
     expect(existsSync(resolve(siteRoot, "src/components/ReferralCard.tsx"))).toBe(false);
     expect(existsSync(resolve(siteRoot, "src/lib/referral.ts"))).toBe(false);
