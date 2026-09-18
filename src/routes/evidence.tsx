@@ -1,6 +1,8 @@
+import { useAuth } from "@clerk/tanstack-react-start";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AuthenticatedGuard } from "~/components/AuthenticatedGuard";
+import { fetchAuthedData } from "~/lib/caseFetchGate";
 import {
   deleteEvidence,
   downloadEvidence,
@@ -56,6 +58,14 @@ function fileIcon(mimeType: string): string {
 
 function EvidencePage() {
   const { caseId } = Route.useSearch();
+  // Route components render inside <ClerkProvider> (see __root.tsx), so useAuth()
+  // here is SSR-safe. Gate the authed fetch on Clerk session readiness: on a
+  // fresh hard load, `isSignedIn` is `undefined` while the client hydrates, and
+  // the `__session` JWT may still be the pre-sign-in/expired token when the
+  // first fetch fires. fetchAuthedData force-refreshes the token first, and if
+  // the server still rejects the session it refreshes it again and retries
+  // exactly once — same gate/retry semantics as the dashboard and case pages.
+  const auth = useAuth();
   const [files, setFiles] = useState<EvidenceFileSummary[]>([]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -66,16 +76,25 @@ function EvidencePage() {
 
   const load = useCallback(async () => {
     if (!caseId) return;
-    const res = await listEvidence({ data: { caseId } });
+    const outcome = await fetchAuthedData({
+      isSignedIn: auth.isSignedIn,
+      getToken: auth.getToken,
+      fetch: () => listEvidence({ data: { caseId } }),
+      isUnauthorized: (result) =>
+        !result.ok && result.error === EVIDENCE_ERRORS.signIn,
+    });
+    if (outcome.state === "auth_not_ready") return;
+    const res = outcome.result;
     if (res.ok) {
       setFiles(res.files);
       setError("");
     } else {
       setError(res.error);
     }
-  }, [caseId]);
+  }, [caseId, auth.isSignedIn, auth.getToken]);
 
   useEffect(() => {
+    if (auth.isSignedIn !== true) return;
     if (caseId) {
       setError("");
       setNotice("");
@@ -85,7 +104,8 @@ function EvidencePage() {
     } else {
       setFiles([]);
     }
-  }, [caseId, load]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [caseId, load, auth.isSignedIn]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
