@@ -31,6 +31,7 @@ export const Route = createRootRoute({
       },
       { name: "keywords", content: "legal education, self-represented litigant, how to file a motion, statute of limitations, small claims court, discovery, case law research, plain English law guide, Pro Case Analysis" },
       { name: "robots", content: "index, follow" },
+      { name: "msvalidate.01", content: "2AB8EC22CA4E3890BC9A1558CC16F02C" },
       { name: "author", content: "Fair Fight" },
       { property: "og:title", content: "Fair Fight — Legal Education & Pro Case Analysis" },
       {
