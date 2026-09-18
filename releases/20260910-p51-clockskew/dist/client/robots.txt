@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://fairfight.ctonew.app/sitemap.xml

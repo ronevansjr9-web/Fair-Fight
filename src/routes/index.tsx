@@ -91,7 +91,7 @@ function Home() {
               },
               {
                 title: "Legal Research",
-                desc: "Access to public case law, statutes, and court rules. 60 public plain-English guides on court procedures and legal topics.",
+                desc: "Access to public case law, statutes, and court rules. 62 public plain-English guides on court procedures and legal topics.",
                 icon: "📚",
               },
               {
