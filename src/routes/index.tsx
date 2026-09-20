@@ -203,6 +203,8 @@ function Home() {
                 <li><a href="/learn" className="hover:text-gold">Legal Guides</a></li>
                 <li><a href="/calendar" className="hover:text-gold">Court Calendar</a></li>
                 <li><a href="/timeline" className="hover:text-gold">Timeline</a></li>
+                <li><a href="/compare/fair-fight-vs-hiring-an-attorney" className="hover:text-gold">vs. Hiring an Attorney</a></li>
+                <li><a href="/compare/fair-fight-vs-donotpay" className="hover:text-gold">vs. DoNotPay</a></li>
               </ul>
             </div>
             <div>

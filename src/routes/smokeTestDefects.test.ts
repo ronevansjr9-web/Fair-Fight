@@ -245,7 +245,14 @@ describe("smoke-test defect regression contracts", () => {
     expect(privacy).toContain("Payments are processed by Stripe");
     expect(privacy).toContain("refund request");
     expect(email).toContain("Plain-English summary of your situation");
-    expect(root).toContain("possible legal issues the facts may raise");
+    // The root's sitewide FAQPage block was removed (owner directive 09-20,
+    // Deliverable 3 — its questions were not visibly rendered on any page),
+    // so the truthful deliverable description now lives on the homepage.
+    expect(root).toContain("paid Pro Case Analysis");
+    expect(root).not.toContain("FAQPage");
+    const home = readFileSync(resolve(siteRoot, "src/routes/index.tsx"), "utf8");
+    expect(home).toContain("plain-English summary,");
+    expect(home).toContain("possible issues, candidate arguments, counterarguments, and traceable public sources");
   });
   it("dashboard renders a neutral state on entitlement-lookup error, never the Unlock CTA (honesty audit batch 2)", () => {
     const dashboard = readFileSync(resolve(siteRoot, "src/routes/dashboard.tsx"), "utf8");
