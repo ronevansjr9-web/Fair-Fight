@@ -244,45 +244,67 @@ describe("Wave 2 question-intent SEO (pilot batch)", () => {
   });
 });
 
-describe("Wave 3 FAQ sections (tier-1 guides)", () => {
-  const TIER1_SLUGS = [
+describe("Wave 3 + 4 FAQ sections (tier-1 + 20 wave-4 guides)", () => {
+  // The 22 tier-1 guides from Wave 3 (PR #61) plus the 20 wave-4 guides (FAQ pass
+  // part 1). Part 2 will extend this list with the remaining FAQ-less guides.
+  const FAQ_SLUGS = [
+    "after-car-accident-guide",
+    "asylum-law-guide",
+    "child-custody-guide",
+    "debt-collection-defense",
+    "denied-insurance-claim",
+    "deposition-preparation",
+    "divorce-process-overview",
+    "divorce-spouse-wont-sign",
+    "eviction-process-guide",
+    "fight-restraining-order",
+    "fight-traffic-ticket",
+    "how-to-expunge-a-criminal-record",
     "how-to-file-a-motion",
-  "statute-of-limitations-guide",
-  "small-claims-court-guide",
-  "eviction-process-guide",
-  "how-to-respond-to-lawsuit",
-  "security-deposit-guide",
-  "debt-collection-defense",
-  "unemployment-benefits-guide",
-  "how-to-get-a-restraining-order",
-  "fight-restraining-order",
-  "restraining-order-guide",
-  "how-to-expunge-a-criminal-record",
-  "how-to-write-demand-letter",
-  "motion-to-dismiss-explained",
-  "what-is-a-complaint",
-  "tenant-rights-guide",
-  "fight-traffic-ticket",
-  "divorce-spouse-wont-sign",
-  "denied-insurance-claim",
-  "what-happens-after-filing-lawsuit",
-  "how-to-write-a-will",
-  "how-to-file-police-report",
+    "how-to-file-a-trademark",
+    "how-to-file-police-report",
+    "how-to-get-a-restraining-order",
+    "how-to-get-green-card",
+    "how-to-read-contract",
+    "how-to-respond-to-lawsuit",
+    "how-to-start-an-llc",
+    "how-to-write-a-will",
+    "how-to-write-demand-letter",
+    "how-to-write-legal-brief",
+    "immigration-court-basics",
+    "living-will-advance-directives",
+    "medical-malpractice-guide",
+    "motion-to-dismiss-explained",
+    "power-of-attorney-guide",
+    "restraining-order-guide",
+    "rights-during-police-stop",
+    "security-deposit-guide",
+    "small-claims-court-guide",
+    "statute-of-limitations-guide",
+    "tenant-rights-guide",
+    "understanding-alimony",
+    "understanding-miranda-rights",
+    "unemployment-benefits-guide",
+    "us-citizenship-naturalization",
+    "what-happens-after-filing-lawsuit",
+    "what-is-a-complaint",
+    "what-is-probate",
+    "wrongful-death-claims",
   ];
-  test("exactly the 22 tier-1 guides carry a 3-item faqs array; the other 40 have none", () => {
+  test("exactly the 42 guides carry a 3-item faqs array; the other 20 have none", () => {
     expect(ARTICLES.length).toBe(62);
     const withFaqs = ARTICLES.filter((a) => a.faqs !== undefined).map((a) => a.id);
-    expect(withFaqs.sort()).toEqual([...TIER1_SLUGS].sort());
+    expect(withFaqs.sort()).toEqual([...FAQ_SLUGS].sort());
     for (const a of ARTICLES) {
-      if (!TIER1_SLUGS.includes(a.id)) {
+      if (!FAQ_SLUGS.includes(a.id)) {
         expect(a.faqs, `${a.id} faqs`).toBeUndefined();
       } else {
         expect(a.faqs!.length, `${a.id} faqs length`).toBe(3);
       }
     }
   });
-  test("every tier-1 faq is question-shaped with a substantive answer", () => {
-    for (const slug of TIER1_SLUGS) {
+  test("every faq is question-shaped with a substantive answer", () => {
+    for (const slug of FAQ_SLUGS) {
       const a = getGuideBySlug(slug)!;
       for (const [i, faq] of (a.faqs ?? []).entries()) {
         expect(faq.question.trim().endsWith("?"), `${slug} faq ${i} question shape`).toBe(true);
@@ -294,13 +316,13 @@ describe("Wave 3 FAQ sections (tier-1 guides)", () => {
   });
   test("no guarantee/outcome language in faq copy", () => {
     const banned = /\b(win your case|guaranteed|guarantee|best argument|beat the ticket|get your money back|sue successfully)\b/i;
-    for (const slug of TIER1_SLUGS) {
+    for (const slug of FAQ_SLUGS) {
       const a = getGuideBySlug(slug)!;
       const copy = (a.faqs ?? []).map((f) => `${f.question} ${f.answer}`).join(" ");
       expect(copy.match(banned), `${slug} faq copy`).toBeNull();
     }
   });
-  test("guidePageFaqs returns the faqs for tier-1 guides and undefined otherwise", () => {
+  test("guidePageFaqs returns the faqs for guides that carry them and undefined otherwise", () => {
     const withFaqs = getGuideBySlug("how-to-file-a-motion")!;
     expect(guidePageFaqs(withFaqs)).toBeDefined();
     expect(guidePageFaqs(withFaqs)!.length).toBe(3);
