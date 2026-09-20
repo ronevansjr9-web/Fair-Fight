@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { getGuideBySlug, guidePageDescription, guidePageH1 } from "./guides";
+import { getGuideBySlug, guidePageDescription, guidePageH1, type Article } from "./guides";
 import {
   articleSchema,
   breadcrumbSchema,
@@ -8,6 +8,19 @@ import {
   howToSchema,
   isHowToGuide,
 } from "./structuredData";
+
+// Inline minimal Article without the optional faqs field. Every real guide now
+// carries faqs (FAQ pass part 2), so the FAQ-absent paths are tested against
+// this clean fixture rather than any live /learn guide.
+const NO_FAQ_ARTICLE: Article = {
+  id: "sample-explainer",
+  title: "Sample Explainer Guide",
+  category: "Evidence & Discovery",
+  readTime: "5 min",
+  paragraphs: ["A plain-English explainer used only as a structured-data test fixture."],
+  takeaways: ["Test fixture only"],
+  relatedGuides: [],
+};
 
 describe("isHowToGuide", () => {
   test("flags procedural how-to guides", () => {
@@ -111,8 +124,7 @@ describe("guideStructuredDataScripts", () => {
     expect(JSON.parse(faqScript.children)["mainEntity"].length).toBe(3);
   });
   test("guides without faqs keep the exact legacy script set (no FAQPage)", () => {
-    const a = getGuideBySlug("what-is-discovery")!;
-    const types = guideStructuredDataScripts(a).map((s) => JSON.parse(s.children)["@type"]);
+    const types = guideStructuredDataScripts(NO_FAQ_ARTICLE).map((s) => JSON.parse(s.children)["@type"]);
     expect(types).not.toContain("FAQPage");
     expect(types).toEqual(["Article", "BreadcrumbList"]);
   });
@@ -135,6 +147,6 @@ describe("faqSchema", () => {
     });
   });
   test("returns null for guides without faqs", () => {
-    expect(faqSchema(getGuideBySlug("what-is-discovery")!)).toBeNull();
+    expect(faqSchema(NO_FAQ_ARTICLE)).toBeNull();
   });
 });
