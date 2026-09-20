@@ -7,6 +7,7 @@ import {
   guidePageFaqs,
   guidePageH1,
   guidePageTitle,
+  type Article,
 } from "./guides";
 
 describe("guide consolidation (SEO)", () => {
@@ -244,9 +245,9 @@ describe("Wave 2 question-intent SEO (pilot batch)", () => {
   });
 });
 
-describe("Wave 3 + 4 FAQ sections (tier-1 + 20 wave-4 guides)", () => {
-  // The 22 tier-1 guides from Wave 3 (PR #61) plus the 20 wave-4 guides (FAQ pass
-  // part 1). Part 2 will extend this list with the remaining FAQ-less guides.
+describe("Wave 3 + 4 FAQ sections (all 62 guides)", () => {
+  // The 22 tier-1 guides from Wave 3 (PR #61) plus the 40 wave-4 guides from
+  // FAQ passes part 1 and part 2 — every guide in the library now carries faqs.
   const FAQ_SLUGS = [
     "after-car-accident-guide",
     "asylum-law-guide",
@@ -290,17 +291,36 @@ describe("Wave 3 + 4 FAQ sections (tier-1 + 20 wave-4 guides)", () => {
     "what-is-a-complaint",
     "what-is-probate",
     "wrongful-death-claims",
+    // Wave-4 FAQ pass, part 2 (this PR): the remaining 20 FAQ-less guides,
+    // matching the question phrasings in the question-intent map.
+    "civil-rights-section-1983",
+    "class-action-lawsuits",
+    "complaint-against-judge",
+    "defamation-libel-slander",
+    "eminent-domain",
+    "equal-pay-act",
+    "first-amendment-speech",
+    "fourth-amendment-search-seizure",
+    "insider-trading",
+    "noise-complaints-nuisance",
+    "organize-case-documents",
+    "prepare-attorney-consultation",
+    "right-to-protest",
+    "sexual-harassment-rights",
+    "subpoena-phone-records",
+    "summary-judgment-explained",
+    "what-is-a-trust",
+    "what-is-discovery",
+    "workplace-harassment-laws",
+    "wrongful-termination",
   ];
-  test("exactly the 42 guides carry a 3-item faqs array; the other 20 have none", () => {
+  test("every one of the 62 articles carries exactly 3 faqs (no FAQ-less guides remain)", () => {
     expect(ARTICLES.length).toBe(62);
     const withFaqs = ARTICLES.filter((a) => a.faqs !== undefined).map((a) => a.id);
     expect(withFaqs.sort()).toEqual([...FAQ_SLUGS].sort());
     for (const a of ARTICLES) {
-      if (!FAQ_SLUGS.includes(a.id)) {
-        expect(a.faqs, `${a.id} faqs`).toBeUndefined();
-      } else {
-        expect(a.faqs!.length, `${a.id} faqs length`).toBe(3);
-      }
+      expect(a.faqs, `${a.id} faqs`).toBeDefined();
+      expect(a.faqs!.length, `${a.id} faqs length`).toBe(3);
     }
   });
   test("every faq is question-shaped with a substantive answer", () => {
@@ -326,6 +346,17 @@ describe("Wave 3 + 4 FAQ sections (tier-1 + 20 wave-4 guides)", () => {
     const withFaqs = getGuideBySlug("how-to-file-a-motion")!;
     expect(guidePageFaqs(withFaqs)).toBeDefined();
     expect(guidePageFaqs(withFaqs)!.length).toBe(3);
-    expect(guidePageFaqs(getGuideBySlug("what-is-discovery")!)).toBeUndefined();
+    // No live guide is FAQ-less after the part-2 pass; keep the fallback path
+    // tested with an inline minimal Article that has no faqs field.
+    const withoutFaqs: Article = {
+      id: "sample-explainer",
+      title: "Sample Explainer Guide",
+      category: "Evidence & Discovery",
+      readTime: "5 min",
+      paragraphs: ["A plain-English explainer used only as a test fixture."],
+      takeaways: ["Test fixture only"],
+      relatedGuides: [],
+    };
+    expect(guidePageFaqs(withoutFaqs)).toBeUndefined();
   });
 });

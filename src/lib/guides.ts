@@ -124,6 +124,20 @@ export const ARTICLES: Article[] = [
   {
     id: "what-is-discovery",
     title: "What Is Discovery? Understanding the Discovery Process in Civil Litigation",
+    faqs: [
+      {
+        question: "What is discovery in a lawsuit?",
+        answer: "Discovery is the pre-trial phase in a lawsuit where each party can obtain evidence from the opposing party through various legal tools. Its purpose is to prevent 'trial by ambush' — ensuring both sides know what evidence exists before trial and encouraging settlement. Discovery is governed by the Federal Rules of Civil Procedure (Rules 26-37) and equivalent state rules.",
+      },
+      {
+        question: "What are interrogatories?",
+        answer: "Interrogatories are one of the main discovery tools — written questions the other party must answer under oath. The other key tools are requests for production of documents (emails, contracts, photos), requests for admissions, and depositions, which are in-person oral testimony under oath. Each tool serves a different strategic purpose.",
+      },
+      {
+        question: "How long does discovery take?",
+        answer: "Discovery deadlines are strict: in federal court, the initial disclosure deadline is typically 14 days after the Rule 26(f) conference, and fact discovery might close 6-12 months after the initial scheduling conference. Missing discovery deadlines can result in sanctions, including having your evidence excluded at trial, so it's important to calendar every discovery deadline.",
+      },
+    ],
     category: "Evidence & Discovery",
     readTime: "14 min",
     paragraphs: [
@@ -215,6 +229,20 @@ export const ARTICLES: Article[] = [
   {
     id: "summary-judgment-explained",
     title: "Summary Judgment: How It Works and How to Oppose It",
+    faqs: [
+      {
+        question: "What is summary judgment?",
+        answer: "Summary judgment is a procedural device that allows a court to decide a case — or specific issues — without a trial when there is no genuine dispute of material fact. Under Rule 56 of the Federal Rules of Civil Procedure, it is appropriate when the movant shows there is no genuine dispute as to any material fact and the movant is entitled to judgment as a matter of law.",
+      },
+      {
+        question: "How do I oppose a motion for summary judgment?",
+        answer: "To oppose summary judgment, the non-moving party must go beyond the pleadings and present specific facts — through affidavits, deposition transcripts, documents, or other evidence — showing a genuine dispute for trial. Unsupported allegations or denials are insufficient, so this is the time to put your evidence into the record. If you fail to properly oppose, the court may grant it and end your case without trial.",
+      },
+      {
+        question: "What does no genuine dispute of material fact mean?",
+        answer: "A 'material' fact is one that affects the outcome of the case, and a 'genuine' dispute means a reasonable jury could return a verdict for the non-moving party based on that evidence. When no such dispute exists, the court can decide the case without trial. Courts must view all evidence in the light most favorable to the non-moving party.",
+      },
+    ],
     category: "Court Procedures",
     readTime: "10 min",
     paragraphs: [
@@ -271,6 +299,20 @@ export const ARTICLES: Article[] = [
   {
     id: "fourth-amendment-search-seizure",
     title: "Fourth Amendment: Search and Seizure — What Police Can and Cannot Do",
+    faqs: [
+      {
+        question: "What does the Fourth Amendment protect?",
+        answer: "The Fourth Amendment protects against unreasonable searches and seizures and requires warrants to be supported by probable cause. Under the Katz 'reasonable expectation of privacy' test, a search occurs when government conduct violates a person's actual expectation of privacy that society recognizes as reasonable. Warrantless searches are presumptively unreasonable, but there are many exceptions that police rely on daily.",
+      },
+      {
+        question: "What are the exceptions to the warrant requirement?",
+        answer: "Major exceptions listed in the guide include consent searches, searches incident to arrest, the automobile exception, exigent circumstances, plain view, stop-and-frisk (Terry stops), and border searches. The exclusionary rule generally prohibits use of evidence obtained through Fourth Amendment violations, though the good faith exception allows evidence obtained through a defective warrant if officers reasonably relied on it.",
+      },
+      {
+        question: "Can police search my car without a warrant?",
+        answer: "Yes, under the automobile exception — one of the major exceptions to the warrant requirement identified in the guide. Warrantless searches are presumptively unreasonable, but exceptions like the automobile exception are ones police rely on daily. To challenge a search, a self-represented defendant can file a motion to suppress under Rule 41, and must have standing, meaning their own Fourth Amendment rights were violated.",
+      },
+    ],
     category: "Criminal Law",
     readTime: "12 min",
     paragraphs: [
@@ -474,6 +516,20 @@ export const ARTICLES: Article[] = [
   {
     id: "first-amendment-speech",
     title: "First Amendment: Freedom of Speech — What's Protected and What's Not",
+    faqs: [
+      {
+        question: "What speech is not protected by the First Amendment?",
+        answer: "The guide lists obscenity, defamation, true threats, fighting words, child pornography, and fraud as categories that receive less — or no — First Amendment protection, with commercial speech receiving intermediate protection. Political speech and speech on matters of public concern receive the highest level of protection. Even advocacy of illegal conduct is protected unless it is directed to inciting imminent lawless action and is likely to produce it.",
+      },
+      {
+        question: "Is hate speech legal?",
+        answer: "The guide explains that the First Amendment's protection is not absolute and names the categories that receive less or no protection: obscenity, defamation, true threats, fighting words, child pornography, and fraud. It also explains that the government generally cannot engage in viewpoint discrimination. Speech outside those categories, including political and ideological speech, remains protected.",
+      },
+      {
+        question: "What counts as protected speech?",
+        answer: "Political speech and speech on matters of public concern receive the highest protection, and the guide notes that even advocacy of illegal conduct is protected unless directed to inciting imminent lawless action. Expressive conduct also counts as speech when the speaker intends to convey a particularized message and observers are likely to understand it — the guide cites flag burning as an example of protected expressive conduct.",
+      },
+    ],
     category: "Constitutional Law",
     readTime: "11 min",
     paragraphs: [
@@ -495,6 +551,20 @@ export const ARTICLES: Article[] = [
   {
     id: "civil-rights-section-1983",
     title: "Civil Rights Lawsuits Under 42 U.S.C. § 1983: Suing Government Officials",
+    faqs: [
+      {
+        question: "Can I sue a police officer under Section 1983?",
+        answer: "42 U.S.C. § 1983 allows individuals to sue state and local government officials — including police officers — for violations of constitutional rights. A plaintiff must prove the defendant acted under color of state law and that the conduct deprived the plaintiff of rights secured by the Constitution or federal law. Qualified immunity is a major barrier: officials are immune from damages unless they violated clearly established rights.",
+      },
+      {
+        question: "What is qualified immunity?",
+        answer: "Qualified immunity protects government officials from damages unless they violated 'clearly established statutory or constitutional rights of which a reasonable person would have known.' It means plaintiffs must identify existing precedent with sufficiently similar facts placing the constitutional question beyond debate. The doctrine, established in Harlow v. Fitzgerald, is a major barrier in Section 1983 cases.",
+      },
+      {
+        question: "How do I file a Section 1983 claim?",
+        answer: "The guide explains what a Section 1983 claim requires: the defendant must have acted under color of state law, and the conduct must have deprived the plaintiff of rights secured by the Constitution or federal law. Remedies include compensatory, nominal, and in some cases punitive damages, injunctive relief, and attorney fees for prevailing plaintiffs. The statute of limitations is the state's personal injury statute, typically 2-3 years.",
+      },
+    ],
     category: "Civil Rights",
     readTime: "12 min",
     paragraphs: [
@@ -516,6 +586,20 @@ export const ARTICLES: Article[] = [
   {
     id: "wrongful-termination",
     title: "Wrongful Termination: Understanding At-Will Employment and Its Exceptions",
+    faqs: [
+      {
+        question: "Was I wrongfully terminated?",
+        answer: "Most U.S. employment is at-will, meaning either the employer or employee can end the relationship at any time for any reason — or no reason at all — as long as the reason isn't illegal. The at-will doctrine means most terminations are legal, but the guide explains there are important exceptions that create wrongful termination claims. A termination is wrongful when it violates one of those exceptions.",
+      },
+      {
+        question: "Can I sue for wrongful termination?",
+        answer: "You can bring a claim when the termination falls within one of the three exceptions to at-will employment: a statutory exception such as discrimination based on a protected characteristic, a public policy exception like firing for reporting illegal conduct, or an implied contract exception. Before filing most federal discrimination claims, you must exhaust administrative remedies by filing a charge with the EEOC within 180-300 days and receiving a right to sue letter.",
+      },
+      {
+        question: "What are the exceptions to at-will employment?",
+        answer: "The three main exceptions are: statutory exceptions — federal and state laws prohibiting termination based on race, color, religion, sex, national origin, age, disability, and other protected characteristics; public policy exceptions — you can't be fired for refusing to commit an illegal act, reporting illegal conduct, or exercising a legal right; and implied contract exceptions — when handbooks, offer letters, or oral promises create an expectation of continued employment.",
+      },
+    ],
     category: "Employment Law",
     readTime: "10 min",
     paragraphs: [
@@ -894,6 +978,20 @@ export const ARTICLES: Article[] = [
     {
     id: "workplace-harassment-laws",
     title: "Understanding Workplace Harassment Laws: Your Legal Rights",
+    faqs: [
+      {
+        question: "What counts as workplace harassment?",
+        answer: "Workplace harassment is illegal when it creates a hostile work environment based on a protected characteristic — where enduring the offensive conduct becomes a condition of continued employment, or the conduct is severe or pervasive enough that a reasonable person would consider the environment intimidating, hostile, or abusive. It can take many forms, including offensive jokes, slurs, name-calling, physical assaults or threats, intimidation, and offensive pictures or objects.",
+      },
+      {
+        question: "Is harassment at work illegal?",
+        answer: "Yes — under Title VII of the Civil Rights Act of 1964, the ADA, the ADEA, and parallel state laws, harassment is unlawful when it is based on a protected characteristic and either becomes a condition of continued employment or is severe or pervasive enough to create a hostile work environment. The harasser can be a supervisor, a coworker, or even a non-employee like a client or customer. The key legal question is whether the employer knew or should have known and failed to take prompt, appropriate corrective action.",
+      },
+      {
+        question: "How do I report harassment at work?",
+        answer: "The guide's steps are: report the harassment internally following your employer's policy and check your employee handbook; put your complaint in writing and keep a copy; and document everything — dates, times, locations, what was said or done, and any witnesses — while saving offensive emails, messages, and voicemails. If the harassment doesn't stop after reporting, file a charge with the EEOC or your state's fair employment agency, typically within 180-300 days of the last incident.",
+      },
+    ],
     category: "Employment Law",
     readTime: "8 min",
     paragraphs: [
@@ -1129,6 +1227,20 @@ export const ARTICLES: Article[] = [
   {
     id: "defamation-libel-slander",
     title: "What Is Defamation? Libel vs. Slander Explained",
+    faqs: [
+      {
+        question: "Is it defamation if someone lies about me online?",
+        answer: "Online posts can be defamation in the form of libel — a false statement presented as fact that harms reputation, including online posts, articles, videos, and social media. To prove it, a plaintiff typically must show the statement was a false statement of fact (not opinion), published to a third party, caused reputational harm, and the defendant was at fault. Note that Section 230 generally immunizes websites and platforms from liability for user content, though you can sue the person who posted it.",
+      },
+      {
+        question: "What is the difference between libel and slander?",
+        answer: "Libel is written or otherwise permanently recorded defamation — including online posts, articles, videos, and social media — while slander is spoken defamation that is fleeting and unrecorded. The distinction matters because libel is generally considered more harmful, since it's permanent and can spread widely, and in many jurisdictions damages for libel don't require proof of actual financial harm.",
+      },
+      {
+        question: "Can I sue someone for a bad review?",
+        answer: "A bad review is defamation only if it is a false statement of fact, not opinion — statements of pure opinion that cannot be proven true or false are protected. A plaintiff would typically need to show the statement was published to a third party, harmed reputation, and the reviewer was at fault. The guide also notes Section 230 generally protects platforms like Yelp from liability for user posts, and that defamation lawsuits are expensive and public, so for most non-celebrity cases the practical remedy is a retraction, correction, or removal.",
+      },
+    ],
     category: "Personal Injury",
     readTime: "7 min",
     paragraphs: [
@@ -1220,6 +1332,20 @@ export const ARTICLES: Article[] = [
   {
     id: "class-action-lawsuits",
     title: "What Is a Class Action Lawsuit? How They Work",
+    faqs: [
+      {
+        question: "What is a class action lawsuit?",
+        answer: "A class action is a lawsuit in which one or a few individuals — class representatives — sue on behalf of a larger group who have similar claims. Class actions let people with small individual claims obtain relief collectively, promote judicial efficiency, and deter corporate misconduct. The court must certify the class under Rule 23, which requires numerosity, commonality, typicality, and adequacy of representation.",
+      },
+      {
+        question: "What happens if I get a class action notice?",
+        answer: "If you receive a class action notice, read it carefully — it tells you what the case is about, who is included in the class, what your options are, and important deadlines. Your options are: remain in the class and be bound by the outcome; opt out to exclude yourself and preserve your right to sue individually; or object to the settlement terms if you think they're unfair. The opt-out deadline is firm.",
+      },
+      {
+        question: "Should I opt out of a class action?",
+        answer: "The guide lays out the choice: if you remain in the class, you'll be bound by the outcome and may receive compensation if the class wins or settles, and you don't need to do anything. If you opt out, you exclude yourself, preserve your right to sue individually, but won't receive any class recovery. Which option fits depends on your situation, and the opt-out deadline is firm.",
+      },
+    ],
     category: "Civil Rights",
     readTime: "8 min",
     paragraphs: [
@@ -1383,6 +1509,20 @@ export const ARTICLES: Article[] = [
   {
     id: "sexual-harassment-rights",
     title: "What Is Sexual Harassment? Your Workplace Rights Explained",
+    faqs: [
+      {
+        question: "What is sexual harassment at work?",
+        answer: "Sexual harassment is a form of sex discrimination that violates Title VII of the Civil Rights Act of 1964 and parallel state laws. The EEOC defines it as unwelcome sexual advances, requests for sexual favors, and other verbal or physical conduct of a sexual nature when submission is made a term or condition of employment (quid pro quo) or the conduct creates an intimidating, hostile, or offensive work environment. The harasser and victim can be of any gender.",
+      },
+      {
+        question: "Is one incident enough for sexual harassment?",
+        answer: "A single incident of quid pro quo harassment — where a supervisor conditions employment benefits on submission to sexual conduct — is sufficient to create liability. For a hostile work environment claim, the conduct must be severe or pervasive enough to alter the conditions of employment; isolated incidents, simple teasing, offhand comments, and petty slights generally don't rise to that level, though a pattern of such conduct over time may.",
+      },
+      {
+        question: "How do I file a sexual harassment complaint?",
+        answer: "The guide's recommended path: tell the harasser to stop clearly and firmly, preferably in writing; report the harassment internally following your employer's policy, putting the report in writing and keeping a copy; and document everything — dates, times, locations, what was said or done, and witnesses. If the employer fails to take prompt, effective action, file a charge with the EEOC or your state's fair employment agency, typically within 180-300 days of the last incident.",
+      },
+    ],
     category: "Employment Law",
     readTime: "7 min",
     paragraphs: [
@@ -1512,6 +1652,20 @@ export const ARTICLES: Article[] = [
   {
     id: "what-is-a-trust",
     title: "What Is a Trust? Revocable vs. Irrevocable Trusts Explained",
+    faqs: [
+      {
+        question: "What is a trust?",
+        answer: "A trust is a legal arrangement in which one person — the trustee — holds and manages property for the benefit of another — the beneficiary — following the instructions of the person who created it, the grantor or settlor. Trusts serve three primary purposes: avoiding probate, controlling how and when beneficiaries receive assets, and, in the case of irrevocable trusts, providing tax benefits and asset protection.",
+      },
+      {
+        question: "What is the difference between a revocable and an irrevocable trust?",
+        answer: "A revocable living trust is created during the grantor's lifetime and can be modified, amended, or revoked at any time while the grantor is competent, and the grantor typically serves as their own trustee and beneficiary. An irrevocable trust cannot be modified or revoked once created, but in exchange for giving up control, the grantor receives asset protection, estate tax reduction, and Medicaid planning benefits.",
+      },
+      {
+        question: "Does a trust avoid probate?",
+        answer: "A revocable trust's primary benefit is probate avoidance: assets titled in the trust pass directly to the successor trustee and beneficiaries at the grantor's death without court involvement, saving time and maintaining privacy. But funding the trust is essential — creating the trust document is not enough, and assets not transferred to the trust during your lifetime may still pass through probate.",
+      },
+    ],
     category: "Estate Planning",
     readTime: "9 min",
     paragraphs: [
@@ -1533,6 +1687,20 @@ export const ARTICLES: Article[] = [
   {
     id: "complaint-against-judge",
     title: "How to File a Complaint Against a Judge: Judicial Misconduct",
+    faqs: [
+      {
+        question: "How do I file a complaint against a judge?",
+        answer: "For federal judges, file a written complaint with the clerk of the court of appeals for the circuit where the judge sits, identifying the judge and describing the alleged misconduct with dates and supporting evidence. For state judges, file with your state's judicial conduct commission. Most complaints are dismissed at the initial review stage, and the process operates entirely separately from your case.",
+      },
+      {
+        question: "Can a judge be disciplined for being rude?",
+        answer: "Inappropriate courtroom behavior — including berating litigants or making sexually inappropriate comments — falls within the categories of judicial misconduct the guide describes. However, the guide notes that a complaint supported by transcripts, audio recordings, witness statements, and specific dates is far more likely to be investigated than a general complaint about rudeness. A judge's legal rulings, even if clearly wrong, are not misconduct — the remedy for legal error is appeal.",
+      },
+      {
+        question: "What counts as judicial misconduct?",
+        answer: "Judicial misconduct falls into categories including bias or prejudice, improper ex parte communications, abuse of authority, delay and neglect, criminal conduct, and inappropriate courtroom behavior. Importantly, a judge's legal rulings — even if clearly wrong — are not judicial misconduct. The remedy for a ruling you disagree with is appeal, not a conduct complaint.",
+      },
+    ],
     category: "Court Procedures",
     readTime: "7 min",
     paragraphs: [
@@ -1554,6 +1722,20 @@ export const ARTICLES: Article[] = [
   {
     id: "right-to-protest",
     title: "Your Right to Protest: First Amendment Protections and Limits",
+    faqs: [
+      {
+        question: "Do I need a permit to protest?",
+        answer: "Many cities require permits for large gatherings, marches that block traffic, or the use of amplified sound, and the Supreme Court has upheld reasonable permit requirements while striking down those giving officials too much discretion. Permit requirements must be content-neutral, narrowly tailored, and leave open ample alternative channels. Spontaneous protests in response to breaking news are generally exempt — check your city's website.",
+      },
+      {
+        question: "Can police make me disperse from a protest?",
+        answer: "Police may impose dispersal orders, but they must be justified by public safety concerns, not the content of the protest, and must give protesters a reasonable opportunity to comply and a clear exit path. Mass arrests without probable cause as to each individual violate the Fourth Amendment. You do not have the right to physically resist even an unlawful arrest.",
+      },
+      {
+        question: "What are my rights at a protest?",
+        answer: "If stopped or arrested during a protest, your rights include the right to remain silent, the right to ask if you're free to leave, the right to record police in public, and the right to refuse consent to a search. Traditional public forums — streets, sidewalks, and parks — receive the highest protection, while the government can restrict protests in non-public forums more broadly as long as restrictions are reasonable and viewpoint-neutral.",
+      },
+    ],
     category: "Constitutional Law",
     readTime: "7 min",
     paragraphs: [
@@ -1647,6 +1829,20 @@ export const ARTICLES: Article[] = [
   {
     id: "eminent-domain",
     title: "What Is Eminent Domain? When the Government Takes Your Property",
+    faqs: [
+      {
+        question: "Can the government take my property?",
+        answer: "Yes — eminent domain is the inherent power of the government to take private property for public use, conditioned upon the payment of just compensation under the Fifth Amendment's Takings Clause. The government must satisfy both the public use requirement and the just compensation requirement. After Kelo, public use includes economic development purposes, though 46 states passed laws restricting the use of eminent domain for economic development.",
+      },
+      {
+        question: "What is just compensation?",
+        answer: "Just compensation means the government must pay the fair market value of the property taken — what a willing buyer would pay a willing seller — determined as of the date of the taking and considering the property's highest and best use. If only part of your property is taken, you're entitled to the value of the part taken plus severance damages for the reduction in value to your remaining property.",
+      },
+      {
+        question: "How do I challenge an eminent domain taking?",
+        answer: "Property owners have the right to challenge the government's valuation and demand a jury trial on the compensation amount. The guide recommends independently hiring a qualified real estate appraiser with eminent domain experience, since the government's initial offer is often below fair market value. You can present evidence including appraisals, comparable sales, and expert testimony on highest and best use.",
+      },
+    ],
     category: "Constitutional Law",
     readTime: "7 min",
     paragraphs: [
@@ -1703,6 +1899,20 @@ export const ARTICLES: Article[] = [
   {
     id: "equal-pay-act",
     title: "Understanding the Equal Pay Act: Your Right to Fair Wages",
+    faqs: [
+      {
+        question: "Can my employer pay me less for the same job?",
+        answer: "Under the Equal Pay Act, no — it prohibits sex-based wage discrimination between men and women who perform jobs requiring substantially equal skill, effort, and responsibility under similar working conditions in the same establishment. Once an employee shows a pay disparity for equal work, the burden shifts to the employer to prove one of four statutory defenses: seniority, merit, quantity or quality of production, or any factor other than sex.",
+      },
+      {
+        question: "What is the Equal Pay Act?",
+        answer: "The Equal Pay Act of 1963, codified at 29 U.S.C. § 206(d), prohibits sex-based wage discrimination between men and women who perform jobs requiring substantially equal skill, effort, and responsibility under similar working conditions in the same establishment. It was an amendment to the Fair Labor Standards Act and applies to virtually all employers. Notably, an EPA claim does not require proof of discriminatory intent.",
+      },
+      {
+        question: "How do I prove pay discrimination?",
+        answer: "To prove an EPA violation, an employee must show that the employer pays different wages to employees of the opposite sex, that the employees perform equal work on jobs requiring equal skill, effort, and responsibility, and that the jobs are performed under similar working conditions — courts look at actual duties, not job titles or descriptions. The burden then shifts to the employer to prove a statutory defense like seniority, merit, or a factor other than sex.",
+      },
+    ],
     category: "Employment Law",
     readTime: "7 min",
     paragraphs: [
@@ -1759,6 +1969,20 @@ export const ARTICLES: Article[] = [
   {
     id: "insider-trading",
     title: "What Is Insider Trading? Understanding Securities Fraud",
+    faqs: [
+      {
+        question: "What is insider trading?",
+        answer: "Insider trading is buying or selling a security while in possession of material, non-public information about that security, in breach of a duty of trust or confidence. The core wrong is not simply knowing something the public doesn't — it's the breach of duty to the source of the information or to the shareholders of the company. It is prosecuted under Section 10(b) of the Securities Exchange Act of 1934 and SEC Rule 10b-5.",
+      },
+      {
+        question: "Is insider trading a crime?",
+        answer: "Yes — insider trading carries both civil penalties through SEC enforcement and criminal penalties through DOJ prosecution under Section 10(b) of the Securities Exchange Act of 1934 and SEC Rule 10b-5. Liability rests on the classical theory for corporate insiders or the misappropriation theory for outsiders like lawyers and journalists, and both tippers and tippees can face liability.",
+      },
+      {
+        question: "What are the penalties for insider trading?",
+        answer: "Penalties are severe: civil penalties include disgorgement of profits, prejudgment interest, and a civil penalty of up to three times the profit gained or loss avoided. Criminal penalties include up to 20 years in prison for individuals and fines up to $5 million for individuals and $25 million for corporations. The SEC also offers whistleblower bounties of 10-30% of sanctions over $1 million.",
+      },
+    ],
     category: "Business Law",
     readTime: "8 min",
     paragraphs: [
@@ -1815,6 +2039,20 @@ export const ARTICLES: Article[] = [
   {
     id: "noise-complaints-nuisance",
     title: "Understanding Noise Complaints and Nuisance Laws",
+    faqs: [
+      {
+        question: "How do I file a noise complaint?",
+        answer: "The guide suggests a graduated approach before formal complaints: talk directly with the neighbor, follow up in writing, involve the landlord, then try mediation. If those steps fail, file formal complaints with police, code enforcement, or your HOA or condo board. Enforcement is typically through police, code enforcement, or a designated noise control officer, and citations range from $100-$1,000 for first offenses, escalating for repeat violations.",
+      },
+      {
+        question: "What can I do about a noisy neighbor?",
+        answer: "Start with direct, polite communication — many people don't realize they're disturbing others — then a written note or email to create a record. In rental situations, the landlord has a duty to address ongoing nuisances under the implied covenant of quiet enjoyment, and many cities offer free community mediation. As a last step, a private nuisance lawsuit in small claims or district court can request injunctive relief and/or damages.",
+      },
+      {
+        question: "Is there a decibel limit for noise?",
+        answer: "Most municipalities have decibel-based limits that vary by time of day — daytime limits typically 55-65 dBA and nighttime limits 45-55 dBA — and by zoning district, with residential zones stricter than commercial or industrial. Some ordinances are content-based while others are measurement-based. The legal standard for private nuisance is whether the interference is substantial, unreasonable, and offensive to a reasonable person.",
+      },
+    ],
     category: "Housing Law",
     readTime: "6 min",
     paragraphs: [
@@ -1836,6 +2074,20 @@ export const ARTICLES: Article[] = [
   {
     id: "subpoena-phone-records",
     title: "How to Subpoena Phone Records, Emails, and Social Media",
+    faqs: [
+      {
+        question: "How do I subpoena phone records?",
+        answer: "Draft the subpoena on the court's standard form, specifying the documents with reasonable particularity — for example, all call detail records for a phone number over a defined period — and serve it on the phone carrier's legal compliance department, typically through its registered agent. You must provide notice to all parties. Carriers can produce basic subscriber information and call detail records, but the content of communications like voicemail recordings is protected under the Stored Communications Act.",
+      },
+      {
+        question: "Can I get someone's text messages for court?",
+        answer: "Generally no, in civil cases: the Stored Communications Act restricts what electronic communication services can disclose, and the actual content of messages is heavily protected and may be unobtainable unless the account holder consents. Basic subscriber information can be obtained with a subpoena, but for content, the guide notes social media and email content is often best obtained directly from the opposing party through standard discovery like requests for production.",
+      },
+      {
+        question: "How do I subpoena Facebook or Google?",
+        answer: "For social media and email providers, serve the subpoena through the provider's registered agent or its online legal compliance portal, using the court's standard form with a document schedule that is specific rather than vague. Basic subscriber information is obtainable, but non-public content like private messages is heavily protected, and providers may notify the user and give them time to move to quash. Many providers simply refuse to produce content in response to civil subpoenas.",
+      },
+    ],
     category: "Evidence & Discovery",
     readTime: "8 min",
     paragraphs: [
@@ -1933,6 +2185,20 @@ export const ARTICLES: Article[] = [
   {
     id: "prepare-attorney-consultation",
     title: "How to Prepare for Your First Attorney Consultation: Documents, Questions, and What to Expect",
+    faqs: [
+      {
+        question: "How do I prepare for an attorney consultation?",
+        answer: "Gather the documents that tell the story of your situation — court papers, contracts, letters, emails, and payment records — and put them in a folder in the order they happened, with a one-line description of each document. Write a short, factual timeline of events: dates, who was involved, and what each person said or did. Come with questions about experience, general steps, realistic outcomes, and how you'll communicate.",
+      },
+      {
+        question: "What should I bring to a lawyer meeting?",
+        answer: "Bring any court papers you have received or filed, such as a complaint, summons, motion, or order; contracts or agreements; letters, emails, and text messages related to the dispute; bills, invoices, or payment records; and any earlier correspondence with the other side. Put the materials in a folder in the order they happened, and write a one-line description of each document. A short factual timeline of events also helps.",
+      },
+      {
+        question: "What questions should I ask a lawyer?",
+        answer: "Useful questions from the guide include: what experience do you have with cases like mine; what are the general steps this kind of matter usually involves; what outcomes are realistic; how will we communicate and how often; and what do you need from me next. If the attorney does not take the case, ask what else you can do — for example, public legal resources or a referral to another lawyer.",
+      },
+    ],
     category: "Court Procedures",
     readTime: "10 min",
     paragraphs: [
@@ -1955,6 +2221,20 @@ export const ARTICLES: Article[] = [
   {
     id: "organize-case-documents",
     title: "How to Organize Case Documents and Evidence for Your Court Case",
+    faqs: [
+      {
+        question: "How do I organize case documents?",
+        answer: "Start by sorting your materials into logical groups — court filings, communications with the other side, contracts and agreements, financial records, and physical items — and give each document a clear name that includes the date and a short description. Maintain a master list, or index, of every document with a one-line description of what it is and where it came from. Keep a chronology of events in date order with the document that supports each entry.",
+      },
+      {
+        question: "How should I label evidence for court?",
+        answer: "The guide recommends a consistent naming rule — a clear name that includes the date and a short description, like '2026-03-12 lease-agreement-signed' — so any document is findable months later. Keep originals of important documents and work from copies for everyday tasks. For physical items, preserve them in their original condition, handle them as little as possible, and note when, where, and from whom you obtained them.",
+      },
+      {
+        question: "Do I need an exhibit index?",
+        answer: "No filing system is legally required — courts base their decisions on what documents show and whether they were properly produced, not on how you organized them. But a master index with a one-line description of every document, plus a chronology in date order, becomes your case's backbone: it helps you explain the facts, spot gaps, respond accurately to discovery requests, and hand an attorney everything needed to evaluate your case.",
+      },
+    ],
     category: "Evidence & Discovery",
     readTime: "12 min",
     paragraphs: [
