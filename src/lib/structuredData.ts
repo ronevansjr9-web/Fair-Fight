@@ -6,7 +6,7 @@
 // present in the guide content itself. Author/Publisher is always the company,
 // "Fair Fight", never a fabricated person.
 import type { Article } from "./guides";
-import { SITE_ORIGIN, guideUrl } from "./guides";
+import { SITE_ORIGIN, guidePageDescription, guidePageH1, guideUrl } from "./guides";
 
 // Stable publication date for the /learn guide library. The guide data carries no
 // per-guide dates; we use a single stable value reflecting when the clean
@@ -45,8 +45,8 @@ export function articleSchema(article: Article): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: article.title,
-    description: article.paragraphs[0].substring(0, 160),
+    headline: guidePageH1(article),
+    description: guidePageDescription(article),
     mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
     url: canonical,
     datePublished: GUIDE_LIBRARY_DATE,
@@ -87,7 +87,7 @@ export function breadcrumbSchema(article: Article): Record<string, unknown> {
       {
         "@type": "ListItem",
         position: 3,
-        name: article.title,
+        name: guidePageH1(article),
         item: canonical,
       },
     ],
@@ -108,8 +108,8 @@ export function howToSchema(article: Article): Record<string, unknown> | null {
   return {
     "@context": "https://schema.org",
     "@type": "HowTo",
-    name: article.title,
-    description: article.paragraphs[0].substring(0, 160),
+    name: guidePageH1(article),
+    description: guidePageDescription(article),
     url: canonical,
     inLanguage: "en",
     step: article.takeaways.map((t) => ({ "@type": "HowToStep", text: t })),
