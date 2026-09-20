@@ -3,6 +3,7 @@ import { getGuideBySlug, guidePageDescription, guidePageH1 } from "./guides";
 import {
   articleSchema,
   breadcrumbSchema,
+  faqSchema,
   guideStructuredDataScripts,
   howToSchema,
   isHowToGuide,
@@ -97,5 +98,43 @@ describe("guideStructuredDataScripts", () => {
     expect(h["step"].length).toBe(a.takeaways.length);
     // Every step text is verbatim guide content.
     expect(h["step"][0].text).toBe(a.takeaways[0]);
+  });
+  test("tier-1 guides with faqs get an FAQPage script block alongside Article/Breadcrumb/HowTo", () => {
+    const a = getGuideBySlug("small-claims-court-guide")!;
+    const types = guideStructuredDataScripts(a).map((s) => JSON.parse(s.children)["@type"]);
+    expect(types).toContain("FAQPage");
+    expect(types).toContain("Article");
+    expect(types).toContain("BreadcrumbList");
+    const faqScript = guideStructuredDataScripts(a).find(
+      (s) => JSON.parse(s.children)["@type"] === "FAQPage"
+    )!;
+    expect(JSON.parse(faqScript.children)["mainEntity"].length).toBe(3);
+  });
+  test("guides without faqs keep the exact legacy script set (no FAQPage)", () => {
+    const a = getGuideBySlug("what-is-discovery")!;
+    const types = guideStructuredDataScripts(a).map((s) => JSON.parse(s.children)["@type"]);
+    expect(types).not.toContain("FAQPage");
+    expect(types).toEqual(["Article", "BreadcrumbList"]);
+  });
+});
+
+describe("faqSchema", () => {
+  test("emits FAQPage JSON-LD with well-formed Question/acceptedAnswer entries", () => {
+    const a = getGuideBySlug("how-to-file-a-motion")!;
+    const s = faqSchema(a) as any;
+    expect(s["@type"]).toBe("FAQPage");
+    expect(s["mainEntity"].length).toBe(3);
+    s["mainEntity"].forEach((q: any, i: number) => {
+      expect(q["@type"]).toBe("Question");
+      expect(q["name"], "question text").toBeTruthy();
+      expect(q["acceptedAnswer"]["@type"]).toBe("Answer");
+      expect(q["acceptedAnswer"]["text"], "answer text").toBeTruthy();
+      // Visible FAQ section and JSON-LD must stay in sync.
+      expect(q["name"]).toBe(a.faqs![i].question);
+      expect(q["acceptedAnswer"]["text"]).toBe(a.faqs![i].answer);
+    });
+  });
+  test("returns null for guides without faqs", () => {
+    expect(faqSchema(getGuideBySlug("what-is-discovery")!)).toBeNull();
   });
 });

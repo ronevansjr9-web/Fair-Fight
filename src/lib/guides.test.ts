@@ -4,6 +4,7 @@ import {
   GUIDE_REDIRECTS,
   getGuideBySlug,
   guidePageDescription,
+  guidePageFaqs,
   guidePageH1,
   guidePageTitle,
 } from "./guides";
@@ -228,5 +229,69 @@ describe("Wave 2 question-intent SEO (pilot batch)", () => {
       }
       expect(new Set(a.relatedGuides).size, `${a.id} relatedGuides dupes`).toBe(a.relatedGuides.length);
     }
+  });
+});
+
+describe("Wave 3 FAQ sections (tier-1 guides)", () => {
+  const TIER1_SLUGS = [
+    "how-to-file-a-motion",
+  "statute-of-limitations-guide",
+  "small-claims-court-guide",
+  "eviction-process-guide",
+  "how-to-respond-to-lawsuit",
+  "security-deposit-guide",
+  "debt-collection-defense",
+  "unemployment-benefits-guide",
+  "how-to-get-a-restraining-order",
+  "fight-restraining-order",
+  "restraining-order-guide",
+  "how-to-expunge-a-criminal-record",
+  "how-to-write-demand-letter",
+  "motion-to-dismiss-explained",
+  "what-is-a-complaint",
+  "tenant-rights-guide",
+  "fight-traffic-ticket",
+  "divorce-spouse-wont-sign",
+  "denied-insurance-claim",
+  "what-happens-after-filing-lawsuit",
+  "how-to-write-a-will",
+  "how-to-file-police-report",
+  ];
+  test("exactly the 22 tier-1 guides carry a 3-item faqs array; the other 40 have none", () => {
+    expect(ARTICLES.length).toBe(62);
+    const withFaqs = ARTICLES.filter((a) => a.faqs !== undefined).map((a) => a.id);
+    expect(withFaqs.sort()).toEqual([...TIER1_SLUGS].sort());
+    for (const a of ARTICLES) {
+      if (!TIER1_SLUGS.includes(a.id)) {
+        expect(a.faqs, `${a.id} faqs`).toBeUndefined();
+      } else {
+        expect(a.faqs!.length, `${a.id} faqs length`).toBe(3);
+      }
+    }
+  });
+  test("every tier-1 faq is question-shaped with a substantive answer", () => {
+    for (const slug of TIER1_SLUGS) {
+      const a = getGuideBySlug(slug)!;
+      for (const [i, faq] of (a.faqs ?? []).entries()) {
+        expect(faq.question.trim().endsWith("?"), `${slug} faq ${i} question shape`).toBe(true);
+        expect(faq.answer.length, `${slug} faq ${i} answer too short`).toBeGreaterThanOrEqual(80);
+        expect(faq.answer.length, `${slug} faq ${i} answer too long`).toBeLessThanOrEqual(700);
+        expect(faq.answer, `${slug} faq ${i} answer repeats question`).not.toBe(faq.question);
+      }
+    }
+  });
+  test("no guarantee/outcome language in faq copy", () => {
+    const banned = /\b(win your case|guaranteed|guarantee|best argument|beat the ticket|get your money back|sue successfully)\b/i;
+    for (const slug of TIER1_SLUGS) {
+      const a = getGuideBySlug(slug)!;
+      const copy = (a.faqs ?? []).map((f) => `${f.question} ${f.answer}`).join(" ");
+      expect(copy.match(banned), `${slug} faq copy`).toBeNull();
+    }
+  });
+  test("guidePageFaqs returns the faqs for tier-1 guides and undefined otherwise", () => {
+    const withFaqs = getGuideBySlug("how-to-file-a-motion")!;
+    expect(guidePageFaqs(withFaqs)).toBeDefined();
+    expect(guidePageFaqs(withFaqs)!.length).toBe(3);
+    expect(guidePageFaqs(getGuideBySlug("what-is-discovery")!)).toBeUndefined();
   });
 });

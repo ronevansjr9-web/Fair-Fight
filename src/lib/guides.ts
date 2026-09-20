@@ -18,6 +18,12 @@ export interface Article {
   seoTitle?: string;
   metaDescription?: string;
   h1?: string;
+  // Wave 3 FAQ sections (tier-1 guides only; absent on all others). Question
+  // phrasings come from the question-intent research map; answers are adapted
+  // only from this guide's own paragraphs/takeaways — no new legal claims,
+  // citations, figures, or state rules. Rendered as a visible FAQ section and
+  // as FAQPage JSON-LD only when non-empty.
+  faqs?: Array<{ question: string; answer: string }>;
 }
 
 
@@ -45,6 +51,20 @@ export const ARTICLES: Article[] = [
     title: "How to File a Motion: A Step-by-Step Guide for Self-Represented Litigants",
     seoTitle: "How to File a Motion in Court",
     metaDescription: "How do you file a motion in court? What goes in a motion, how to format and file it, and how to serve the other side. Not legal advice.",
+    faqs: [
+      {
+        question: "How do you file a motion in court?",
+        answer: "According to the guide, you file a motion by preparing the required parts and submitting them to the court after checking your local court rules on formatting. Every motion needs a caption identifying the court, parties, and case number; a title that tells the court what you're asking for; a statement of facts; a legal argument section; and a proposed order for the judge to sign. After filing, the court will typically schedule a hearing date or issue a ruling based on the papers.",
+      },
+      {
+        question: "Do you need a lawyer to file a motion?",
+        answer: "No — the guide is written for people representing themselves in court, and it explains that understanding how to properly draft, format, and file a motion is essential for anyone doing so. Format requirements vary by jurisdiction but generally follow similar patterns, so the guide recommends checking local court rules before filing. Always keep copies of everything you file and note all deadlines on a calendar.",
+      },
+      {
+        question: "What has to be in a motion to the court?",
+        answer: "Per the guide, every motion must include a caption identifying the court, parties, and case number; a title that tells the court what you're asking for; a statement of facts; a legal argument section citing relevant statutes and case law; and a proposed order for the judge to sign. The legal argument section is where you explain why the law supports your request. Many courts also require a certificate of service proving you sent a copy to the other party.",
+      },
+    ],
     category: "Court Procedures",
     readTime: "12 min",
     paragraphs: [
@@ -68,6 +88,20 @@ export const ARTICLES: Article[] = [
     seoTitle: "Statute of Limitations: How Long You Have",
     metaDescription: "How long do you have to sue? How statutes of limitations work by claim type, and how tolling and the discovery rule can change your deadline.",
     h1: "How Long Do You Have to Sue? Statute of Limitations Basics",
+    faqs: [
+      {
+        question: "How long do you have to sue someone?",
+        answer: "The guide explains that deadlines vary significantly by state and by the type of legal claim — there is no single nationwide limit. For example, personal injury claims range from 1 year in some states to 6 years in others, and breach of written contract claims range from 3 years in many states to up to 15 years in Ohio. Missing the deadline permanently loses the right to sue, regardless of how strong the case is.",
+      },
+      {
+        question: "What is the statute of limitations for a personal injury claim?",
+        answer: "The guide says personal injury claims range from 1 year in Kentucky, Louisiana, and Tennessee to 6 years in Maine and North Dakota. A statute of limitations is a law that sets the maximum time after an event within which legal proceedings may be initiated, and the clock typically starts running from the date of injury or the date the injury was discovered. The discovery rule can delay the start when the harm is not immediately apparent, but courts apply tolling doctrines narrowly.",
+      },
+      {
+        question: "Why does the statute of limitations vary by state?",
+        answer: "A statute of limitations is a state law that sets the maximum time after an event within which legal proceedings may be initiated, and the guide notes these laws vary significantly by state and by claim type. Federal claims have their own deadlines — for example, Title VII employment discrimination claims must be filed with the EEOC within 180 or 300 days depending on the state, and Section 1983 civil rights claims borrow the personal injury limit from the state where the claim arose. Check both state and federal law for the deadline that applies to you.",
+      },
+    ],
     category: "Court Procedures",
     readTime: "15 min",
     paragraphs: [
@@ -110,6 +144,20 @@ export const ARTICLES: Article[] = [
   {
     id: "motion-to-dismiss-explained",
     title: "Motion to Dismiss: What It Is, When to File, and How to Respond",
+    faqs: [
+      {
+        question: "What is a motion to dismiss?",
+        answer: "A motion to dismiss is a request asking the court to throw out a case, or specific claims within it, usually before the defendant files an answer. Under Federal Rule of Civil Procedure 12(b), a party can move to dismiss for grounds including lack of jurisdiction, improper venue, insufficient service of process, or failure to state a claim — 12(b)(6) is the most common. The complaint needs enough facts to state a claim to relief that is plausible on its face.",
+      },
+      {
+        question: "How do I respond to a motion to dismiss?",
+        answer: "If you're the plaintiff facing a motion to dismiss, you have the right to file an opposition brief explaining why your complaint meets the legal standard. The key is addressing each ground the defendant raised — don't just argue the facts; explain why your complaint meets the legal pleading standard and cite cases that support your position. If needed, ask for leave to amend so you can fix any technical deficiencies.",
+      },
+      {
+        question: "Can I amend my complaint after a motion to dismiss?",
+        answer: "Yes. The guide says you can amend your complaint once as a matter of course within 21 days after service of the motion to dismiss. If the court grants the motion with prejudice, the case is over; without prejudice means you can fix the problems and refile. Timing matters because most defenses must be raised in the first responsive filing or they're waived.",
+      },
+    ],
     category: "Court Procedures",
     readTime: "11 min",
     paragraphs: [
@@ -131,6 +179,20 @@ export const ARTICLES: Article[] = [
   {
     id: "what-is-a-complaint",
     title: "How to Draft a Complaint: The First Step in Filing a Civil Lawsuit",
+    faqs: [
+      {
+        question: "How do I write a complaint?",
+        answer: "A well-drafted complaint typically includes a caption identifying the court, parties, and case number; a jurisdictional statement; a statement of facts organized chronologically; numbered counts or causes of action, each identifying a specific legal theory; a prayer for relief stating what you want; and a jury demand if you want a jury trial. Each count must identify the legal elements of the claim and specific facts supporting each element. Cite relevant case law where helpful, but focus primarily on factual allegations.",
+      },
+      {
+        question: "What does a complaint have to include?",
+        answer: "Under Rule 8(a) of the Federal Rules of Civil Procedure, a complaint must contain a short and plain statement of the grounds for jurisdiction, a short and plain statement of the claim showing entitlement to relief, and a demand for the relief sought. Under the Twombly and Iqbal standard, it must contain sufficient factual matter to state a claim that is 'plausible on its face' — you can't just recite the legal elements; you need specific facts showing why you're entitled to relief.",
+      },
+      {
+        question: "How do I start a civil lawsuit?",
+        answer: "The complaint is the document that starts a civil lawsuit: it tells the court what happened, why the defendant is legally responsible, and what relief you're seeking. Before filing, verify the statute of limitations hasn't expired and confirm the court has jurisdiction. Then file the complaint with the court clerk, pay the filing fee or request a fee waiver, and arrange for service of process on the defendant.",
+      },
+    ],
     category: "Court Procedures",
     readTime: "13 min",
     paragraphs: [
@@ -260,6 +322,20 @@ export const ARTICLES: Article[] = [
     seoTitle: "Sued by a Debt Collector? How to Respond",
     metaDescription: "Being sued by a debt collector? How to answer in time, common defenses such as lack of standing or an expired limitations period. Not legal advice.",
     h1: "Being Sued by a Debt Collector: How to Respond",
+    faqs: [
+      {
+        question: "I'm being sued by a debt collector — what do I do?",
+        answer: "The most important step, per the guide, is to file a written answer with the court within the deadline, usually 20-30 days. Your answer should respond to each numbered paragraph of the complaint and raise affirmative defenses like an expired statute of limitations, lack of standing, or failure to state a claim. Never ignore the lawsuit — a default judgment can lead to wage garnishment or a bank levy.",
+      },
+      {
+        question: "How do I fight a debt collection lawsuit?",
+        answer: "The guide lists key defenses: the statute of limitations has expired, typically 3-6 years depending on state and debt type; the plaintiff lacks standing to sue because it can't prove it owns the debt; the amount is incorrect; identity theft or fraud; the debt was already paid or discharged in bankruptcy; or the debt collector violated the FDCPA. Always demand strict proof of the debt — account statements, chain of assignment, and the original contract. If the debt collector violated the FDCPA, you may have counterclaims for statutory damages up to $1,000 plus attorney fees.",
+      },
+      {
+        question: "Can a debt collector garnish my wages?",
+        answer: "The guide warns that if you don't answer the lawsuit, the debt collector can get a default judgment and potentially garnish your wages or levy your bank account. Filing a written answer within the deadline is what gives you the chance to raise defenses such as an expired statute of limitations or lack of standing. The guide also notes that many debt collection cases settle for less than the full amount.",
+      },
+    ],
     category: "Debt Collection",
     readTime: "13 min",
     paragraphs: [
@@ -283,6 +359,20 @@ export const ARTICLES: Article[] = [
     seoTitle: "Eviction Process: Tenant Rights Step by Step",
     metaDescription: "How does an eviction work, and what can a tenant do about it? The notice, the court case, defenses you can raise, and what happens after a judgment.",
     h1: "How Does the Eviction Process Work?",
+    faqs: [
+      {
+        question: "How does the eviction process work?",
+        answer: "The guide describes the process as notice first, then an eviction lawsuit, a hearing, and a judgment. It typically begins with a notice to the tenant: a pay-or-quit notice for non-payment of rent, usually 3-14 days depending on state; a cure-or-quit notice for lease violations; or an unconditional quit notice for serious violations. If the tenant doesn't comply within the notice period, the landlord can file an eviction lawsuit in court, and tenants have the right to proper service, to file an answer raising defenses, and to participate in a hearing.",
+      },
+      {
+        question: "Can my landlord evict me without going to court?",
+        answer: "No — self-help evictions such as changing locks, shutting off utilities, or removing belongings are illegal in all 50 states. Every state has specific procedures landlords must follow: proper notice, an eviction lawsuit if the tenant doesn't comply, and the tenant's right to respond and appear at a hearing. If you receive an eviction notice, act immediately: contact legal aid, respond to the court, and document everything.",
+      },
+      {
+        question: "What are my rights when I get an eviction notice?",
+        answer: "The guide says tenants have the right to receive proper service of the eviction lawsuit, file an answer raising defenses, and participate in a hearing. Common defenses include the landlord not following proper procedures, a retaliatory eviction in response to a habitability complaint, discrimination in violation of the Fair Housing Act, the landlord failing to maintain habitable conditions, or the tenant having already paid or offered to pay the rent. Act immediately and document everything.",
+      },
+    ],
     category: "Housing Law",
     readTime: "14 min",
     paragraphs: [
@@ -306,6 +396,20 @@ export const ARTICLES: Article[] = [
     seoTitle: "Get Your Security Deposit Back",
     metaDescription: "Can your landlord keep your security deposit? What can be deducted, the return deadline, and how to get your deposit back if they refuse.",
     h1: "How Do I Get My Security Deposit Back?",
+    faqs: [
+      {
+        question: "How do I get my security deposit back?",
+        answer: "The guide's advice is to protect yourself from the start: take dated photos and video when you move in and out, complete a move-in inspection checklist, report needed repairs in writing, clean thoroughly before moving out, and provide a forwarding address in writing. Send everything by certified mail with return receipt so you have proof of delivery. If the landlord wrongfully withholds your deposit, you can sue in small claims court and bring your evidence — photos, inspection reports, correspondence, and a copy of the lease.",
+      },
+      {
+        question: "Can my landlord keep my security deposit?",
+        answer: "Landlords can only deduct for specific reasons: unpaid rent, damage beyond normal wear and tear, cleaning costs if the unit is left unusually dirty, and in some states unpaid utility bills. Normal wear and tear — like minor scuffs on walls, worn carpet from regular use, or faded paint — cannot be deducted. Landlords must provide an itemized statement of deductions along with any remaining deposit within the state-mandated deadline.",
+      },
+      {
+        question: "How long does a landlord have to return a deposit?",
+        answer: "Every state regulates security deposits, including strict deadlines for returning deposits after move-out, usually 14-45 days. Landlords must provide an itemized statement of deductions within that deadline. If they fail to do so, tenants may be entitled to the full deposit regardless of any damages, plus statutory penalties — often 2-3 times the deposit amount — in many states.",
+      },
+    ],
     category: "Housing Law",
     readTime: "9 min",
     paragraphs: [
@@ -414,6 +518,20 @@ export const ARTICLES: Article[] = [
     seoTitle: "How to Sue in Small Claims Court",
     metaDescription: "How do you sue someone in small claims court? Filing steps, the monetary limit, serving the defendant, and collecting a judgment. Not legal advice.",
     h1: "How Do You Sue Someone in Small Claims Court?",
+    faqs: [
+      {
+        question: "How do I sue someone in small claims court?",
+        answer: "The guide outlines the steps: confirm small claims court is the right venue, fill out a complaint form describing what happened and how much you're owed, and file it with the clerk in the county where the defendant lives or does business, or where the dispute occurred. Pay the filing fee, and note that fee waivers are available for low-income litigants. The clerk schedules a hearing date, issues a summons, and usually handles service via certified mail or sheriff's service for a small additional fee.",
+      },
+      {
+        question: "How much can you sue for in small claims court?",
+        answer: "Each state sets its own monetary limit — typically $3,000 to $10,000, though some states go up to $25,000. Small claims courts generally handle claims for money only and cannot order someone to do something like return property or perform a service, though some states allow limited equitable relief. If you're owed more than the limit, you can waive the excess and sue for the limit, but you can't split one claim into multiple small claims cases.",
+      },
+      {
+        question: "How do I start a small claims case?",
+        answer: "Before filing, confirm the case fits small claims court: a money-only dispute within the court's monetary limit, filed in the right county, and within the statute of limitations — most small claims cases must be filed within 2-6 years depending on the claim type and state. Consider sending a formal demand letter first, since it shows the court you tried to resolve the dispute and may settle the case without litigation. Then file the complaint form using the defendant's correct legal name and address.",
+      },
+    ],
     category: "Court Procedures",
     readTime: "11 min",
     paragraphs: [
@@ -437,6 +555,20 @@ export const ARTICLES: Article[] = [
   {
     id: "what-happens-after-filing-lawsuit",
     title: "What Happens After You File a Complaint: A Timeline of Civil Litigation",
+    faqs: [
+      {
+        question: "What happens after you file a lawsuit?",
+        answer: "Civil litigation follows a predictable timeline: pleadings, discovery, dispositive motions, pretrial, trial, and post-trial. In the pleadings phase, the defendant is served and must answer or move to dismiss, typically within 21 days, and a case management conference results in a scheduling order with all key deadlines. Most cases settle before trial — more than 95% of civil cases never reach a jury verdict.",
+      },
+      {
+        question: "How long does a lawsuit take?",
+        answer: "The guide gives rough timelines for the phases: discovery typically lasts 6-12 months; a trial typically lasts 1-10 days depending on complexity; and appeals take 12-24 months. The scheduling order sets all the key deadlines, so the guide says to put every deadline on a calendar immediately. Most cases settle before trial.",
+      },
+      {
+        question: "What are the stages of a civil case?",
+        answer: "The guide lists the phases as pleadings, discovery, dispositive motions, pretrial, trial, and post-trial or appeal. Discovery is the most active phase, where parties exchange information through interrogatories, document requests, requests for admissions, and depositions, and failure to respond can lead to sanctions. After discovery closes, parties may file motions for summary judgment before the case proceeds to pretrial and trial.",
+      },
+    ],
     category: "Court Procedures",
     readTime: "13 min",
     paragraphs: [
@@ -458,6 +590,20 @@ export const ARTICLES: Article[] = [
     {
     id: "restraining-order-guide",
     title: "How to Get a Restraining Order: Step-by-Step Guide",
+    faqs: [
+      {
+        question: "How do I file for a restraining order?",
+        answer: "The process starts by filing a petition at your local courthouse, usually in the civil or family court division, describing in detail the incidents that led you to seek protection: dates, times, what happened, whether weapons were involved, and any injuries. Many courts have self-help centers or domestic violence advocates who can assist with the paperwork at no cost. After filing, a judge reviews your petition the same day in most cases.",
+      },
+      {
+        question: "Do I need a police report to get a restraining order?",
+        answer: "No — the guide says you don't need a police report to file, though having one helps. What you do need is a detailed petition describing the incidents, and at the full hearing you should bring all evidence: photos of injuries or damage, threatening messages such as texts, emails, and voicemails, police reports, medical records, and witnesses.",
+      },
+      {
+        question: "How long does a temporary restraining order last?",
+        answer: "A TRO issued after the judge's same-day review usually lasts 14-21 days, until a full hearing can be held. The TRO takes effect immediately and can order the respondent to move out of a shared residence, stay away from your home, work, or school, and have no contact with you. Police will serve the order on the respondent.",
+      },
+    ],
     category: "Family Law",
     readTime: "8 min",
     paragraphs: [
@@ -521,6 +667,20 @@ export const ARTICLES: Article[] = [
     {
     id: "fight-traffic-ticket",
     title: "How to Fight a Traffic Ticket in Court: A Complete Guide",
+    faqs: [
+      {
+        question: "How do I fight a traffic ticket?",
+        answer: "The guide says to plead not guilty and request a hearing — most jurisdictions allow you to do this by mail or online, so check the instructions on your ticket. In the meantime, gather evidence: photos of the scene such as road conditions and signage visibility, dashcam footage, witness statements, weather reports for that day, and your driving record. At the hearing, the officer must prove you committed the violation.",
+      },
+      {
+        question: "Should I fight my ticket or just pay it?",
+        answer: "The guide frames this as the first decision. Paying the fine is an admission of guilt and typically results in points on your license, while contesting means you plead not guilty and request a hearing. A ticket isn't just a fine — it can mean points on your license, increased insurance premiums for years, and in some cases license suspension, so the guide notes fighting a ticket can be worth the effort even if you were technically in the wrong.",
+      },
+      {
+        question: "What happens if I contest a traffic ticket?",
+        answer: "You'll receive a court date for a hearing where the officer must prove you committed the violation. Common defenses include the officer making a mistake, inadequate or obscured signage, necessity, or a factual error on the ticket. If the officer doesn't show up at the hearing, the ticket is often dismissed — but don't count on it, since many departments now require officers to attend. If you lose, you can usually appeal to a higher court, though the process varies by state.",
+      },
+    ],
     category: "Criminal Law",
     readTime: "8 min",
     paragraphs: [
@@ -542,6 +702,20 @@ export const ARTICLES: Article[] = [
     {
     id: "tenant-rights-guide",
     title: "Tenant Rights: What Your Landlord Can and Cannot Do",
+    faqs: [
+      {
+        question: "What are my rights as a tenant?",
+        answer: "The guide identifies four core rights that apply broadly: the right to a habitable home, the right to privacy, protection against discrimination, and the right to due process before eviction. It also covers the three areas where tenants most commonly need to assert their rights: security deposits, repairs and habitability, and eviction defense. Specific protections vary by jurisdiction, since tenant rights are a patchwork of federal, state, and local laws.",
+      },
+      {
+        question: "Can my landlord enter without notice?",
+        answer: "Generally no — the guide says most states require 24-48 hours' notice before the landlord can enter, except in emergencies like a burst pipe or fire. Landlords cannot enter to harass you, show the unit to strangers without notice, or conduct repeated unnecessary inspections designed to force you out. If the landlord violates your privacy repeatedly, you may have grounds for a rent reduction or lease termination.",
+      },
+      {
+        question: "What can a landlord legally do to me?",
+        answer: "A landlord must follow the law at every step: self-help evictions — changing locks, shutting off utilities, or removing your belongings — are illegal in all 50 states, and a lawful eviction requires proper notice, an eviction lawsuit, service, a hearing, and a court order before a sheriff can physically remove you. Discrimination is illegal under the Fair Housing Act, which prohibits refusing to rent, setting different terms, or refusing reasonable accommodations based on protected characteristics. Retaliation for asserting your rights is also illegal.",
+      },
+    ],
     category: "Housing Law",
     readTime: "9 min",
     paragraphs: [
@@ -628,6 +802,20 @@ export const ARTICLES: Article[] = [
     {
     id: "how-to-file-police-report",
     title: "How to File a Police Report: When and How to Document an Incident",
+    faqs: [
+      {
+        question: "How do I file a police report?",
+        answer: "For emergencies or crimes in progress, call 911 immediately; for non-emergencies like theft discovered after the fact, vandalism, or fraud, call your local police non-emergency number or visit the station in person. Have all relevant information ready: dates, times, locations, descriptions of people involved, vehicle information, serial numbers of stolen items, and any evidence. When giving your statement, stick to the facts — what happened, when, where, who was involved, and what was taken or damaged — and ask for the report number before you leave.",
+      },
+      {
+        question: "Do I need a police report for an insurance claim?",
+        answer: "The guide says a police report can be critical evidence in insurance claims, and if you need the report for one, provide the report number to your adjuster. File a report for any incident where you might need an official record for an insurance claim, a restraining order, or future legal action. Even if you think nothing will come of it, having a report on file creates a paper trail that can be invaluable later.",
+      },
+      {
+        question: "Can I file a police report online?",
+        answer: "Many departments now allow online reporting for minor incidents like theft under a certain dollar amount, lost property, or vandalism. For non-emergencies such as theft discovered after the fact, vandalism, or fraud, you can also call the non-emergency number or visit the station in person. For emergencies or crimes in progress, call 911 immediately.",
+      },
+    ],
     category: "Criminal Law",
     readTime: "6 min",
     paragraphs: [
@@ -670,6 +858,20 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-write-demand-letter",
     title: "How to Write a Demand Letter",
+    faqs: [
+      {
+        question: "How do I write a demand letter?",
+        answer: "The guide says a strong demand letter should include five parts: a clear statement of the facts — what happened, when, where, and who was involved; the legal basis for your claim; the specific remedy you're seeking, such as an exact dollar amount; a deadline for response, typically 10-30 days; and a statement of what you'll do if they don't comply. Keep the tone professional and factual, not emotional or threatening. Send the letter by certified mail with return receipt requested so you have proof of delivery.",
+      },
+      {
+        question: "Do I have to send a demand letter before suing?",
+        answer: "In some cases, yes. The guide notes that many courts and agencies require a demand letter before you can file certain types of cases — for example, small claims courts in many states require evidence that you attempted to resolve the dispute before filing. Even when not legally required, a demand letter shows the court that you tried to resolve the matter in good faith.",
+      },
+      {
+        question: "What should a demand letter for money owed say?",
+        answer: "The guide says to be specific about your demand: instead of 'pay me what you owe,' state the exact amount and what it represents, such as 'Pay $3,247.50, representing unpaid rent for March and April 2026 at $1,623.75 per month, within 14 days of receipt.' Attach supporting documents like contracts, invoices, receipts, and photos, and avoid making threats you don't intend to carry out.",
+      },
+    ],
     category: "Consumer Law",
     readTime: "7 min",
     paragraphs: [
@@ -695,6 +897,20 @@ export const ARTICLES: Article[] = [
     seoTitle: "How to File for Unemployment Benefits",
     metaDescription: "How do you file for unemployment benefits? Who qualifies, what you need to apply, why claims are denied, and how the appeal hearing works.",
     h1: "How Do I File for Unemployment Benefits?",
+    faqs: [
+      {
+        question: "How do I file for unemployment benefits?",
+        answer: "The guide says to file a claim through your state's unemployment agency — most states now have online portals available 24/7. You'll need your Social Security number, driver's license or state ID, employment history for the past 18 months, and the reason for separation from each job. File immediately after your last day of work, because benefits are not retroactive to before you applied.",
+      },
+      {
+        question: "Why was my unemployment claim denied?",
+        answer: "The guide lists the most common denial reasons: the agency determined you quit without good cause, were fired for misconduct, or didn't earn enough wages during the base period. To qualify in the first place, you generally must be unemployed through no fault of your own, have earned sufficient wages during a base period — typically the first four of the last five completed calendar quarters — and be able, available, and actively seeking work.",
+      },
+      {
+        question: "How do I appeal a denied unemployment claim?",
+        answer: "If your claim is denied, you have the right to appeal. The process varies by state but typically involves filing a written appeal within a strict deadline (often 10-30 days), participating in a telephone or in-person hearing before an administrative law judge, and presenting evidence and witness testimony. The guide notes that many claimants win at the hearing stage, especially when employers fail to appear or lack documentation to support their version of events.",
+      },
+    ],
     category: "Employment Law",
     readTime: "7 min",
     paragraphs: [
@@ -779,6 +995,20 @@ export const ARTICLES: Article[] = [
   {
     id: "denied-insurance-claim",
     title: "How to Fight a Denied Insurance Claim",
+    faqs: [
+      {
+        question: "How do I appeal a denied insurance claim?",
+        answer: "The guide describes an appeal ladder with multiple levels: an internal appeal to the insurer with additional documentation and a legal argument for why the policy covers your claim; external review by an independent third party, which many states require for health insurance denials; a state insurance department complaint at no cost; and, in appropriate cases, litigation. Most policies have strict deadlines for internal appeals, often 60-180 days, and missing an appeal deadline can permanently waive your right to challenge the denial.",
+      },
+      {
+        question: "Why did my insurance claim get denied?",
+        answer: "The denial letter must explain the specific reasons, and the guide lists common grounds: the loss isn't covered under the policy terms, the policy had lapsed for non-payment, you failed to provide requested documentation, the claim exceeds policy limits, the insurer believes you misrepresented facts on your application, or the insurer disputes the value of your loss. The guide recommends reading your full policy — not just the declarations page — and identifying the specific provision the insurer is relying on.",
+      },
+      {
+        question: "What is insurance bad faith?",
+        answer: "In most states, insurers owe a duty of good faith and fair dealing to their policyholders. If the insurer unreasonably denies a valid claim, fails to properly investigate, deliberately delays payment, or offers far less than the claim is worth without reasonable basis, you may have a bad faith claim. Bad faith damages can include the full value of the original claim, consequential damages, emotional distress damages, and in cases of egregious conduct, punitive damages — and your attorney fees may also be recoverable.",
+      },
+    ],
     category: "Consumer Law",
     readTime: "9 min",
     paragraphs: [
@@ -952,6 +1182,20 @@ export const ARTICLES: Article[] = [
     seoTitle: "Served With a Lawsuit? How to Respond",
     metaDescription: "Just been served with a lawsuit? How long you have to respond, how to answer a complaint, when to file a motion instead, and avoid a default judgment.",
     h1: "How Do I Respond to a Lawsuit?",
+    faqs: [
+      {
+        question: "How do I respond to a lawsuit?",
+        answer: "The guide presents three basic options: file an answer admitting, denying, or stating you lack sufficient information for each numbered paragraph of the complaint; file a motion to dismiss under Rule 12(b) or an equivalent state rule; or contact the plaintiff or their attorney to attempt settlement. Your answer should also raise affirmative defenses — legal reasons why the plaintiff should not win even if their facts are true. Doing nothing allows the plaintiff to obtain a default judgment against you.",
+      },
+      {
+        question: "I was served with a summons — what do I do?",
+        answer: "The guide's first and most important rule is to respond: you typically have 21 days in federal court or 20-30 days in state court after service. Count from the date of service, not the date the complaint was filed, mark the deadline immediately, and aim to file 2-3 days early. Weeks and holidays count, but if the deadline falls on a weekend or holiday, it extends to the next business day.",
+      },
+      {
+        question: "How long do I have to answer a complaint?",
+        answer: "Typically 21 days in federal court under Rule 12(a), or 20-30 days in state court, counted from the date of service. If you file a motion to dismiss and it is denied, you usually have 14 days to file your answer — check your local rules. Notify your insurance company immediately if the lawsuit relates to a car accident, a slip-and-fall, or professional services, because it may have a duty to defend you.",
+      },
+    ],
     category: "Court Procedures",
     readTime: "9 min",
     paragraphs: [
@@ -994,6 +1238,20 @@ export const ARTICLES: Article[] = [
   {
     id: "fight-restraining-order",
     title: "How to Fight a Restraining Order: Your Legal Rights",
+    faqs: [
+      {
+        question: "How do I fight a restraining order?",
+        answer: "The guide says the most important immediate step is to comply with the temporary restraining order completely and immediately — even if you believe it's based on lies — because violating a TRO can result in criminal charges. Then prepare for the full hearing, typically scheduled 14-21 days after the TRO is issued: gather texts, emails, voicemails, and social media posts that contradict the allegations, witness statements, photos and videos, phone records and location data, and evidence of any motive to fabricate. At the hearing, the burden of proof is on the petitioner.",
+      },
+      {
+        question: "Someone filed a false restraining order against me — what do I do?",
+        answer: "The guide covers this directly: comply with the TRO completely and immediately, then focus on preparing your defense for the full hearing. Key strategies include highlighting inconsistencies in the petitioner's story, introducing evidence of friendly communication during the alleged period, establishing a motive to fabricate — such as pending custody, divorce, or property disputes — and presenting your own witnesses and evidence. Stay calm, respectful, and factual, because your demeanor is evidence.",
+      },
+      {
+        question: "What happens at a restraining order hearing?",
+        answer: "At the full hearing, both sides can appear and present evidence, and the petitioner must prove by a preponderance of the evidence — more likely than not — that harassment, abuse, or threats occurred. You or your attorney will have the opportunity to cross-examine the petitioner and their witnesses. If the order is granted despite your defense, the guide lists your options: appeal within short deadlines (typically 10-30 days), seek a modification or dissolution if circumstances change, or comply meticulously with the order for its duration.",
+      },
+    ],
     category: "Family Law",
     readTime: "8 min",
     paragraphs: [
@@ -1143,6 +1401,20 @@ export const ARTICLES: Article[] = [
   {
     id: "divorce-spouse-wont-sign",
     title: "How to Get a Divorce When Your Spouse Won't Sign",
+    faqs: [
+      {
+        question: "Can I get a divorce if my spouse won't sign?",
+        answer: "Yes — the guide states plainly that a spouse's refusal to sign divorce papers does not prevent you from obtaining a divorce, and every state allows a contested or default divorce when one spouse is uncooperative. The critical point is that your spouse cannot keep you married by simply refusing to sign; courts routinely grant divorces over one spouse's objection. In all states, no-fault divorce is available, so you simply allege that the marriage is irretrievably broken or that you have irreconcilable differences.",
+      },
+      {
+        question: "How do I serve divorce papers when my spouse is avoiding service?",
+        answer: "If your spouse is avoiding service, the guide says you can request alternative service: service by certified mail, service by publication in a newspaper, or service by posting notice at the courthouse or last known address. Alternative service requires court approval and a showing that you've made diligent efforts to locate and serve your spouse, such as checking with relatives, employers, DMV records, and social media. Keep records of all service attempts.",
+      },
+      {
+        question: "How does a default divorce work?",
+        answer: "After service, your spouse has a deadline to respond — typically 20-30 days depending on the state. If they don't file an answer, you can request a default judgment, meaning the court grants the divorce based on your petition alone without your spouse's participation. The process requires filing a request for default, submitting a proposed divorce decree, and often attending a brief hearing where you testify — and the court will still review child custody and support arrangements for the best interests of the children.",
+      },
+    ],
     category: "Family Law",
     readTime: "9 min",
     paragraphs: [
@@ -1185,6 +1457,20 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-write-a-will",
     title: "How to Write a Will: A Step-by-Step Guide",
+    faqs: [
+      {
+        question: "How do I write a will?",
+        answer: "The guide's steps: make a comprehensive list of your assets and debts, decide who gets what — specific bequests and residuary bequests — name an executor and an alternate, name a guardian for minor children, draft the will in clear, unambiguous language, and execute it properly by signing in the presence of witnesses and having them sign. Then store the original in a safe place, such as a fireproof safe, bank safe deposit box, or with your attorney, and tell your executor where to find it. Update it after major life events like marriage, divorce, birth of a child, or death of a beneficiary.",
+      },
+      {
+        question: "Can I write my own will without a lawyer?",
+        answer: "Yes — the guide notes a will doesn't require a lawyer in most situations, and online will services and guided software can produce valid wills for simple estates at a fraction of the cost of an attorney. The basic requirements — legal age, sound mind, writing, signature, and witnesses — vary by state, so a will valid in one state may not satisfy another state's formalities. For complex situations like blended families, business ownership, or significant assets, the guide recommends an estate planning attorney.",
+      },
+      {
+        question: "Does a will need to be notarized?",
+        answer: "Not necessarily. The guide says most states require two or three witnesses who see you sign and then sign themselves, and witnesses should be disinterested — not beneficiaries under the will — to avoid challenges. Some states allow notarized 'self-proving' affidavits that let the will be admitted to probate without witness testimony, and a few states allow holographic wills, which are handwritten, signed, but not witnessed, though these are more vulnerable to challenge.",
+      },
+    ],
     category: "Estate Planning",
     readTime: "8 min",
     paragraphs: [
@@ -1293,6 +1579,20 @@ export const ARTICLES: Article[] = [
     seoTitle: "How to Expunge a Criminal Record",
     metaDescription: "Can you expunge a criminal record? How eligibility works by offense and disposition, what to file, and what a sealed record does not hide.",
     h1: "How Do I Expunge a Criminal Record?",
+    faqs: [
+      {
+        question: "How do I expunge my criminal record?",
+        answer: "The guide's step-by-step process: determine eligibility under your state's expungement statute, obtain your complete criminal record from the state bureau of investigation, state police, or the FBI, gather supporting documents such as certified dispositions and proof of completed sentence, and file a petition in the court where the case was heard. Many states provide fillable forms — look for 'Petition for Expungement' or 'Motion to Seal Record' on your court's website. The filing fee is typically $50-$300, though fee waivers may be available.",
+      },
+      {
+        question: "Am I eligible for expungement?",
+        answer: "Eligibility depends primarily on the type of offense (misdemeanor vs. felony), the disposition of the case, and the waiting period since completing your sentence — and each state has its own expungement laws. Generally, arrests that did not lead to conviction are nearly always eligible; dismissed charges and acquittals are typically eligible immediately or after a short waiting period; misdemeanor convictions may be eligible after a waiting period, often 1-5 years; and felony convictions are the hardest to expunge. Federal convictions are extremely difficult to expunge because there is no general federal expungement statute.",
+      },
+      {
+        question: "How long does expungement take?",
+        answer: "The guide notes that expungement takes time — expect 2-6 months from filing to order in many states. Before filing, the waiting period since completing your sentence can be part of the eligibility analysis, and you may need to request your record and gather supporting documents first. Some states automatically seal records after a waiting period, while others require a formal petition to the court.",
+      },
+    ],
     category: "Criminal Law",
     readTime: "9 min",
     paragraphs: [
@@ -1317,6 +1617,20 @@ export const ARTICLES: Article[] = [
     seoTitle: "How to Get a Restraining Order",
     metaDescription: "How do you get a restraining order? The types of protective orders, what evidence to file, what a judge can order, and how the hearing works.",
     h1: "How Do I Get a Restraining Order?",
+    faqs: [
+      {
+        question: "How do I get a restraining order?",
+        answer: "The guide's path: go to your local courthouse — typically the family court, domestic violence court, or superior court — and fill out the petition forms, which are usually free fill-in-the-blank forms. Describe the abuse in detail with dates, specific incidents, and threats; attach evidence like photos of injuries, screenshots of threatening messages, police reports, and medical records; and file the petition with the clerk. A judge reviews your petition, usually the same day, and can issue a temporary order.",
+      },
+      {
+        question: "How do I file a protective order?",
+        answer: "Most courthouses have a domestic violence clerk or self-help center specifically for protective orders. You'll describe the abuse in detail — dates, specific incidents, threats, injuries, whether weapons were involved, whether children witnessed it, and any prior police reports — then attach evidence and file with the clerk. In most states there is no filing fee for domestic violence protective orders, so confirm with the court's clerk or self-help center and ask about fee waivers if a fee applies.",
+      },
+      {
+        question: "How long does a restraining order last?",
+        answer: "It depends on the type of order. An Emergency Protective Order issued by law enforcement or a judge is typically valid for 3-7 days; a Temporary Restraining Order or ex parte order is valid for 14-21 days until a full hearing can be held; and a final order issued after the full hearing is typically valid for 1-5 years, with the possibility of renewal.",
+      },
+    ],
     category: "Family Law",
     readTime: "10 min",
     paragraphs: [
@@ -1417,6 +1731,16 @@ export function guidePageDescription(article: Pick<Article, "paragraphs" | "meta
 /** Visible H1: explicit h1 when set, else the seoTitle phrase, else article.title. */
 export function guidePageH1(article: Pick<Article, "title" | "seoTitle" | "h1">): string {
   return article.h1 ?? article.seoTitle ?? article.title;
+}
+/**
+ * FAQ items for a guide page: the guide's own faqs when non-empty, else
+ * undefined. Guides without faqs render exactly as before (no FAQ section,
+ * no FAQPage JSON-LD).
+ */
+export function guidePageFaqs(
+  article: Pick<Article, "faqs">
+): Article["faqs"] | undefined {
+  return article.faqs && article.faqs.length > 0 ? article.faqs : undefined;
 }
 
 // Canonical public base for SEO URLs.
