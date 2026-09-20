@@ -18,8 +18,9 @@ export interface Article {
   seoTitle?: string;
   metaDescription?: string;
   h1?: string;
-  // Wave 3 FAQ sections (tier-1 guides only; absent on all others). Question
-  // phrasings come from the question-intent research map; answers are adapted
+  // Wave 3 + Wave 4 FAQ sections (tier-1 guides, then the wave-4 FAQ pass).
+  // Absent on all others. Question phrasings come from the question-intent
+  // research map; answers are adapted
   // only from this guide's own paragraphs/takeaways — no new legal claims,
   // citations, figures, or state rules. Rendered as a visible FAQ section and
   // as FAQPage JSON-LD only when non-empty.
@@ -235,6 +236,20 @@ export const ARTICLES: Article[] = [
   {
     id: "understanding-miranda-rights",
     title: "Miranda Rights: What They Are, When They Apply, and What Happens If Police Don't Read Them",
+    faqs: [
+      {
+        question: "What are Miranda rights?",
+        answer: "Miranda rights are the warnings that police must give to suspects before custodial interrogation, established by Miranda v. Arizona. They include the right to remain silent, the warning that anything you say can be used against you, the right to an attorney, and the right to have an attorney appointed if you cannot afford one. According to the guide, their purpose is to protect Fifth Amendment rights against self-incrimination.",
+      },
+      {
+        question: "When do police have to read you your Miranda rights?",
+        answer: "The guide explains that Miranda warnings are only required when two conditions are met: the suspect is in custody, meaning a reasonable person would not feel free to leave, and the suspect is being interrogated, meaning police are asking questions or engaging in conduct likely to elicit an incriminating response. If either condition is missing, Miranda warnings are not required, and voluntary statements made without questioning are generally admissible.",
+      },
+      {
+        question: "What happens if police do not read you your Miranda rights?",
+        answer: "According to the guide, if police fail to give Miranda warnings when required, any statements obtained are generally inadmissible in the prosecution's case-in-chief. However, physical evidence discovered as a result of an unwarned statement may still be admissible, and statements can also be used for impeachment if the defendant testifies inconsistently.",
+      },
+    ],
     category: "Criminal Law",
     readTime: "9 min",
     paragraphs: [
@@ -277,6 +292,20 @@ export const ARTICLES: Article[] = [
   {
     id: "child-custody-guide",
     title: "Child Custody: Understanding Legal vs. Physical Custody and Best Interests Standard",
+    faqs: [
+      {
+        question: "What is the difference between legal and physical custody?",
+        answer: "Legal custody is the right to make major decisions about a child's education, healthcare, and religious upbringing, while physical custody is where the child lives. Courts can award sole or joint custody on either dimension, creating various combinations, and the overarching standard in all 50 states is the 'best interests of the child.'",
+      },
+      {
+        question: "How do courts decide child custody?",
+        answer: "Courts apply the 'best interests of the child' standard, considering factors including the child's age and health, each parent's physical and mental health and ability to provide a stable environment, the child's relationship with each parent, each parent's willingness to support the child's relationship with the other parent, any history of domestic violence or substance abuse, and, depending on the child's age and maturity, the child's own preference.",
+      },
+      {
+        question: "Can child custody orders be changed?",
+        answer: "Yes — the guide explains that child custody orders are always modifiable based on a 'substantial change in circumstances.' For interstate custody disputes, the Uniform Child Custody Jurisdiction and Enforcement Act (UCCJEA) determines which state has jurisdiction, and generally the child's 'home state,' where the child has lived for the past 6 months, has jurisdiction.",
+      },
+    ],
     category: "Family Law",
     readTime: "11 min",
     paragraphs: [
@@ -298,6 +327,20 @@ export const ARTICLES: Article[] = [
   {
     id: "divorce-process-overview",
     title: "The Divorce Process: A Comprehensive Step-by-Step Guide",
+    faqs: [
+      {
+        question: "How do I start a divorce?",
+        answer: "The guide explains that the divorce process begins when one spouse files a Petition for Dissolution of Marriage with the court, which identifies the parties, states the grounds for divorce, and outlines what relief is requested. The filing spouse must serve the petition on the other spouse, who then has a limited time, usually 20-30 days, to file a response; if no response is filed, the petitioner may seek a default judgment.",
+      },
+      {
+        question: "Do I need to prove fault to get a divorce?",
+        answer: "No — the guide explains that no-fault divorce, now available in all 50 states, allows a divorce based on 'irreconcilable differences' or 'irretrievable breakdown' without proving wrongdoing. Every state has its own divorce laws, but most follow either a 'fault' or 'no-fault' model, or a combination of the two.",
+      },
+      {
+        question: "What issues do divorcing couples have to resolve?",
+        answer: "The major issues are property division — community property states like California divide marital property 50/50, while equitable distribution states divide it 'fairly' but not necessarily equally — spousal support or alimony, child custody and parenting time, and child support, which is usually calculated using state guidelines based on both parents' incomes and parenting time percentage. The guide also notes that most divorces settle before trial through negotiation, mediation, or collaborative law.",
+      },
+    ],
     category: "Family Law",
     readTime: "14 min",
     paragraphs: [
@@ -494,6 +537,20 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-write-legal-brief",
     title: "How to Write a Legal Brief: Structure, Format, and Best Practices",
+    faqs: [
+      {
+        question: "What is a legal brief?",
+        answer: "A legal brief is a written document that presents legal arguments to a court, and the guide describes it as the primary tool for persuading a judge to rule in your favor. While specific formatting varies by court, effective briefs share a common structure: introduction, statement of facts, legal standard, argument, and conclusion, and good legal writing is clear, concise, well-organized, and supported by authority.",
+      },
+      {
+        question: "How do you structure a legal brief?",
+        answer: "The guide recommends a structure of introduction, statement of facts, legal standard, argument, and conclusion. The Introduction should be 1-3 paragraphs telling the court what the case is about and what you're asking for; the Statement of Facts should tell a compelling story in chronological order with citations to the record; and the Argument should be organized by point headings using the IRAC structure: Issue, Rule, Application, Conclusion.",
+      },
+      {
+        question: "How do you cite cases in a legal brief?",
+        answer: "The guide says to cite binding precedent from your jurisdiction first, then persuasive authority from other jurisdictions, and to use parenthetical explanations after case citations to help the court understand why a case matters. It also warns never to cite a case you haven't read, because opposing counsel and the court will check.",
+      },
+    ],
     category: "Legal Writing",
     readTime: "15 min",
     paragraphs: [
@@ -625,6 +682,20 @@ export const ARTICLES: Article[] = [
     {
     id: "after-car-accident-guide",
     title: "What to Do After a Car Accident: Legal Steps to Protect Your Rights",
+    faqs: [
+      {
+        question: "What should I do immediately after a car accident?",
+        answer: "The guide says your first priority is safety: check for injuries, call 911, and move to a safe area if possible. Even if the accident seems minor, calling the police creates an official record that is invaluable if disputes arise later about fault or damages. At the scene, gather the other driver's information, take photos, and get witness contacts — but do not admit fault or apologize, since even saying 'I'm sorry' can be used against you as an admission of liability.",
+      },
+      {
+        question: "Do I need to see a doctor after a car accident?",
+        answer: "Yes — the guide says to seek medical attention promptly even if you feel fine, because some injuries, particularly whiplash, soft tissue damage, and concussions, may not show symptoms for days. Medical records created soon after the accident are critical evidence linking your injuries to the crash, and gaps in treatment can be used by insurance companies to argue your injuries weren't serious.",
+      },
+      {
+        question: "How long do I have to take action after a car accident?",
+        answer: "The statute of limitations for personal injury claims varies by state, typically 1-3 years from the date of the accident. The guide warns not to wait until the deadline approaches because evidence disappears, memories fade, and witnesses become harder to locate, and it notes that if an insurance settlement offer seems low, you have the right to negotiate.",
+      },
+    ],
     category: "Personal Injury",
     readTime: "9 min",
     paragraphs: [
@@ -646,6 +717,20 @@ export const ARTICLES: Article[] = [
     {
     id: "power-of-attorney-guide",
     title: "Understanding Power of Attorney: Types and How to Create One",
+    faqs: [
+      {
+        question: "What is a power of attorney?",
+        answer: "A power of attorney (POA) is a legal document that gives one person, the agent or attorney-in-fact, the authority to act on behalf of another person, the principal. The guide explains that POAs ensure that someone you trust can manage your affairs if you become incapacitated or unable to make decisions yourself, making them one of the most important, and most misunderstood, estate planning tools.",
+      },
+      {
+        question: "What types of powers of attorney are there?",
+        answer: "The guide describes four main types: a general power of attorney grants broad authority over financial and legal matters; a limited (or special) power of attorney covers a specific transaction like selling a car; a durable power of attorney remains effective even if the principal becomes incapacitated; and a springing power of attorney only takes effect when a specific event occurs, usually incapacity certified by a doctor. A healthcare power of attorney is separate and designates someone to make medical decisions for you.",
+      },
+      {
+        question: "How do I create a power of attorney?",
+        answer: "Creating a valid POA requires following your state's specific requirements — most states require the principal to be of sound mind when signing, the document to be in writing, and the signature to be notarized and/or witnessed, with some states requiring specific statutory language or forms. The guide says choosing your agent is the most important decision, and a POA can be revoked at any time as long as you're competent, in writing and with notice to all relevant parties.",
+      },
+    ],
     category: "Estate Planning",
     readTime: "7 min",
     paragraphs: [
@@ -739,6 +824,20 @@ export const ARTICLES: Article[] = [
     {
     id: "how-to-read-contract",
     title: "How to Read a Contract Before Signing: Key Clauses to Watch For",
+    faqs: [
+      {
+        question: "Why is it important to read a contract before signing?",
+        answer: "The guide explains that a signed contract is legally binding, and courts generally hold that you're bound by what you signed even if you didn't read it. Because contracts govern employment agreements, rental leases, loan documents, service agreements, and online terms of service, understanding key clauses before you sign can prevent costly disputes later.",
+      },
+      {
+        question: "What clauses should I look for in a contract?",
+        answer: "The guide says to scrutinize payment terms — how much, when, and under what conditions, including hidden fees, automatic renewal clauses, and interest rates — duration and termination, since early termination fees can be substantial, and liability and indemnification, meaning who bears the risk if something goes wrong, including clauses requiring you to cover the other party's legal fees.",
+      },
+      {
+        question: "Can I negotiate a contract before signing it?",
+        answer: "Yes — the guide says many people assume contracts are take-it-or-leave-it, but especially in employment, service, and business-to-business contracts, terms are often negotiable. You can cross out or amend terms you disagree with, initial the changes, and have the other party initial them too, and if the other party refuses to negotiate important terms, consider whether the deal is worth the risk.",
+      },
+    ],
     category: "Consumer Law",
     readTime: "7 min",
     paragraphs: [
@@ -760,6 +859,20 @@ export const ARTICLES: Article[] = [
     {
     id: "what-is-probate",
     title: "What Is Probate? A Beginner's Guide to the Probate Process",
+    faqs: [
+      {
+        question: "What is probate?",
+        answer: "Probate is the court-supervised process of administering a deceased person's estate — validating the will if one exists, identifying and appraising assets, paying debts and taxes, and distributing remaining property to heirs. The guide notes that while probate has a reputation for being slow and expensive, the reality varies widely by state and by the complexity of the estate.",
+      },
+      {
+        question: "How long does the probate process take?",
+        answer: "Timelines vary dramatically, according to the guide: a simple, uncontested estate might be settled in 6-12 months, while complex estates with disputes, difficult-to-value assets, or creditor challenges can take years. Most states also have simplified 'small estate' procedures for estates below a certain value, typically $50,000-$150,000.",
+      },
+      {
+        question: "Which assets avoid probate?",
+        answer: "Not all assets go through probate. Assets that pass outside probate include property held in joint tenancy with right of survivorship, assets with named beneficiaries such as life insurance and retirement accounts, payable-on-death bank accounts, and assets held in a living trust. The guide notes that one primary goal of estate planning is to minimize assets subject to probate, saving time and costs and maintaining privacy, since probate is a public process.",
+      },
+    ],
     category: "Estate Planning",
     readTime: "10 min",
     paragraphs: [
@@ -837,6 +950,20 @@ export const ARTICLES: Article[] = [
     {
     id: "immigration-court-basics",
     title: "Immigration Court Basics: What to Expect and How to Prepare",
+    faqs: [
+      {
+        question: "What happens in immigration court?",
+        answer: "Immigration proceedings typically begin with a Notice to Appear that lists the charges against you and states the date and location of your first hearing. That first hearing is a master calendar hearing, a short procedural hearing where you state your name, address, and the relief you're seeking. The judge then schedules an individual (merits) hearing, which is your trial, where you present evidence, call witnesses, and testify.",
+      },
+      {
+        question: "Do I need a lawyer for immigration court?",
+        answer: "You don't have a right to a court-appointed attorney, because immigration court is a civil process, not a criminal one. The guide says you have the right to hire an attorney at your own expense, and having qualified immigration counsel dramatically improves outcomes — studies show represented immigrants are several times more likely to win their cases — so if you can't afford one, seek help from nonprofit legal service providers, law school clinics, and pro bono programs.",
+      },
+      {
+        question: "What should I bring to immigration court?",
+        answer: "The guide says preparation means gathering extensive documentation: identity documents like a passport and birth certificate; evidence of time in the U.S. like leases, bills, school records, and pay stubs; evidence of good moral character like tax returns and letters of support; country conditions evidence like news articles and human rights reports; evidence supporting your specific form of relief; and medical and psychological records if you experienced trauma.",
+      },
+    ],
     category: "Immigration Law",
     readTime: "10 min",
     paragraphs: [
@@ -932,6 +1059,20 @@ export const ARTICLES: Article[] = [
   {
     id: "rights-during-police-stop",
     title: "Understanding Your Rights During a Police Stop",
+    faqs: [
+      {
+        question: "What are my rights during a police stop?",
+        answer: "The Fourth Amendment protects you from unreasonable searches and seizures, and the Fifth Amendment protects your right to remain silent. During a consensual encounter you are free to leave and don't have to answer questions; a Terry stop is a brief investigatory detention based on reasonable suspicion where police can pat you down for weapons; and an arrest requires probable cause that you committed a crime. The guide suggests asking: 'Am I free to leave?'",
+      },
+      {
+        question: "Do I have to consent to a search during a traffic stop?",
+        answer: "No — during a traffic stop you must provide your license, registration, and proof of insurance, but you do not have to consent to a vehicle search. The guide recommends saying clearly: 'Officer, I do not consent to a search.' If police have probable cause, such as visible contraband, they can search regardless, but if they ask for consent, it often means they lack probable cause.",
+      },
+      {
+        question: "Do I have to let police into my home without a warrant?",
+        answer: "The guide says you generally do not have to let police in without a warrant, because under the Fourth Amendment your home receives the highest level of protection. Police need either a search warrant signed by a judge, exigent circumstances such as someone in danger or evidence being destroyed, or valid consent. If police claim to have a warrant, ask them to slide it under the door or hold it up to a window to verify the address, date, and judge's signature.",
+      },
+    ],
     category: "Criminal Law",
     readTime: "7 min",
     paragraphs: [
@@ -953,6 +1094,20 @@ export const ARTICLES: Article[] = [
   {
     id: "living-will-advance-directives",
     title: "How to Create a Living Will: Advance Directives Explained",
+    faqs: [
+      {
+        question: "What is a living will?",
+        answer: "A living will, also called an advance directive or advance healthcare directive, is a legal document that spells out your wishes for medical treatment if you become unable to communicate them yourself. It answers questions like whether you want to be kept on life support and under what circumstances, and the guide says every competent adult should have one regardless of age or health status.",
+      },
+      {
+        question: "How do I create a living will?",
+        answer: "Creating a valid living will requires following your state's specific requirements — most states require the document to be in writing, your signature when of sound mind, and either notarization or two witness signatures. Some states provide statutory forms with check-box options, and fill-in-the-blank forms are widely available online, often free through state bar associations, hospitals, and aging services.",
+      },
+      {
+        question: "When does a living will take effect?",
+        answer: "A living will only takes effect when you're incapacitated, as certified by your attending physician and, in some states, a second physician, and unable to make or communicate your own decisions. Until then you remain in full control of your medical decisions, and you can revoke or amend the living will at any time while competent, with revocation in writing and communicated to your healthcare providers and agent.",
+      },
+    ],
     category: "Estate Planning",
     readTime: "8 min",
     paragraphs: [
@@ -1030,6 +1185,20 @@ export const ARTICLES: Article[] = [
   {
     id: "asylum-law-guide",
     title: "Understanding Asylum Law: Who Qualifies and How to Apply",
+    faqs: [
+      {
+        question: "What is asylum?",
+        answer: "Asylum is a form of protection that allows individuals to remain in the United States if they have suffered persecution or have a well-founded fear of persecution in their home country based on race, religion, nationality, political opinion, or membership in a particular social group. The guide notes it derives from U.S. obligations under the 1951 UN Refugee Convention and its 1967 Protocol, and that asylum is discretionary relief that must be carefully documented and persuasively presented.",
+      },
+      {
+        question: "How do I apply for asylum?",
+        answer: "The guide describes two paths: affirmative asylum, where you are not in removal proceedings and proactively apply to USCIS within one year of arriving in the United States by submitting Form I-589 with supporting evidence and attending a non-adversarial interview with an asylum officer; and defensive asylum, where you renew your asylum claim before an immigration judge during removal proceedings. If USCIS denies an affirmative application and you're out of status, your case is referred to immigration court.",
+      },
+      {
+        question: "What is the one-year deadline for asylum?",
+        answer: "The guide explains that affirmative asylum applications must be filed within one year of arriving in the United States, with limited exceptions for changed or extraordinary circumstances. The one-year filing deadline is strictly enforced, so you should apply as soon as possible after arriving — changed circumstances in your home country or personal situation, or extraordinary circumstances like serious illness, may qualify as exceptions.",
+      },
+    ],
     category: "Immigration Law",
     readTime: "10 min",
     paragraphs: [
@@ -1072,6 +1241,20 @@ export const ARTICLES: Article[] = [
   {
     id: "deposition-preparation",
     title: "How to Prepare for a Deposition: Tips for Witnesses and Parties",
+    faqs: [
+      {
+        question: "What is a deposition?",
+        answer: "A deposition is sworn, out-of-court testimony recorded by a court reporter. The guide calls it one of the most consequential events in litigation: what you say can be used against you at trial, to support or oppose summary judgment, to impeach your credibility, and to shape settlement negotiations, and every word is transcribed and can later be read back to you in court.",
+      },
+      {
+        question: "How do I prepare for a deposition?",
+        answer: "The guide says to review all relevant documents — your complaint, answer, discovery responses, key correspondence, and any documents you've been asked about — and meet with your attorney for a preparation session, often 2-4 hours or more for a party deposition. Your attorney should walk you through likely question topics, explain the legal theories at issue, and conduct a mock cross-examination so you can practice, and you should understand the central factual disputes and your role in them.",
+      },
+      {
+        question: "What should I do if I don't know the answer at a deposition?",
+        answer: "The cardinal rule is to tell the truth. If you don't know the answer, say 'I don't know' or 'I don't recall'; if you don't understand a question, say 'I don't understand — could you rephrase?' The guide warns never to guess or assume, because every answer should be truthful, concise, and based on your personal knowledge — not hearsay, not speculation, and not what you think the 'right' answer should be.",
+      },
+    ],
     category: "Evidence & Discovery",
     readTime: "7 min",
     paragraphs: [
@@ -1095,6 +1278,20 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-get-green-card",
     title: "How to Get a Green Card: Marriage, Employment, and Family Paths",
+    faqs: [
+      {
+        question: "How do I get a green card?",
+        answer: "A green card allows a non-citizen to live and work permanently in the United States, and the guide explains there are multiple pathways — family relationships, employment opportunities, humanitarian needs, and other special categories — with the right path depending on your individual circumstances. Family-based green cards are the most common pathway, and immediate relatives of U.S. citizens, like spouses and unmarried children under 21, have no annual cap, while preference categories face annual numerical limits and waiting periods.",
+      },
+      {
+        question: "Can I get a green card through marriage?",
+        answer: "Yes — the guide explains that U.S. citizens can petition for their spouses as immediate relatives, a category that always has visas available. If the marriage is less than 2 years old when the green card is approved, you receive conditional permanent residence, a 2-year green card, and must file Form I-751 to remove the conditions 90 days before it expires.",
+      },
+      {
+        question: "What is the difference between adjustment of status and consular processing?",
+        answer: "The guide says the decision is crucial: if you're already in the U.S. and entered lawfully, you may be eligible to adjust status by filing Form I-485 at a USCIS office, which lets you remain in the U.S. while the application is processed and may include work and travel authorization. If you're outside the U.S. or ineligible for adjustment, you must go through consular processing at a U.S. embassy or consulate abroad, and adjustment is generally preferred because it keeps families together.",
+      },
+    ],
     category: "Immigration Law",
     readTime: "10 min",
     paragraphs: [
@@ -1116,6 +1313,20 @@ export const ARTICLES: Article[] = [
   {
     id: "medical-malpractice-guide",
     title: "Understanding Medical Malpractice: When to Sue a Doctor",
+    faqs: [
+      {
+        question: "What is medical malpractice?",
+        answer: "Medical malpractice occurs when a healthcare provider deviates from the accepted standard of care and causes injury to a patient. The guide stresses that a bad medical outcome is not, by itself, malpractice — medicine involves inherent risks — and malpractice requires proving that the provider acted negligently and that this failure directly caused harm.",
+      },
+      {
+        question: "What are the elements of a medical malpractice claim?",
+        answer: "The guide lists four elements: duty — the provider owed a duty of care to the patient, established by the doctor-patient relationship; breach — the provider failed to meet the standard of care, which almost always requires testimony from a medical expert; causation — the breach directly caused the patient's injury, often the most contested element; and damages — the patient suffered compensable harm like additional medical bills, lost wages, pain and suffering, disability, or wrongful death.",
+      },
+      {
+        question: "How long do I have to file a medical malpractice claim?",
+        answer: "The guide explains that most states require compliance with strict statutes of limitations, typically 1-3 years from the date of injury or discovery, with special rules for minors, incapacitated patients, and cases involving fraudulently concealed errors. Most states also impose procedural hurdles such as pre-suit notice to the provider, a certificate of merit or affidavit from a qualified medical expert, and, in some states, a medical review panel.",
+      },
+    ],
     category: "Personal Injury",
     readTime: "9 min",
     paragraphs: [
@@ -1137,6 +1348,20 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-start-an-llc",
     title: "How to Start an LLC: A Legal Guide for Small Business Owners",
+    faqs: [
+      {
+        question: "How do I start an LLC?",
+        answer: "The formation process, per the guide, is: choose a business name that complies with your state's requirements and check availability on your Secretary of State's website; appoint a registered agent, a person or company with a physical address in the state who can receive legal documents, which can be yourself or a commercial service; and file Articles of Organization with the Secretary of State, paying a filing fee that varies by state, typically $50-$800, and including the LLC's name, registered agent information, and management structure.",
+      },
+      {
+        question: "Do I need an operating agreement for an LLC?",
+        answer: "Yes — the guide calls the Operating Agreement the most important internal document for an LLC, yet many new business owners skip it, which it calls a mistake. It spells out ownership percentages, how profits and losses are allocated, voting rights and management authority, procedures for adding or removing members, buyout provisions, and dissolution procedures. Without one, your LLC is governed by your state's default LLC statute, which may not reflect what you and your co-members actually want.",
+      },
+      {
+        question: "How is an LLC taxed?",
+        answer: "By default, according to the guide, a single-member LLC is a 'disregarded entity' and you report business income and expenses on Schedule C of your personal tax return, while a multi-member LLC is taxed as a partnership with K-1s issued to each member. Either can elect to be taxed as an S-corporation or C-corporation; an S-corp election can save self-employment tax, but it only makes financial sense when the business has net income above a threshold, typically $40,000-$60,000+, after your reasonable salary.",
+      },
+    ],
     category: "Business Law",
     readTime: "8 min",
     paragraphs: [
@@ -1217,6 +1442,20 @@ export const ARTICLES: Article[] = [
   {
     id: "understanding-alimony",
     title: "Understanding Alimony: How Spousal Support Is Calculated",
+    faqs: [
+      {
+        question: "What is alimony?",
+        answer: "Alimony, also called spousal support or spousal maintenance, is financial support paid by one ex-spouse to the other after divorce. Unlike child support, which follows relatively predictable formulas in most states, the guide explains that alimony is highly discretionary: judges consider a wide range of statutory factors, and the outcome varies significantly based on the facts of each marriage.",
+      },
+      {
+        question: "How is alimony calculated?",
+        answer: "The guide says calculating alimony is more art than science in most jurisdictions, and only a handful of states have adopted presumptive alimony formulas. The American Academy of Matrimonial Lawyers formula — not binding but influential — suggests 30% of the higher earner's gross income minus 20% of the lower earner's gross income, capped at 40% of combined gross incomes, but in most states the judge has broad discretion to weigh statutory factors and arrive at a 'fair and reasonable' amount.",
+      },
+      {
+        question: "How long does alimony last?",
+        answer: "Duration varies by type, per the guide: temporary alimony is paid during the divorce proceeding to maintain the status quo; rehabilitative alimony is short-to-medium-term support to help the receiving spouse become self-supporting; and permanent alimony is long-term or indefinite support, typically reserved for long marriages, though many states now disfavor it. Duration is often tied to marriage length — many states use a rule of thumb like half the length of the marriage for rehabilitative alimony.",
+      },
+    ],
     category: "Family Law",
     readTime: "8 min",
     paragraphs: [
@@ -1338,6 +1577,20 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-file-a-trademark",
     title: "How to File a Trademark: Protecting Your Business Name and Logo",
+    faqs: [
+      {
+        question: "How do I file a trademark?",
+        answer: "The guide says to start with a comprehensive trademark search to ensure no one else is already using a confusingly similar mark — beginning with the USPTO's free TESS database, then searching state business registries, domain name databases, social media platforms, and the general web. Filing is done through the USPTO's TEAS system with TEAS Plus at $250 per class or TEAS Standard at $350 per class, and your application must include a clear drawing of the mark, a description of the goods or services, and a specimen showing the mark as actually used.",
+      },
+      {
+        question: "How long does a trademark application take?",
+        answer: "After filing, the USPTO assigns an examining attorney who reviews the application, which the guide says typically takes 8-12 months. If the examiner finds an issue, you receive an Office Action with a deadline to respond, usually 3 months and extendable to 6. Once approved, the mark is published in the Official Gazette for a 30-day opposition period before a registration certificate is issued.",
+      },
+      {
+        question: "What can be trademarked?",
+        answer: "A trademark is a word, phrase, symbol, design, or combination thereof that identifies and distinguishes the source of goods or services. The guide explains that trademarks protect consumer-facing brand identifiers — your business name, logo, slogan, or even a distinctive sound or color scheme — and unlike patents, which protect inventions, and copyrights, which protect creative works, trademarks tell customers who made the product.",
+      },
+    ],
     category: "Business Law",
     readTime: "8 min",
     paragraphs: [
@@ -1359,6 +1612,20 @@ export const ARTICLES: Article[] = [
   {
     id: "wrongful-death-claims",
     title: "Understanding Wrongful Death Claims: Who Can Sue and for What",
+    faqs: [
+      {
+        question: "What is a wrongful death claim?",
+        answer: "A wrongful death claim arises when a person dies due to the negligent, reckless, or intentional act of another party. The guide explains it is a civil lawsuit, separate and distinct from any criminal prosecution that may arise from the same incident, and the core legal theory is that the defendant's wrongful conduct caused the death and the decedent's survivors have suffered measurable damages. Wrongful death is governed by state statutes, and all 50 states have wrongful death laws.",
+      },
+      {
+        question: "Who can file a wrongful death lawsuit?",
+        answer: "Who can file varies significantly by state, per the guide. In most states, the right belongs to the decedent's immediate family members in a specific order of priority: surviving spouse first, then children, then parents of unmarried decedents, and some states allow domestic partners or putative spouses to recover. Financial dependents such as stepchildren, siblings, or grandparents may have standing in some jurisdictions, and in many states the lawsuit is brought by the personal representative of the decedent's estate on behalf of the surviving family members.",
+      },
+      {
+        question: "How long do I have to file a wrongful death claim?",
+        answer: "The statute of limitations for wrongful death is typically 1-3 years from the date of death, not the date of injury, with critical exceptions. The 'discovery rule' may extend the deadline if the cause of death wasn't immediately known, while claims against government entities have drastically shorter deadlines, often 6 months to 1 year, and require filing a formal notice of claim before suing.",
+      },
+    ],
     category: "Personal Injury",
     readTime: "9 min",
     paragraphs: [
@@ -1513,6 +1780,20 @@ export const ARTICLES: Article[] = [
   {
     id: "us-citizenship-naturalization",
     title: "How to Apply for U.S. Citizenship: The Naturalization Process",
+    faqs: [
+      {
+        question: "How do I apply for U.S. citizenship?",
+        answer: "The guide outlines the steps: file Form N-400 with USCIS along with the filing fee of $725 total, $640 application plus $85 biometrics, though fee waivers are available for low-income applicants; attend a biometrics appointment where fingerprints are collected for background checks; attend the naturalization interview, where a USCIS officer reviews your N-400, tests your English ability, and administers the civics test; and if approved, attend a naturalization ceremony and take the Oath of Allegiance. The entire process typically takes 12-18 months from filing to oath.",
+      },
+      {
+        question: "How long do I need to be a green card holder before applying for citizenship?",
+        answer: "You must have been a lawful permanent resident for at least 5 years — or 3 years if married to and living with a U.S. citizen spouse for all 3 years — and physically present in the U.S. for at least half of the required residency period: 30 months out of 5 years, or 18 months out of 3 years for spouses of citizens. You must also have lived in the state or USCIS district where you're applying for at least 3 months.",
+      },
+      {
+        question: "What is on the U.S. citizenship test?",
+        answer: "The naturalization interview includes a civics test: the USCIS officer asks up to 10 questions from the official 100 Civics Questions booklet, and you pass if you answer 6 correctly. The officer also tests your English by evaluating your ability to understand and respond to questions, read a sentence aloud, and write a dictated sentence. If you fail the English or civics test, you get one opportunity to retake the failed portion within 60-90 days.",
+      },
+    ],
     category: "Immigration Law",
     readTime: "10 min",
     paragraphs: [
