@@ -2,6 +2,9 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
   GUIDE_REDIRECTS,
   getGuideBySlug,
+  guidePageDescription,
+  guidePageH1,
+  guidePageTitle,
   guideUrl,
   SITE_ORIGIN,
 } from "~/lib/guides";
@@ -27,20 +30,20 @@ export const Route = createFileRoute("/learn/$slug")({
         ],
       };
     }
-    const description = article.paragraphs[0].substring(0, 160);
+    const description = guidePageDescription(article);
     const canonical = guideUrl(article.id);
     const ogImage = `${SITE_ORIGIN}/og-image.png`;
     return {
       meta: [
-        { title: `${article.title} | Fair Fight` },
+        { title: guidePageTitle(article) },
         { name: "description", content: description },
-        { property: "og:title", content: `${article.title} | Fair Fight` },
+        { property: "og:title", content: guidePageTitle(article) },
         { property: "og:description", content: description },
         { property: "og:image", content: ogImage },
         { property: "og:url", content: canonical },
         { property: "og:type", content: "article" },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: `${article.title} | Fair Fight` },
+        { name: "twitter:title", content: guidePageTitle(article) },
         { name: "twitter:description", content: description },
         { name: "twitter:image", content: ogImage },
       ],
@@ -80,7 +83,7 @@ function GuidePage() {
         </Link>
         <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs text-white/50">{article.category}</span>
         <span className="ml-2 text-xs text-white/40">{article.readTime} read</span>
-        <h1 className="mb-8 mt-4 text-4xl font-extrabold text-white sm:text-5xl">{article.title}</h1>
+        <h1 className="mb-8 mt-4 text-4xl font-extrabold text-white sm:text-5xl">{guidePageH1(article)}</h1>
         <div className="space-y-5">
           {article.paragraphs.map((p, i) => (
             <p key={i} className="text-lg leading-relaxed text-white/70">{p}</p>

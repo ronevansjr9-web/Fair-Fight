@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { ARTICLES, GUIDE_REDIRECTS, getGuideBySlug } from "./guides";
+import {
+  ARTICLES,
+  GUIDE_REDIRECTS,
+  getGuideBySlug,
+  guidePageDescription,
+  guidePageH1,
+  guidePageTitle,
+} from "./guides";
 
 describe("guide consolidation (SEO)", () => {
   test("guide count is 62 after the content-wave additions (attorney prep + document organization)", () => {
@@ -73,6 +80,153 @@ describe("guide consolidation (SEO)", () => {
     const liveSlugs = new Set(ARTICLES.map((a) => a.id));
     for (const from of Object.keys(GUIDE_REDIRECTS)) {
       expect(liveSlugs.has(from), `redirect source ${from} should not also be a live guide`).toBe(false);
+    }
+  });
+});
+
+// --- Wave 2: question-intent SEO restructure (pilot batch) -----------------
+// Literal copy of the question-intent map's recommended title phrases, metas,
+// and H1s for the 10 pilot guides. The data in guides.ts must match these
+// exactly; the route helpers must produce the budgeted title/meta/H1.
+const PILOT_SEO: Record<string, { seoTitle: string; metaDescription: string; h1?: string }> = {
+  "how-to-file-a-motion": {
+    seoTitle: "How to File a Motion in Court",
+    metaDescription:
+      "How do you file a motion in court? What goes in a motion, how to format and file it, and how to serve the other side. Not legal advice.",
+  },
+  "small-claims-court-guide": {
+    seoTitle: "How to Sue in Small Claims Court",
+    metaDescription:
+      "How do you sue someone in small claims court? Filing steps, the monetary limit, serving the defendant, and collecting a judgment. Not legal advice.",
+    h1: "How Do You Sue Someone in Small Claims Court?",
+  },
+  "statute-of-limitations-guide": {
+    seoTitle: "Statute of Limitations: How Long You Have",
+    metaDescription:
+      "How long do you have to sue? How statutes of limitations work by claim type, and how tolling and the discovery rule can change your deadline.",
+    h1: "How Long Do You Have to Sue? Statute of Limitations Basics",
+  },
+  "eviction-process-guide": {
+    seoTitle: "Eviction Process: Tenant Rights Step by Step",
+    metaDescription:
+      "How does an eviction work, and what can a tenant do about it? The notice, the court case, defenses you can raise, and what happens after a judgment.",
+    h1: "How Does the Eviction Process Work?",
+  },
+  "how-to-respond-to-lawsuit": {
+    seoTitle: "Served With a Lawsuit? How to Respond",
+    metaDescription:
+      "Just been served with a lawsuit? How long you have to respond, how to answer a complaint, when to file a motion instead, and avoid a default judgment.",
+    h1: "How Do I Respond to a Lawsuit?",
+  },
+  "security-deposit-guide": {
+    seoTitle: "Get Your Security Deposit Back",
+    metaDescription:
+      "Can your landlord keep your security deposit? What can be deducted, the return deadline, and how to get your deposit back if they refuse.",
+    h1: "How Do I Get My Security Deposit Back?",
+  },
+  "debt-collection-defense": {
+    seoTitle: "Sued by a Debt Collector? How to Respond",
+    metaDescription:
+      "Being sued by a debt collector? How to answer in time, common defenses such as lack of standing or an expired limitations period. Not legal advice.",
+    h1: "Being Sued by a Debt Collector: How to Respond",
+  },
+  "unemployment-benefits-guide": {
+    seoTitle: "How to File for Unemployment Benefits",
+    metaDescription:
+      "How do you file for unemployment benefits? Who qualifies, what you need to apply, why claims are denied, and how the appeal hearing works.",
+    h1: "How Do I File for Unemployment Benefits?",
+  },
+  "how-to-get-a-restraining-order": {
+    seoTitle: "How to Get a Restraining Order",
+    metaDescription:
+      "How do you get a restraining order? The types of protective orders, what evidence to file, what a judge can order, and how the hearing works.",
+    h1: "How Do I Get a Restraining Order?",
+  },
+  "how-to-expunge-a-criminal-record": {
+    seoTitle: "How to Expunge a Criminal Record",
+    metaDescription:
+      "Can you expunge a criminal record? How eligibility works by offense and disposition, what to file, and what a sealed record does not hide.",
+    h1: "How Do I Expunge a Criminal Record?",
+  },
+};
+const PILOT_SLUGS = Object.keys(PILOT_SEO);
+
+describe("Wave 2 question-intent SEO (pilot batch)", () => {
+  test("exactly the 10 pilot guides carry seo fields; the other 52 have none", () => {
+    expect(ARTICLES.length).toBe(62);
+    const withSeo = ARTICLES.filter((a) => a.seoTitle !== undefined).map((a) => a.id);
+    expect(withSeo.sort()).toEqual([...PILOT_SLUGS].sort());
+    for (const a of ARTICLES) {
+      if (!PILOT_SLUGS.includes(a.id)) {
+        expect(a.seoTitle, `${a.id} seoTitle`).toBeUndefined();
+        expect(a.metaDescription, `${a.id} metaDescription`).toBeUndefined();
+        expect(a.h1, `${a.id} h1`).toBeUndefined();
+      }
+    }
+  });
+
+  test("pilot seo fields match the question-intent map verbatim", () => {
+    for (const slug of PILOT_SLUGS) {
+      const a = getGuideBySlug(slug)!;
+      expect(a.seoTitle, slug).toBe(PILOT_SEO[slug].seoTitle);
+      expect(a.metaDescription, slug).toBe(PILOT_SEO[slug].metaDescription);
+      // h1 field is optional where it equals the seoTitle phrase; the helpers resolve it.
+      expect(a.h1 ?? a.seoTitle, `${slug} h1`).toBe(PILOT_SEO[slug].h1 ?? PILOT_SEO[slug].seoTitle);
+    }
+  });
+
+  test("pilot title tags and metas fit the length budgets (<=60 title, <=47 phrase, <=155 meta)", () => {
+    for (const slug of PILOT_SLUGS) {
+      const a = getGuideBySlug(slug)!;
+      expect(a.seoTitle!.length, `${slug} phrase`).toBeLessThanOrEqual(47);
+      expect(a.metaDescription!.length, `${slug} meta`).toBeLessThanOrEqual(155);
+      expect(guidePageTitle(a).length, `${slug} full title`).toBeLessThanOrEqual(60);
+    }
+  });
+
+  test("no guarantee/outcome language in new pilot copy", () => {
+    const banned = /\b(win your case|guaranteed|guarantee|best argument|beat the ticket|get your money back|sue successfully)\b/i;
+    for (const slug of PILOT_SLUGS) {
+      const a = getGuideBySlug(slug)!;
+      const copy = [a.seoTitle, a.metaDescription, a.h1 ?? ""].join(" ");
+      expect(copy.match(banned), `${slug} pilot copy`).toBeNull();
+    }
+  });
+
+  test("pilot pages render the new title, meta, and H1 via the head helpers", () => {
+    for (const slug of PILOT_SLUGS) {
+      const a = getGuideBySlug(slug)!;
+      expect(guidePageTitle(a), slug).toBe(`${a.seoTitle} | Fair Fight`);
+      expect(guidePageDescription(a), slug).toBe(a.metaDescription);
+      expect(guidePageH1(a), slug).toBe(PILOT_SEO[slug].h1 ?? a.seoTitle);
+    }
+  });
+
+  test("non-pilot guides keep the legacy rendering (title = article.title, meta = first 160 chars, H1 = title)", () => {
+    const nonPilots = ARTICLES.filter((a) => !PILOT_SLUGS.includes(a.id));
+    expect(nonPilots.length).toBe(52);
+    for (const a of nonPilots) {
+      expect(guidePageTitle(a), a.id).toBe(`${a.title} | Fair Fight`);
+      expect(guidePageDescription(a), a.id).toBe(a.paragraphs[0].substring(0, 160));
+      expect(guidePageH1(a), a.id).toBe(a.title);
+    }
+  });
+
+  test("demand-letter title no longer over-claims Templates", () => {
+    const dl = getGuideBySlug("how-to-write-demand-letter")!;
+    expect(dl.title).toBe("How to Write a Demand Letter");
+    expect(dl.seoTitle).toBeUndefined();
+    expect(guidePageTitle(dl)).toBe("How to Write a Demand Letter | Fair Fight");
+  });
+
+  test("every relatedGuides link across all 62 guides resolves to a live guide", () => {
+    const ids = new Set(ARTICLES.map((a) => a.id));
+    for (const a of ARTICLES) {
+      for (const rel of a.relatedGuides) {
+        expect(ids.has(rel), `${a.id} -> ${rel}`).toBe(true);
+        expect(rel, `${a.id} must not self-link`).not.toBe(a.id);
+      }
+      expect(new Set(a.relatedGuides).size, `${a.id} relatedGuides dupes`).toBe(a.relatedGuides.length);
     }
   });
 });

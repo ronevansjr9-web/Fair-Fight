@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { getGuideBySlug } from "./guides";
+import { getGuideBySlug, guidePageDescription, guidePageH1 } from "./guides";
 import {
   articleSchema,
   breadcrumbSchema,
@@ -44,11 +44,11 @@ describe("articleSchema", () => {
   test("includes required truthful fields", () => {
     const a = getGuideBySlug("how-to-file-a-motion")!;
     const s = articleSchema(a);
-    expect(s["headline"]).toBe(a.title);
+    expect(s["headline"]).toBe(guidePageH1(a));
     expect(s["inLanguage"]).toBe("en");
     expect(s["datePublished"]).toBeTruthy();
     expect(s["dateModified"]).toBeTruthy();
-    expect(s["description"]).toBe(a.paragraphs[0].substring(0, 160));
+    expect(s["description"]).toBe(guidePageDescription(a));
     expect((s["mainEntityOfPage"] as any)["@id"]).toContain(`/learn/${a.id}`);
     expect((s["author"] as any)["name"]).toBe("Fair Fight");
     expect((s["publisher"] as any)["name"]).toBe("Fair Fight");
@@ -64,7 +64,7 @@ describe("breadcrumbSchema", () => {
     expect(list.length).toBe(3);
     expect(list[0].name).toBe("Home");
     expect(list[1].name).toBe("Learn");
-    expect(list[2].name).toBe(a.title);
+    expect(list[2].name).toBe(guidePageH1(a)); // non-pilot: equals a.title
     expect(list[2].item).toContain(`/learn/${a.id}`);
     expect(list[0].position).toBe(1);
     expect(list[2].position).toBe(3);

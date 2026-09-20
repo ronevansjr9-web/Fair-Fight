@@ -10,6 +10,14 @@ export interface Article {
   paragraphs: string[];
   takeaways: string[];
   relatedGuides: string[];
+  // Wave 2 question-intent SEO overrides (pilot guides only; absent on all others).
+  // seoTitle is the question-led phrase WITHOUT the " | Fair Fight" suffix — the
+  // /learn/<slug> route appends the suffix. metaDescription replaces the old
+  // first-160-chars-of-paragraph-0 fallback. h1 is only set where the map's
+  // recommended H1 differs from the seoTitle phrase.
+  seoTitle?: string;
+  metaDescription?: string;
+  h1?: string;
 }
 
 
@@ -35,12 +43,13 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-file-a-motion",
     title: "How to File a Motion: A Step-by-Step Guide for Self-Represented Litigants",
+    seoTitle: "How to File a Motion in Court",
+    metaDescription: "How do you file a motion in court? What goes in a motion, how to format and file it, and how to serve the other side. Not legal advice.",
     category: "Court Procedures",
     readTime: "12 min",
     paragraphs: [
-      "Filing a motion is one of the most common actions in any court case. A motion is a formal request to the court asking a judge to make a ruling or take some action. Understanding how to properly draft, format, and file a motion is essential for anyone representing themselves in court.",
-      "Every motion must include a caption identifying the court, parties, and case number; a title that tells the court what you're asking for; a statement of facts; a legal argument section citing relevant statutes and case law; and a proposed order for the judge to sign. The format requirements vary by jurisdiction but generally follow similar patterns.",
-      "Before filing, check your local court rules for specific formatting requirements — things like font size (usually 12-point), margins (typically 1 inch), line spacing (often double-spaced), and page limits. Many courts also require a certificate of service proving you sent a copy to the other party.",
+      "Every motion must include a caption identifying the court, parties, and case number; a title that tells the court what you're asking for; a statement of facts; a legal argument section citing relevant statutes and case law; and a proposed order for the judge to sign. Before filing, check your local court rules for specific formatting requirements — things like font size (usually 12-point), margins (typically 1 inch), line spacing (often double-spaced), and page limits. Many courts also require a certificate of service proving you sent a copy to the other party.",
+      "A motion is a formal request to the court asking a judge to make a ruling or take some action. Filing a motion is one of the most common actions in any court case. Understanding how to properly draft, format, and file a motion is essential for anyone representing themselves in court. The format requirements vary by jurisdiction but generally follow similar patterns.",
       "The legal argument section is where you explain why the law supports your request. This means citing statutes, court rules, and case law precedents. For example, if you're filing a motion to dismiss, you might cite Federal Rule of Civil Procedure 12(b)(6) and cases like Bell Atlantic Corp. v. Twombly, 550 U.S. 544 (2007), which established the 'plausibility' standard for complaints.",
       "After filing, the court will typically schedule a hearing date or issue a ruling based on the papers. Be prepared to argue your motion orally if a hearing is scheduled. Always keep copies of everything you file and note all deadlines on a calendar.",
     ],
@@ -51,16 +60,19 @@ export const ARTICLES: Article[] = [
       "Cite real statutes and case law in your legal argument section",
       "Always serve the other party and file a certificate of service",
     ],
-    relatedGuides: ["how-to-write-a-legal-brief", "understanding-court-deadlines", "what-is-a-motion-to-dismiss"],
+    relatedGuides: ["how-to-write-legal-brief", "statute-of-limitations-guide", "motion-to-dismiss-explained"],
   },
   {
     id: "statute-of-limitations-guide",
     title: "Statute of Limitations by State: Complete 50-State Guide (2024)",
+    seoTitle: "Statute of Limitations: How Long You Have",
+    metaDescription: "How long do you have to sue? How statutes of limitations work by claim type, and how tolling and the discovery rule can change your deadline.",
+    h1: "How Long Do You Have to Sue? Statute of Limitations Basics",
     category: "Court Procedures",
     readTime: "15 min",
     paragraphs: [
-      "A statute of limitations is a law that sets the maximum time after an event within which legal proceedings may be initiated. If you miss the deadline, you permanently lose the right to sue — regardless of how strong your case is. This makes understanding the applicable statute of limitations one of the most critical aspects of any potential legal claim.",
-      "Statutes of limitations vary significantly by state and by the type of legal claim. For example, personal injury claims range from 1 year (Kentucky, Louisiana, Tennessee) to 6 years (Maine, North Dakota). Breach of written contract claims range from 3 years in many states to up to 15 years in Ohio. The clock typically starts running from the date of injury or the date the injury was discovered.",
+      "Statutes of limitations vary significantly by state and by the type of legal claim. For example, personal injury claims range from 1 year (Kentucky, Louisiana, Tennessee) to 6 years (Maine, North Dakota). Breach of written contract claims range from 3 years in many states to up to 15 years in Ohio.",
+      "A statute of limitations is a law that sets the maximum time after an event within which legal proceedings may be initiated. If you miss the deadline, you permanently lose the right to sue — regardless of how strong your case is. This makes understanding the applicable statute of limitations one of the most critical aspects of any potential legal claim. The clock typically starts running from the date of injury or the date the injury was discovered.",
       "Some situations can 'toll' (pause) the statute of limitations. Common tolling events include: the defendant being a minor, the defendant leaving the state, the plaintiff being mentally incapacitated, or the defendant actively concealing the wrong. Courts apply tolling doctrines narrowly, so don't count on them without consulting an attorney.",
       "Federal claims have their own statutes of limitations. For example, employment discrimination claims under Title VII must be filed with the EEOC within 180 or 300 days (depending on the state). Civil rights claims under 42 U.S.C. § 1983 borrow the personal injury statute of limitations from the state where the claim arose.",
       "The discovery rule is an important exception: the clock doesn't start until the plaintiff knew or reasonably should have known about the injury. This is especially important in medical malpractice cases and fraud claims where the harm may not be immediately apparent. However, even with the discovery rule, most states impose an absolute statute of repose (e.g., 10 years) beyond which no claim can be brought.",
@@ -72,7 +84,7 @@ export const ARTICLES: Article[] = [
       "Tolling can pause the clock in limited circumstances (minority, incapacity, concealment)",
       "Federal claims have their own deadlines; check both state and federal law",
     ],
-    relatedGuides: ["how-to-file-a-motion", "what-is-a-complaint", "understanding-court-deadlines"],
+    relatedGuides: ["how-to-file-a-motion", "what-is-a-complaint"],
   },
   {
     id: "what-is-discovery",
@@ -93,7 +105,7 @@ export const ARTICLES: Article[] = [
       "Privileged communications and attorney work product are protected from discovery",
       "Missing discovery deadlines can lead to sanctions — track all dates carefully",
     ],
-    relatedGuides: ["how-to-file-a-motion", "what-is-a-motion-to-compel", "evidence-management-for-pro-se"],
+    relatedGuides: ["how-to-file-a-motion", "organize-case-documents"],
   },
   {
     id: "motion-to-dismiss-explained",
@@ -114,7 +126,7 @@ export const ARTICLES: Article[] = [
       "Dismissal with prejudice ends the case; without prejudice allows refiling",
       "Address each ground raised and explain why your complaint meets the legal standard",
     ],
-    relatedGuides: ["how-to-file-a-motion", "what-is-a-complaint", "understanding-court-deadlines"],
+    relatedGuides: ["how-to-file-a-motion", "what-is-a-complaint", "statute-of-limitations-guide"],
   },
   {
     id: "what-is-a-complaint",
@@ -156,7 +168,7 @@ export const ARTICLES: Article[] = [
       "Courts view evidence in the light most favorable to the non-moving party",
       "Most civil cases are resolved at or before summary judgment — prepare thoroughly",
     ],
-    relatedGuides: ["what-is-discovery", "how-to-write-a-legal-brief", "motion-to-dismiss-explained"],
+    relatedGuides: ["what-is-discovery", "how-to-write-legal-brief", "motion-to-dismiss-explained"],
   },
   {
     id: "understanding-miranda-rights",
@@ -177,7 +189,7 @@ export const ARTICLES: Article[] = [
       "To invoke rights, be clear and unambiguous — silence alone is not enough (Berghuis)",
       "A child's age is relevant to whether they're 'in custody' for Miranda purposes",
     ],
-    relatedGuides: ["fourth-amendment-search-seizure", "what-to-do-if-arrested", "understanding-plea-bargains"],
+    relatedGuides: ["fourth-amendment-search-seizure", "rights-during-police-stop"],
   },
   {
     id: "fourth-amendment-search-seizure",
@@ -198,7 +210,7 @@ export const ARTICLES: Article[] = [
       "Exclusionary rule suppresses illegally obtained evidence, but good faith exception applies",
       "Challenge illegal searches by filing a motion to suppress — you must have standing",
     ],
-    relatedGuides: ["understanding-miranda-rights", "what-to-do-if-arrested", "how-to-file-a-motion"],
+    relatedGuides: ["understanding-miranda-rights", "rights-during-police-stop", "how-to-file-a-motion"],
   },
   {
     id: "child-custody-guide",
@@ -219,7 +231,7 @@ export const ARTICLES: Article[] = [
       "Orders are modifiable when there's a substantial change in circumstances",
       "Document everything, focus on the child, and support co-parent relationships",
     ],
-    relatedGuides: ["divorce-process-overview", "how-to-write-a-parenting-plan", "understanding-child-support"],
+    relatedGuides: ["divorce-process-overview"],
   },
   {
     id: "divorce-process-overview",
@@ -240,18 +252,20 @@ export const ARTICLES: Article[] = [
       "Most cases settle via negotiation or mediation — trial is the last resort",
       "Appeal deadline is typically 30 days after final judgment",
     ],
-    relatedGuides: ["child-custody-guide", "understanding-child-support", "how-to-file-a-motion"],
+    relatedGuides: ["child-custody-guide", "how-to-file-a-motion"],
   },
   {
     id: "debt-collection-defense",
     title: "How to Defend Against a Debt Collection Lawsuit: 10 Essential Steps",
+    seoTitle: "Sued by a Debt Collector? How to Respond",
+    metaDescription: "Being sued by a debt collector? How to answer in time, common defenses such as lack of standing or an expired limitations period. Not legal advice.",
+    h1: "Being Sued by a Debt Collector: How to Respond",
     category: "Debt Collection",
     readTime: "13 min",
     paragraphs: [
-      "Being sued by a debt collector is intimidating, but you have rights under federal and state law. The Fair Debt Collection Practices Act (FDCPA), 15 U.S.C. § 1692, prohibits debt collectors from using abusive, deceptive, or unfair practices. You also have procedural rights in court that can be used to defend against weak or improper claims.",
-      "The most important step when sued is to file a written answer with the court within the deadline (usually 20-30 days). If you don't answer, the debt collector can get a default judgment and potentially garnish your wages or levy your bank account. Your answer should respond to each numbered paragraph in the complaint — admit, deny, or state that you lack sufficient information. Also raise affirmative defenses like statute of limitations, lack of standing, or failure to state a claim.",
+      "The most important step when sued is to file a written answer with the court within the deadline (usually 20-30 days). If you don't answer, the debt collector can get a default judgment and potentially garnish your wages or levy your bank account. Being sued by a debt collector is intimidating, but you have rights under federal and state law. The Fair Debt Collection Practices Act (FDCPA), 15 U.S.C. § 1692, prohibits debt collectors from using abusive, deceptive, or unfair practices. You also have procedural rights in court that can be used to defend against weak or improper claims.",
+      "Your answer should respond to each numbered paragraph in the complaint — admit, deny, or state that you lack sufficient information. Also raise affirmative defenses like statute of limitations, lack of standing, or failure to state a claim. Key defenses include: the statute of limitations has expired (typically 3-6 years depending on state and debt type), the plaintiff lacks standing (can't prove they own the debt), the amount is incorrect, identity theft/fraud, the debt was already paid or discharged in bankruptcy, or the debt collector violated the FDCPA. Always demand strict proof of the debt — account statements, chain of assignment, and the original contract.",
       "Debt buyers (companies that purchase charged-off debts for pennies on the dollar) are the most common plaintiffs in debt collection lawsuits. Under cases like Midland Funding, LLC v. Johnson, 137 S. Ct. 1407 (2017), filing a time-barred proof of claim in bankruptcy does not violate the FDCPA. However, debt buyers must still prove they own the debt, the amount is correct, and they have standing to sue.",
-      "Key defenses include: the statute of limitations has expired (typically 3-6 years depending on state and debt type), the plaintiff lacks standing (can't prove they own the debt), the amount is incorrect, identity theft/fraud, the debt was already paid or discharged in bankruptcy, or the debt collector violated the FDCPA. Always demand strict proof of the debt — account statements, chain of assignment, and the original contract.",
       "If you have valid defenses, consider filing a motion to dismiss. If the debt collector violated the FDCPA, you may have counterclaims for statutory damages up to $1,000 plus attorney fees. Many debt collection cases settle for less than the full amount. Never ignore a lawsuit — the worst outcome is a default judgment that can haunt you for years.",
     ],
     takeaways: [
@@ -266,12 +280,14 @@ export const ARTICLES: Article[] = [
   {
     id: "eviction-process-guide",
     title: "The Eviction Process: A Tenant's Rights Guide for All 50 States",
+    seoTitle: "Eviction Process: Tenant Rights Step by Step",
+    metaDescription: "How does an eviction work, and what can a tenant do about it? The notice, the court case, defenses you can raise, and what happens after a judgment.",
+    h1: "How Does the Eviction Process Work?",
     category: "Housing Law",
     readTime: "14 min",
     paragraphs: [
-      "Eviction (legally called 'unlawful detainer' or 'forcible entry and detainer') is the legal process by which a landlord removes a tenant from rental property. Every state has specific procedures that landlords must follow — self-help evictions (changing locks, shutting off utilities, removing belongings) are illegal in all 50 states.",
-      "The eviction process typically begins with a notice to the tenant: a pay-or-quit notice for non-payment of rent (usually 3-14 days depending on state), a cure-or-quit notice for lease violations, or an unconditional quit notice for serious violations. If the tenant doesn't comply within the notice period, the landlord can file an eviction lawsuit (summons and complaint) in court.",
-      "Tenants have the right to receive proper service of the eviction lawsuit, file an answer raising defenses, and participate in a hearing. Common defenses include: the landlord didn't follow proper procedures, the eviction is retaliatory (in response to the tenant complaining about habitability issues), the eviction is discriminatory (violating the Fair Housing Act), the landlord failed to maintain habitable conditions, or the tenant has already paid or offered to pay the rent.",
+      "Every state has specific procedures that landlords must follow — self-help evictions (changing locks, shutting off utilities, removing belongings) are illegal in all 50 states. The eviction process typically begins with a notice to the tenant: a pay-or-quit notice for non-payment of rent (usually 3-14 days depending on state), a cure-or-quit notice for lease violations, or an unconditional quit notice for serious violations. If the tenant doesn't comply within the notice period, the landlord can file an eviction lawsuit (summons and complaint) in court. Tenants have the right to receive proper service of the eviction lawsuit, file an answer raising defenses, and participate in a hearing.",
+      "Eviction (legally called 'unlawful detainer' or 'forcible entry and detainer') is the legal process by which a landlord removes a tenant from rental property. Common defenses include: the landlord didn't follow proper procedures, the eviction is retaliatory (in response to the tenant complaining about habitability issues), the eviction is discriminatory (violating the Fair Housing Act), the landlord failed to maintain habitable conditions, or the tenant has already paid or offered to pay the rent.",
       "Under the implied warranty of habitability — recognized in most states following Javins v. First National Realty Corp., 428 F.2d 1071 (D.C. Cir. 1970) — landlords must maintain rental properties in safe, livable condition. If the landlord fails to make essential repairs, tenants may have the right to withhold rent, repair and deduct, or break the lease without penalty. However, the procedures for exercising these rights vary significantly by state.",
       "The CARES Act of 2020 provided temporary eviction protections for tenants in federally backed housing, but most protections have expired. Check your state and local laws — some jurisdictions have permanent tenant protections including right to counsel in eviction cases, mandatory mediation programs, and source-of-income discrimination bans. If you receive an eviction notice, act immediately: contact legal aid, respond to the court, and document everything.",
     ],
@@ -287,11 +303,14 @@ export const ARTICLES: Article[] = [
   {
     id: "security-deposit-guide",
     title: "Security Deposits: Your Rights and How to Get Your Deposit Back",
+    seoTitle: "Get Your Security Deposit Back",
+    metaDescription: "Can your landlord keep your security deposit? What can be deducted, the return deadline, and how to get your deposit back if they refuse.",
+    h1: "How Do I Get My Security Deposit Back?",
     category: "Housing Law",
     readTime: "9 min",
     paragraphs: [
-      "Security deposits are payments tenants make to landlords at the start of a tenancy to cover potential damages beyond normal wear and tear or unpaid rent. Every state regulates security deposits — maximum amounts (typically 1-2 months' rent), how they must be held, whether interest must be paid, and strict deadlines for returning deposits after move-out (usually 14-45 days).",
-      "Landlords can only deduct from security deposits for specific reasons: unpaid rent, damage beyond normal wear and tear, cleaning costs if the unit is left unusually dirty, and (in some states) unpaid utility bills. Normal wear and tear — like minor scuffs on walls, worn carpet from regular use, or faded paint — cannot be deducted. The distinction between damage (tenant-caused) and wear and tear (ordinary use) is the most common dispute.",
+      "Every state regulates security deposits — maximum amounts (typically 1-2 months' rent), how they must be held, whether interest must be paid, and strict deadlines for returning deposits after move-out (usually 14-45 days). Landlords can only deduct from security deposits for specific reasons: unpaid rent, damage beyond normal wear and tear, cleaning costs if the unit is left unusually dirty, and (in some states) unpaid utility bills. Normal wear and tear — like minor scuffs on walls, worn carpet from regular use, or faded paint — cannot be deducted.",
+      "Security deposits are payments tenants make to landlords at the start of a tenancy to cover potential damages beyond normal wear and tear or unpaid rent. The distinction between damage (tenant-caused) and wear and tear (ordinary use) is the most common dispute.",
       "Landlords must provide an itemized statement of deductions along with any remaining deposit within the state-mandated deadline. If they fail to do so, tenants may be entitled to the full deposit regardless of any damages, plus statutory penalties (often 2-3 times the deposit amount) in many states. Some states require landlords to provide receipts for any deductions over a certain amount.",
       "To protect yourself: take dated photos and video when you move in and move out, complete a move-in inspection checklist and keep a copy, report all needed repairs in writing, clean thoroughly before moving out, and provide a forwarding address in writing. Send everything by certified mail with return receipt so you have proof of delivery.",
       "If the landlord wrongfully withholds your deposit, you can sue in small claims court. Small claims court is designed for self-representation — the filing fees are low ($15-75), the process is simpler, and the monetary limit (typically $3,000-$10,000) covers most deposit disputes. Bring your evidence: photos, inspection reports, correspondence, and a copy of the lease.",
@@ -387,17 +406,21 @@ export const ARTICLES: Article[] = [
       "Argument: use IRAC (Issue, Rule, Application, Conclusion) and clear point headings",
       "Cite binding precedent first, use parenthetical explanations, and never cite unread cases",
     ],
-    relatedGuides: ["how-to-file-a-motion", "what-is-discovery", "legal-research-fundamentals"],
+    relatedGuides: ["how-to-file-a-motion", "what-is-discovery"],
   },
   {
     id: "small-claims-court-guide",
     title: "Small Claims Court: A Complete Guide to Suing Without a Lawyer",
+    seoTitle: "How to Sue in Small Claims Court",
+    metaDescription: "How do you sue someone in small claims court? Filing steps, the monetary limit, serving the defendant, and collecting a judgment. Not legal advice.",
+    h1: "How Do You Sue Someone in Small Claims Court?",
     category: "Court Procedures",
     readTime: "11 min",
     paragraphs: [
-      "Small claims court is designed for people to resolve disputes involving relatively small amounts of money without needing a lawyer. Each state sets its own monetary limit — typically $3,000 to $10,000, though some states go up to $25,000. Small claims court has simplified procedures: no formal discovery, relaxed evidence rules, and no juries (a judge decides everything).",
+      "To file, go to the courthouse in the county where the defendant lives or does business (or where the dispute occurred). Each state sets its own monetary limit — typically $3,000 to $10,000, though some states go up to $25,000. Pay the filing fee ($15-100, often recoverable if you win); fee waivers are available for low-income litigants.",
+      "Small claims court is designed for people to resolve disputes involving relatively small amounts of money without needing a lawyer. Small claims court has simplified procedures: no formal discovery, relaxed evidence rules, and no juries (a judge decides everything).",
       "Before filing, confirm small claims court is the right venue for your case. Small claims courts generally handle claims for money only and cannot order someone to do something (like return property or perform a service), though some states allow limited equitable relief. Make sure the amount is within the court's monetary limit — if you're owed more than the limit, you can waive the excess and sue for the limit, but you can't split one claim into multiple small claims cases. You must file in the county where the defendant lives or does business, or where the dispute occurred. Confirm your claim is within the statute of limitations — most small claims cases must be filed within 2-6 years depending on the claim type and state.",
-      "To file, go to the courthouse in the county where the defendant lives or does business (or where the dispute occurred). Fill out a simple complaint form describing what happened, how much you're owed, and why. Use the defendant's correct legal name and address — for a business, check the Secretary of State's website for the registered agent. Pay the filing fee ($15-100, often recoverable if you win); fee waivers are available for low-income litigants. The court clerk schedules a hearing date, issues a summons, and usually handles service via certified mail or sheriff's service for a small additional fee. Bring at least three copies of everything you file — one for the judge, one for the defendant, and one for yourself.",
+      "Fill out a simple complaint form describing what happened, how much you're owed, and why. Use the defendant's correct legal name and address — for a business, check the Secretary of State's website for the registered agent. The court clerk schedules a hearing date, issues a summons, and usually handles service via certified mail or sheriff's service for a small additional fee. Bring at least three copies of everything you file — one for the judge, one for the defendant, and one for yourself.",
       "Before the hearing, consider sending a formal demand letter — it shows the court you tried to resolve the dispute and may settle the case without litigation. Prepare your evidence: contracts, receipts, photos, emails/texts, invoices, estimates, cancelled checks, repair estimates, and witness statements. Organize everything chronologically, and arrange for any witnesses to attend. Practice explaining your case in 3-5 minutes — small claims hearings are short, and judges appreciate clear, concise presentations.",
       "At the hearing, arrive early, dress professionally, and bring all your evidence and copies for the judge and other party. When it's your turn, tell your story clearly and concisely. Stick to the facts. Show the judge your evidence. Answer questions directly. Be respectful — even if you're frustrated. The judge will either rule from the bench or mail a decision later.",
       "After the hearing: if you win, you get a judgment — but collecting can be the hardest part, and the court doesn't collect the money for you. Collection options include wage garnishment, bank levy, and property liens (and in some states, driver's license suspension for non-payment of judgments). If you lose, review whether you can appeal — deadlines are short (typically 10-30 days), and in many states appeals are de novo (a new trial in a higher court), while in others they are limited to errors of law rather than disagreements with the judge's factual findings.",
@@ -646,7 +669,7 @@ export const ARTICLES: Article[] = [
     },
   {
     id: "how-to-write-demand-letter",
-    title: "How to Write a Demand Letter: Templates and Legal Requirements",
+    title: "How to Write a Demand Letter",
     category: "Consumer Law",
     readTime: "7 min",
     paragraphs: [
@@ -669,12 +692,15 @@ export const ARTICLES: Article[] = [
   {
     id: "unemployment-benefits-guide",
     title: "How to File for Unemployment Benefits: A Legal Guide",
+    seoTitle: "How to File for Unemployment Benefits",
+    metaDescription: "How do you file for unemployment benefits? Who qualifies, what you need to apply, why claims are denied, and how the appeal hearing works.",
+    h1: "How Do I File for Unemployment Benefits?",
     category: "Employment Law",
     readTime: "7 min",
     paragraphs: [
+      "To qualify for unemployment benefits, you generally must meet three criteria: (1) you're unemployed through no fault of your own — layoffs and reductions in force almost always qualify; being fired for misconduct usually doesn't; quitting voluntarily requires proving 'good cause' (like workplace harassment, unsafe conditions, or a significant change in job terms); (2) you've earned sufficient wages during a 'base period' — typically the first four of the last five completed calendar quarters; and (3) you're able, available, and actively seeking work. File immediately after your last day of work — benefits are not retroactive to before you apply. Most states require weekly certification of your ongoing eligibility.",
       "Unemployment insurance is a joint federal-state program that provides temporary financial assistance to workers who lose their jobs through no fault of their own. Every state administers its own unemployment benefits program, so eligibility requirements, benefit amounts, and application procedures vary — but the core principles are consistent nationwide. Understanding how the system works can mean the difference between receiving benefits promptly and facing weeks of unnecessary financial hardship.",
-      "To qualify for unemployment benefits, you generally must meet three criteria: (1) you're unemployed through no fault of your own — layoffs and reductions in force almost always qualify; being fired for misconduct usually doesn't; quitting voluntarily requires proving 'good cause' (like workplace harassment, unsafe conditions, or a significant change in job terms); (2) you've earned sufficient wages during a 'base period' — typically the first four of the last five completed calendar quarters; and (3) you're able, available, and actively seeking work. Most states require weekly certification of your ongoing eligibility.",
-      "The application process starts with filing a claim through your state's unemployment agency — most states now have online portals available 24/7. You'll need: your Social Security number, driver's license or state ID, employment history for the past 18 months (employer names, addresses, dates of employment, wages earned), and the reason for separation from each job. If you were laid off, your employer's EIN or state employer account number (from your W-2 or pay stub) helps identify your account quickly. File immediately after your last day of work — benefits are not retroactive to before you apply.",
+      "The application process starts with filing a claim through your state's unemployment agency — most states now have online portals available 24/7. You'll need: your Social Security number, driver's license or state ID, employment history for the past 18 months (employer names, addresses, dates of employment, wages earned), and the reason for separation from each job. If you were laid off, your employer's EIN or state employer account number (from your W-2 or pay stub) helps identify your account quickly.",
       "If your claim is denied, you have the right to appeal. The most common reasons for denial are: the agency determined you quit without good cause, were fired for misconduct, or didn't earn enough wages during the base period. The appeal process varies by state but typically involves: filing a written appeal within a strict deadline (often 10-30 days), participating in a telephone or in-person hearing before an administrative law judge, and presenting evidence and witness testimony. Many claimants win at the hearing stage — especially when employers fail to appear or lack documentation to support their version of events.",
       "While receiving benefits, you must comply with ongoing requirements: file weekly or biweekly certifications confirming you remain unemployed and are actively seeking work, register with your state's job service, accept suitable job offers, and report any income earned (even part-time or gig work reduces your weekly benefit). Keep a detailed record of your work search activities — applications submitted, interviews attended, and networking events. Failure to comply can result in benefit suspension, overpayment determinations requiring you to repay benefits received, and in some cases, disqualification from future benefits.",
     ],
@@ -923,10 +949,13 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-respond-to-lawsuit",
     title: "How to Respond to a Lawsuit: Answer, Motion, or Settlement",
+    seoTitle: "Served With a Lawsuit? How to Respond",
+    metaDescription: "Just been served with a lawsuit? How long you have to respond, how to answer a complaint, when to file a motion instead, and avoid a default judgment.",
+    h1: "How Do I Respond to a Lawsuit?",
     category: "Court Procedures",
     readTime: "9 min",
     paragraphs: [
-      "Being served with a lawsuit is stressful and disorienting, but what you do in the first 20-30 days determines the entire trajectory of your case. When you receive a summons and complaint, you have a limited window — typically 21 days in federal court (Rule 12(a)) or 20-30 days in state court — to respond. If you do nothing, the plaintiff can obtain a default judgment against you: the court grants everything the plaintiff asked for, without ever hearing your side. The first and most important rule: respond. Period.",
+      "When you receive a summons and complaint, you have a limited window — typically 21 days in federal court (Rule 12(a)) or 20-30 days in state court — to respond. If you do nothing, the plaintiff can obtain a default judgment against you: the court grants everything the plaintiff asked for, without ever hearing your side. Being served with a lawsuit is stressful and disorienting, but what you do in the first 20-30 days determines the entire trajectory of your case. The first and most important rule: respond. Period.",
       "You have three basic options when responding to a complaint: (1) File an answer — a document where you admit, deny, or state that you lack sufficient information to admit or deny each numbered paragraph in the complaint. You must respond to every paragraph; any allegation you fail to deny is deemed admitted. Your answer should also raise affirmative defenses — legal reasons why the plaintiff should not win even if their facts are true: statute of limitations has expired, the plaintiff lacks standing, the court lacks jurisdiction, comparative negligence, payment or settlement, or failure to state a claim. (2) File a motion under Rule 12(b) (federal) or equivalent state rule — a request to dismiss some or all claims before answering. Common grounds: lack of jurisdiction, improper venue, insufficient service of process, or failure to state a claim (Rule 12(b)(6)). (3) Immediately contact the plaintiff or their attorney and attempt to settle. This doesn't extend your response deadline, so you need to handle both tracks simultaneously.",
       "The strategic calculus: filing a motion to dismiss makes sense when the complaint has a clear legal defect — like the statute of limitations has clearly run, or the complaint fails to allege necessary elements. But motions to dismiss are often denied because courts must accept the complaint's factual allegations as true at this stage. Filing an answer preserves your right to contest the facts and buys time for discovery. Many defendants do both: file a partial answer while moving to dismiss specific claims. Note that filing a motion to dismiss typically extends your time to answer: if the motion is denied, you usually have 14 days to file your answer. Check your local rules.",
       "Before drafting your response, conduct a careful analysis: (1) What is the exact deadline? Count from the date of service, not the date the complaint was filed. Weekends and holidays count, but if the deadline falls on a weekend or holiday, it extends to the next business day. Mark the deadline immediately and aim to file 2-3 days early. (2) What court is this in and what rules apply? Federal Rules of Civil Procedure or your state's rules? Local court rules may impose additional requirements — check them. (3) Do you have defenses? Evaluate the statute of limitations, jurisdictional issues, failure to state a claim, and any factual disputes. (4) Is there insurance coverage? If the lawsuit relates to a car accident, slip-and-fall at your property, or professional services, your insurance company may have a duty to defend you and hire an attorney. Notify your insurer immediately — failure to do so can waive coverage.",
@@ -960,7 +989,7 @@ export const ARTICLES: Article[] = [
       "Post-2018 divorces: alimony is tax-neutral — paying spouse can't deduct, receiving spouse doesn't report as income",
       "Alimony terminates at death, remarriage, or cohabitation; modification requires substantial change in circumstances",
     ],
-    relatedGuides: ["divorce-process-overview", "child-custody-guide", "understanding-child-support"],
+    relatedGuides: ["divorce-process-overview", "child-custody-guide"],
   },
   {
     id: "fight-restraining-order",
@@ -1067,7 +1096,7 @@ export const ARTICLES: Article[] = [
       "The USPTO examination takes 8-12 months; respond to Office Actions within 3 months or risk abandonment",
       "Registration provides nationwide priority, federal court access, and the ® symbol — but requires maintenance filings every 5-10 years",
     ],
-    relatedGuides: ["how-to-start-an-llc", "intellectual-property-rights", "what-is-a-contract"],
+    relatedGuides: ["how-to-start-an-llc", "how-to-read-contract"],
   },
   {
     id: "wrongful-death-claims",
@@ -1088,7 +1117,7 @@ export const ARTICLES: Article[] = [
       "A 'survival action' is a separate claim for the decedent's own pre-death losses (pain, medical expenses) — distinct from the family's wrongful death claim",
       "Statute of limitations is 1-3 years typically; claims against government entities have much shorter deadlines with notice requirements",
     ],
-    relatedGuides: ["medical-malpractice-guide", "statute-of-limitations-guide", "personal-injury-settlement"],
+    relatedGuides: ["medical-malpractice-guide", "statute-of-limitations-guide", "after-car-accident-guide"],
   },
   {
     id: "eminent-domain",
@@ -1130,7 +1159,7 @@ export const ARTICLES: Article[] = [
       "If no response within 20-30 days, request default judgment — court grants divorce based on your petition",
       "Use temporary orders to handle custody, support, and finances during the divorce; document all obstruction",
     ],
-    relatedGuides: ["understanding-alimony", "child-custody-basics", "restraining-order-defense"],
+    relatedGuides: ["understanding-alimony", "child-custody-guide", "fight-restraining-order"],
   },
   {
     id: "equal-pay-act",
@@ -1151,7 +1180,7 @@ export const ARTICLES: Article[] = [
       "EPA advantage over Title VII: no EEOC charge required, longer statute of limitations, liquidated damages (double back pay)",
       "Many state laws go beyond the EPA: salary history bans, pay transparency requirements, and broader protected categories",
     ],
-    relatedGuides: ["sexual-harassment-guide", "employment-discrimination", "filing-eeoc-complaint"],
+    relatedGuides: ["sexual-harassment-rights", "wrongful-termination"],
   },
   {
     id: "how-to-write-a-will",
@@ -1193,7 +1222,7 @@ export const ARTICLES: Article[] = [
       "Tippers are liable if they disclose for personal benefit; tippees are liable if they knew the information came from an insider's breach",
       "Penalties: up to 20 years prison, triple disgorgement of profits, $5M individual fine; SEC uses AI surveillance and whistleblower bounties",
     ],
-    relatedGuides: ["how-to-start-an-llc", "what-is-a-contract", "how-to-file-a-trademark"],
+    relatedGuides: ["how-to-start-an-llc", "how-to-read-contract", "how-to-file-a-trademark"],
   },
   {
     id: "us-citizenship-naturalization",
@@ -1214,7 +1243,7 @@ export const ARTICLES: Article[] = [
       "Strict rules on continuous residence — trips over 6 months are scrutinized; disclose all arrests, tax issues, and Selective Service status",
       "Naturalization grants full citizenship rights: voting, U.S. passport, protection from deportation, and ability to petition family members",
     ],
-    relatedGuides: ["how-to-get-a-green-card", "asylum-application-process", "visa-overstay-consequences"],
+    relatedGuides: ["how-to-get-green-card", "asylum-law-guide"],
   },
   {
     id: "noise-complaints-nuisance",
@@ -1235,7 +1264,7 @@ export const ARTICLES: Article[] = [
       "Evidence is king: keep a noise log with decibel readings, timestamps, and recordings; courts are skeptical of undocumented complaints",
       "Renters have leverage through the implied covenant of quiet enjoyment — landlords must address chronic noise or face lease-breaking, rent abatement, or lawsuits",
     ],
-    relatedGuides: ["tenant-rights-eviction", "landlord-tenant-disputes", "small-claims-court-guide"],
+    relatedGuides: ["eviction-process-guide", "tenant-rights-guide", "small-claims-court-guide"],
   },
   {
     id: "subpoena-phone-records",
@@ -1256,16 +1285,19 @@ export const ARTICLES: Article[] = [
       "Serve via registered agent or provider legal compliance portal; provide notice to all parties; include the required witness fee",
       "Most electronic evidence is better obtained from the opposing party directly through standard discovery than via third-party subpoenas",
     ],
-    relatedGuides: ["what-is-discovery", "how-to-file-a-motion", "motion-to-compel-discovery"],
+    relatedGuides: ["what-is-discovery", "how-to-file-a-motion"],
   },
   {
     id: "how-to-expunge-a-criminal-record",
     title: "How to Expunge a Criminal Record: Eligibility and Step-by-Step Process",
+    seoTitle: "How to Expunge a Criminal Record",
+    metaDescription: "Can you expunge a criminal record? How eligibility works by offense and disposition, what to file, and what a sealed record does not hide.",
+    h1: "How Do I Expunge a Criminal Record?",
     category: "Criminal Law",
     readTime: "9 min",
     paragraphs: [
-      "An expungement is a legal process that seals or destroys a criminal record, effectively removing it from public view. For millions of Americans with arrest records or minor convictions, expungement can be a path to clearing their name for employment, housing, and professional licensing. Each state has its own expungement laws with specific eligibility criteria — some automatically seal records after a waiting period, others require a formal petition to the court. Understanding whether you qualify and how to navigate the process can change your life. Expungement is not the same as a pardon (which forgives the crime but may leave the record visible) or record sealing (which limits access but doesn't destroy the record).",
-      "Eligibility depends primarily on: the type of offense (misdemeanor vs. felony), the disposition of the case (conviction, dismissal, acquittal, or deferred adjudication), and the waiting period since completing your sentence. Generally: arrests that did not lead to conviction are nearly always eligible for expungement. Dismissed charges and acquittals are typically eligible immediately or after a short waiting period. Misdemeanor convictions may be eligible after a waiting period (often 1-5 years after completing probation or sentence). Felony convictions are the hardest to expunge — many states exclude violent felonies, sex offenses, and certain drug crimes entirely. Some states (like California under Penal Code § 1203.4) allow felony probation cases to be reduced to misdemeanors and then expunged. Juvenile records often have separate, more generous expungement procedures. Federal convictions are extremely difficult to expunge — there is no general federal expungement statute, though narrow relief exists for certain drug offenses and first-time offenders.",
+      "Each state has its own expungement laws with specific eligibility criteria — some automatically seal records after a waiting period, others require a formal petition to the court. Eligibility depends primarily on: the type of offense (misdemeanor vs. felony), the disposition of the case (conviction, dismissal, acquittal, or deferred adjudication), and the waiting period since completing your sentence. An expungement is a legal process that seals or destroys a criminal record, effectively removing it from public view. Expungement is not the same as a pardon (which forgives the crime but may leave the record visible) or record sealing (which limits access but doesn't destroy the record).",
+      "For millions of Americans with arrest records or minor convictions, expungement can be a path to clearing their name for employment, housing, and professional licensing. Understanding whether you qualify and how to navigate the process can change your life. Generally: arrests that did not lead to conviction are nearly always eligible for expungement. Dismissed charges and acquittals are typically eligible immediately or after a short waiting period. Misdemeanor convictions may be eligible after a waiting period (often 1-5 years after completing probation or sentence). Felony convictions are the hardest to expunge — many states exclude violent felonies, sex offenses, and certain drug crimes entirely. Some states (like California under Penal Code § 1203.4) allow felony probation cases to be reduced to misdemeanors and then expunged. Juvenile records often have separate, more generous expungement procedures. Federal convictions are extremely difficult to expunge — there is no general federal expungement statute, though narrow relief exists for certain drug offenses and first-time offenders.",
       "The step-by-step process: (1) Determine eligibility — check your state's expungement statute. Look up the specific waiting period, offense exclusions, and procedural requirements. Many states have online eligibility tools. (2) Obtain your criminal record — request your complete record from the state bureau of investigation, state police, or the FBI (for federal records). You need every case number, arrest date, charge, and disposition. If anything is inaccurate, address that through a separate record correction process first. (3) Gather supporting documents: certified copies of the disposition in each case, proof of completed sentence (probation discharge papers, certificate of rehabilitation, completion certificates), character references, and evidence of rehabilitation (employment records, community service, education). (4) File the petition in the court where the case was heard. Many states provide fillable forms — look for 'Petition for Expungement' or 'Motion to Seal Record' on your court's website. Pay the filing fee (typically $50-$300, though fee waivers may be available for low-income petitioners). (5) Serve a copy on the prosecuting attorney's office. The prosecutor may object or stipulate to the expungement. (6) Attend the hearing if required. Some states grant expungements without a hearing if the prosecutor doesn't object; others require a formal hearing where you must demonstrate rehabilitation and that expungement serves the interests of justice.",
       "After expungement: the record is sealed from public view but may still be accessible to law enforcement, certain government agencies, and for specific purposes (bar admissions, certain professional licenses, sensitive government jobs). You can legally deny the existence of the expunged record on most employment applications — but read the question carefully: some applications ask about convictions (which you can deny) vs. arrests (which you can also deny after expungement). Federal law (the Fair Credit Reporting Act) requires background check companies to remove expunged records from the consumer reports they issue. However, private databases may still have old information — you may need to contact these companies directly to request removal. Expungement does not restore firearm rights if those were lost due to a felony conviction — that requires a separate rights restoration process.",
       "Most important considerations: expungement is state-specific — don't rely on generic advice. Expungement takes time — expect 2-6 months from filing to order in many states. Expungement is not available for all offenses — if you're ineligible, consider alternative relief like a certificate of rehabilitation, executive pardon, or record sealing (which may have different eligibility rules). Legal aid organizations in many states provide free expungement assistance — search for 'legal aid expungement [your state]' or visit LawHelp.org.",
@@ -1282,11 +1314,14 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-get-a-restraining-order",
     title: "How to Get a Restraining Order: Domestic Violence Protection and Filing Guide",
+    seoTitle: "How to Get a Restraining Order",
+    metaDescription: "How do you get a restraining order? The types of protective orders, what evidence to file, what a judge can order, and how the hearing works.",
+    h1: "How Do I Get a Restraining Order?",
     category: "Family Law",
     readTime: "10 min",
     paragraphs: [
-      "A restraining order (also called a protective order, order of protection, or protection from abuse order) is a court order that requires one person to stay away from another person and cease all contact. These orders are most commonly sought in domestic violence situations, but can also be obtained in cases of stalking, harassment, elder abuse, and workplace violence. Every state has laws providing for protective orders, and federal law — the Violence Against Women Act (VAWA) — requires states to enforce each other's protective orders. Understanding the types of orders available, what evidence you need, and the filing process can be life-saving.",
       "There are typically three types of protective orders: (1) Emergency Protective Order (EPO) — issued immediately by law enforcement or a judge, often after-hours, valid for a very short period (typically 3-7 days). Police responding to domestic violence calls can request an EPO from an on-call judge. You don't need to file anything — the officer initiates this. (2) Temporary Restraining Order (TRO) or Ex Parte Order — you file a petition with the court and a judge reviews it the same day (often within 24 hours) without the other party present. Valid for 14-21 days until a full hearing can be held. To get a TRO, you must show an immediate and present danger of abuse. (3) Permanent or Final Restraining Order — issued after a full hearing where both sides can present evidence. Typically valid for 1-5 years, with the possibility of renewal. The standard of proof is usually 'preponderance of the evidence' (more likely than not).",
+      "A restraining order (also called a protective order, order of protection, or protection from abuse order) is a court order that requires one person to stay away from another person and cease all contact. These orders are most commonly sought in domestic violence situations, but can also be obtained in cases of stalking, harassment, elder abuse, and workplace violence. Every state has laws providing for protective orders, and federal law — the Violence Against Women Act (VAWA) — requires states to enforce each other's protective orders. Understanding the types of orders available, what evidence you need, and the filing process can be life-saving.",
       "What a restraining order can order: no contact (in person, by phone, text, email, social media, or through third parties), stay-away distance (e.g., 100 yards from your home, workplace, and children's school), vacate the shared residence (even if the restrained person is on the lease or deed), temporary custody of children with a visitation schedule, temporary child support and spousal support, surrender of firearms (required under federal law for domestic violence protective orders — 18 U.S.C. § 922(g)(8)), payment of your attorney's fees and court costs, attendance at a batterer intervention program, and protection of pets (many states now allow pets to be included in protective orders).",
       "How to file: (1) Go to your local courthouse — typically the family court, domestic violence court, or superior court. Most courthouses have a domestic violence clerk or self-help center specifically for protective orders. (2) Fill out the petition forms — these are usually free, fill-in-the-blank forms available at the courthouse or online. You'll need to describe the abuse in detail: dates, specific incidents, threats, injuries, whether weapons were involved, whether children witnessed it, and any prior police reports. Be as specific as possible. (3) Attach evidence: photos of injuries, screenshots of threatening texts/emails/social media messages, police reports, medical records, witness statements, 911 call logs, prior protective order records. (4) File the petition with the clerk. In most states there is no filing fee for domestic violence protective orders — confirm with your court's clerk or self-help center, and ask about fee waivers if a fee applies. (5) The judge reviews your petition, usually the same day. For a TRO, the judge only hears from you (ex parte). (6) Attend the final hearing — both sides can testify and present evidence.",
       "Critical safety considerations: the most dangerous time for a victim is often when leaving the relationship or when legal action is taken. If you fear for your safety, contact the National Domestic Violence Hotline at 1-800-799-SAFE (7233) or thehotline.org. Create a safety plan before filing. Keep a certified copy of the order with you at all times. Violation of a protective order is a crime — if the respondent violates the order, call 911 immediately. A protective order is one layer of protection, not a guarantee of safety. Use it in combination with safety planning and community resources.",
@@ -1360,6 +1395,28 @@ export const GUIDE_REDIRECTS: Record<string, string> = {
 };
 export function getGuideBySlug(slug: string): Article | undefined {
   return ARTICLES.find((a) => a.id === slug);
+}
+
+// --- Wave 2 question-intent SEO helpers ------------------------------------
+// Pilot guides carry seoTitle / metaDescription / h1; every other guide falls
+// back to the pre-Wave-2 rendering (title-tag phrase = article.title, meta =
+// first 160 chars of paragraph 0, H1 = article.title) so the other 52 guides
+// are byte-for-byte unchanged in the head block.
+export const GUIDE_TITLE_SUFFIX = " | Fair Fight";
+
+/** Full <title> for a guide head block, brand suffix always appended. */
+export function guidePageTitle(article: Pick<Article, "title" | "seoTitle">): string {
+  return `${article.seoTitle ?? article.title}${GUIDE_TITLE_SUFFIX}`;
+}
+
+/** Meta description: the guide's own question-answer meta when present, else the old paragraphs[0] fallback. */
+export function guidePageDescription(article: Pick<Article, "paragraphs" | "metaDescription">): string {
+  return article.metaDescription ?? article.paragraphs[0].substring(0, 160);
+}
+
+/** Visible H1: explicit h1 when set, else the seoTitle phrase, else article.title. */
+export function guidePageH1(article: Pick<Article, "title" | "seoTitle" | "h1">): string {
+  return article.h1 ?? article.seoTitle ?? article.title;
 }
 
 // Canonical public base for SEO URLs.
