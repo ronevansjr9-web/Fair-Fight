@@ -76,63 +76,6 @@ export const Route = createRootRoute({
           ],
         }),
       },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "mainEntity": [
-            {
-              "@type": "Question",
-              "name": "What is Fair Fight?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Fair Fight is an AI-powered legal education platform that helps you understand your legal situation in plain English. It provides case law research, statute explanations, case organization tools, and court deadline tracking. Fair Fight is not a law firm and does not provide legal advice — it is an educational tool to help you prepare before meeting with an attorney."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Is Fair Fight a law firm? Does it provide legal advice?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "No. Fair Fight is not a law firm and does not provide legal advice. It is an educational platform that uses AI to explain legal concepts in plain English. Always consult a licensed attorney for legal advice specific to your situation."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How much does Fair Fight cost?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Fair Fight provides public legal education and a paid Pro Case Analysis workspace. Pro Case Analysis is a one-time $99 purchase per case. Fair Fight is not a law firm and does not provide legal advice."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Can I represent myself in court using Fair Fight?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Fair Fight provides educational resources about self-representation (pro se), including guides on how to file motions, write legal briefs, understand discovery, and prepare for court. However, Fair Fight does not replace an attorney. For complex cases or cases involving potential jail time, hiring a licensed attorney is strongly recommended."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "What is a statute of limitations?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "A statute of limitations is a legal deadline for filing a lawsuit. Deadlines vary by jurisdiction and case type. Fair Fight's public legal education guides discuss statutes of limitations in general terms; consult a licensed attorney about your situation."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How does the AI case analysis work?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "You describe your legal situation in plain English, and Fair Fight's AI provides an educational analysis including: a plain-English summary of your situation, possible legal issues the facts may raise, candidate arguments either side might make, counterarguments and uncertainties, and traceable public legal sources. The analysis is for educational purposes only and does not constitute legal advice."
-              }
-            }
-          ]
-        }),
-      },
     ],
     // Security headers applied at the HTTP level
     ...Object.fromEntries(

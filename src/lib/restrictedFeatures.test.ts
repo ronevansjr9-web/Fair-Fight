@@ -324,7 +324,10 @@ describe("public copy no longer promises restricted flows", () => {
 
   test("structured data describes paid Pro Case Analysis without document-upload promises", () => {
     const source = read("../routes/__root.tsx");
-    expect(source).toContain("$99");
+    // The sitewide root FAQPage block was removed (owner directive 09-20,
+    // Deliverable 3), so the $99 price answer no longer lives in the root —
+    // it lives on the homepage and the two /compare pages. The remaining root
+    // Organization JSON-LD still describes Pro Case Analysis truthfully.
     expect(source).toMatch(/paid Pro Case Analysis/i);
     expect(source).not.toMatch(/Upload any documents, evidence/);
   });
@@ -726,7 +729,14 @@ describe("final review: case-creation copy and root structured data make no disa
     expect(source).not.toMatch(/AI Analyzes Your Case/i);
     // Truthful general legal-education metadata is retained.
     expect(source.toLowerCase()).toContain("legal education");
-    expect(source).toContain("FAQPage");
+    // The sitewide root FAQPage JSON-LD block is gone (owner directive 09-20,
+    // Deliverable 3): its six questions are not visibly rendered on any page,
+    // and the FAQ rich result was deprecated by Google. Per-guide FAQPage
+    // blocks live in src/lib/structuredData.ts and are exercised by
+    // structuredData.test.ts; only the ROOT emits one sitewide, so assert the
+    // root no longer carries it.
+    expect(source).not.toContain("FAQPage");
+    expect(source).toContain('"@type": "Organization"');
     expect(source).toContain("not a law firm");
     expect(source).not.toMatch(/never paywalled/i);
     expect(source).toMatch(/paid Pro Case Analysis/i);
