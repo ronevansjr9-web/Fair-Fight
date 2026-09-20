@@ -135,6 +135,32 @@ function GuidePage() {
             </div>
           </div>
         )}
+        <div className="mt-10 rounded-2xl border border-gold/20 bg-white/5 p-6 backdrop-blur-sm">
+          <h2 className="mb-4 text-xl font-bold text-gold">Explore</h2>
+          <div className="space-y-3">
+            <Link
+              to="/glossary"
+              className="block rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-gold/40 hover:bg-white/10"
+            >
+              <span className="block font-semibold text-white">Legal glossary</span>
+              <span className="mt-1 block text-sm text-white/60">Legal terms in plain English</span>
+            </Link>
+            <Link
+              to="/compare/fair-fight-vs-hiring-an-attorney"
+              className="block rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-gold/40 hover:bg-white/10"
+            >
+              <span className="block font-semibold text-white">Fair Fight vs. hiring an attorney</span>
+              <span className="mt-1 block text-sm text-white/60">How Fair Fight's case workspace compares with hiring a lawyer</span>
+            </Link>
+            <Link
+              to="/compare/fair-fight-vs-donotpay"
+              className="block rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-gold/40 hover:bg-white/10"
+            >
+              <span className="block font-semibold text-white">Fair Fight vs. DoNotPay</span>
+              <span className="mt-1 block text-sm text-white/60">How Fair Fight compares with automated legal services</span>
+            </Link>
+          </div>
+        </div>
         <div className="mt-8 rounded-lg border border-white/10 bg-white/5 p-4 text-center">
           <p className="text-xs text-white/40">For educational purposes only. Fair Fight is not a law firm and does not provide legal advice. Consult a licensed attorney. Public guides are separate from Fair Fight's paid Pro Case Analysis workspace.</p>
         </div>
