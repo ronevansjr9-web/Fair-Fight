@@ -6,7 +6,7 @@
 // present in the guide content itself. Author/Publisher is always the company,
 // "Fair Fight", never a fabricated person.
 import type { Article } from "./guides";
-import { SITE_ORIGIN, guidePageDescription, guidePageH1, guideUrl } from "./guides";
+import { SITE_ORIGIN, guidePageDescription, guidePageFaqs, guidePageH1, guideUrl } from "./guides";
 
 // Stable publication date for the /learn guide library. The guide data carries no
 // per-guide dates; we use a single stable value reflecting when the clean
@@ -117,6 +117,30 @@ export function howToSchema(article: Article): Record<string, unknown> | null {
 }
 
 /**
+ * Schema.org "FAQPage" for guides with a faqs array (tier-1 guides). Each entry
+ * becomes a Question with its acceptedAnswer, using only the guide's own
+ * question/answer text — nothing invented. Guides without faqs get no FAQPage
+ * block at all, keeping their head byte-identical to the pre-FAQ output.
+ */
+export function faqSchema(article: Article): Record<string, unknown> | null {
+  const faqs = guidePageFaqs(article);
+  if (!faqs) {
+    return null;
+  }
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+}
+/**
  * The ordered list of JSON-LD <script> blocks to inject into the /learn/<slug>
  * <head>, so structured data is server-rendered in the raw HTML for crawlers.
  * Every guide gets Article + BreadcrumbList; procedural how-to guides additionally
@@ -133,6 +157,10 @@ export function guideStructuredDataScripts(article: Article): Array<{
   const howTo = howToSchema(article);
   if (howTo) {
     blocks.push(howTo);
+  }
+  const faq = faqSchema(article);
+  if (faq) {
+    blocks.push(faq);
   }
   return blocks.map((data) => ({
     type: "application/ld+json",

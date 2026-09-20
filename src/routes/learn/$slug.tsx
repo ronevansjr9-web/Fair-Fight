@@ -3,6 +3,7 @@ import {
   GUIDE_REDIRECTS,
   getGuideBySlug,
   guidePageDescription,
+  guidePageFaqs,
   guidePageH1,
   guidePageTitle,
   guideUrl,
@@ -75,6 +76,7 @@ function GuidePage() {
     );
   }
 
+  const faqs = guidePageFaqs(article);
   return (
     <main className="min-h-screen bg-navy">
       <div className="mx-auto max-w-3xl px-4 py-12">
@@ -98,6 +100,19 @@ function GuidePage() {
               ))}
             </ul>
           </div>
+        )}
+        {faqs && (
+          <section className="mt-10 rounded-2xl border border-gold/20 bg-white/5 p-6 backdrop-blur-sm">
+            <h2 className="mb-4 text-xl font-bold text-gold">Frequently asked questions</h2>
+            <div className="space-y-6">
+              {faqs.map((faq) => (
+                <div key={faq.question}>
+                  <h3 className="text-lg font-semibold text-white">{faq.question}</h3>
+                  <p className="mt-2 leading-relaxed text-white/70">{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
         {article.relatedGuides.length > 0 && (
           <div className="mt-10">
