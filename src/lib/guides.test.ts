@@ -230,6 +230,18 @@ describe("Wave 2 question-intent SEO (pilot batch)", () => {
       expect(new Set(a.relatedGuides).size, `${a.id} relatedGuides dupes`).toBe(a.relatedGuides.length);
     }
   });
+  test("every guide carries 3-5 relatedGuides (cross-link density), all resolving, no self/dupes", () => {
+    const ids = new Set(ARTICLES.map((a) => a.id));
+    for (const a of ARTICLES) {
+      expect(a.relatedGuides.length, `${a.id} must list at least 3 related guides`).toBeGreaterThanOrEqual(3);
+      expect(a.relatedGuides.length, `${a.id} must list at most 5 related guides`).toBeLessThanOrEqual(5);
+      for (const rel of a.relatedGuides) {
+        expect(ids.has(rel), `${a.id} -> ${rel}`).toBe(true);
+        expect(rel, `${a.id} must not self-link`).not.toBe(a.id);
+      }
+      expect(new Set(a.relatedGuides).size, `${a.id} relatedGuides dupes`).toBe(a.relatedGuides.length);
+    }
+  });
 });
 
 describe("Wave 3 FAQ sections (tier-1 guides)", () => {

@@ -80,7 +80,7 @@ export const ARTICLES: Article[] = [
       "Cite real statutes and case law in your legal argument section",
       "Always serve the other party and file a certificate of service",
     ],
-    relatedGuides: ["how-to-write-legal-brief", "statute-of-limitations-guide", "motion-to-dismiss-explained"],
+    relatedGuides: ["how-to-write-legal-brief", "motion-to-dismiss-explained", "summary-judgment-explained", "how-to-respond-to-lawsuit"],
   },
   {
     id: "statute-of-limitations-guide",
@@ -118,7 +118,7 @@ export const ARTICLES: Article[] = [
       "Tolling can pause the clock in limited circumstances (minority, incapacity, concealment)",
       "Federal claims have their own deadlines; check both state and federal law",
     ],
-    relatedGuides: ["how-to-file-a-motion", "what-is-a-complaint"],
+    relatedGuides: ["debt-collection-defense", "medical-malpractice-guide", "wrongful-death-claims", "after-car-accident-guide"],
   },
   {
     id: "what-is-discovery",
@@ -139,7 +139,7 @@ export const ARTICLES: Article[] = [
       "Privileged communications and attorney work product are protected from discovery",
       "Missing discovery deadlines can lead to sanctions — track all dates carefully",
     ],
-    relatedGuides: ["how-to-file-a-motion", "organize-case-documents"],
+    relatedGuides: ["deposition-preparation", "subpoena-phone-records", "organize-case-documents", "summary-judgment-explained"],
   },
   {
     id: "motion-to-dismiss-explained",
@@ -174,7 +174,7 @@ export const ARTICLES: Article[] = [
       "Dismissal with prejudice ends the case; without prejudice allows refiling",
       "Address each ground raised and explain why your complaint meets the legal standard",
     ],
-    relatedGuides: ["how-to-file-a-motion", "what-is-a-complaint", "statute-of-limitations-guide"],
+    relatedGuides: ["how-to-file-a-motion", "what-is-a-complaint", "how-to-respond-to-lawsuit", "summary-judgment-explained", "statute-of-limitations-guide"],
   },
   {
     id: "what-is-a-complaint",
@@ -209,7 +209,7 @@ export const ARTICLES: Article[] = [
       "Verify statute of limitations and jurisdiction before filing",
       "Arrange proper service of process on the defendant after filing",
     ],
-    relatedGuides: ["how-to-file-a-motion", "statute-of-limitations-guide", "motion-to-dismiss-explained"],
+    relatedGuides: ["how-to-file-a-motion", "how-to-respond-to-lawsuit", "motion-to-dismiss-explained", "what-happens-after-filing-lawsuit"],
   },
   {
     id: "summary-judgment-explained",
@@ -230,7 +230,7 @@ export const ARTICLES: Article[] = [
       "Courts view evidence in the light most favorable to the non-moving party",
       "Most civil cases are resolved at or before summary judgment — prepare thoroughly",
     ],
-    relatedGuides: ["what-is-discovery", "how-to-write-legal-brief", "motion-to-dismiss-explained"],
+    relatedGuides: ["what-is-discovery", "how-to-write-legal-brief", "motion-to-dismiss-explained", "deposition-preparation"],
   },
   {
     id: "understanding-miranda-rights",
@@ -251,7 +251,7 @@ export const ARTICLES: Article[] = [
       "To invoke rights, be clear and unambiguous — silence alone is not enough (Berghuis)",
       "A child's age is relevant to whether they're 'in custody' for Miranda purposes",
     ],
-    relatedGuides: ["fourth-amendment-search-seizure", "rights-during-police-stop"],
+    relatedGuides: ["rights-during-police-stop", "fourth-amendment-search-seizure", "how-to-file-police-report"],
   },
   {
     id: "fourth-amendment-search-seizure",
@@ -272,7 +272,7 @@ export const ARTICLES: Article[] = [
       "Exclusionary rule suppresses illegally obtained evidence, but good faith exception applies",
       "Challenge illegal searches by filing a motion to suppress — you must have standing",
     ],
-    relatedGuides: ["understanding-miranda-rights", "rights-during-police-stop", "how-to-file-a-motion"],
+    relatedGuides: ["rights-during-police-stop", "understanding-miranda-rights", "civil-rights-section-1983", "right-to-protest"],
   },
   {
     id: "child-custody-guide",
@@ -293,7 +293,7 @@ export const ARTICLES: Article[] = [
       "Orders are modifiable when there's a substantial change in circumstances",
       "Document everything, focus on the child, and support co-parent relationships",
     ],
-    relatedGuides: ["divorce-process-overview"],
+    relatedGuides: ["divorce-process-overview", "understanding-alimony", "divorce-spouse-wont-sign", "how-to-get-a-restraining-order"],
   },
   {
     id: "divorce-process-overview",
@@ -314,7 +314,7 @@ export const ARTICLES: Article[] = [
       "Most cases settle via negotiation or mediation — trial is the last resort",
       "Appeal deadline is typically 30 days after final judgment",
     ],
-    relatedGuides: ["child-custody-guide", "how-to-file-a-motion"],
+    relatedGuides: ["child-custody-guide", "understanding-alimony", "divorce-spouse-wont-sign", "prepare-attorney-consultation"],
   },
   {
     id: "debt-collection-defense",
@@ -351,7 +351,7 @@ export const ARTICLES: Article[] = [
       "FDCPA violations can give you counterclaims for up to $1,000 in statutory damages",
       "Never ignore a lawsuit — even a partial settlement is better than a default judgment",
     ],
-    relatedGuides: ["statute-of-limitations-guide", "how-to-file-a-motion", "what-is-a-complaint"],
+    relatedGuides: ["statute-of-limitations-guide", "how-to-respond-to-lawsuit", "small-claims-court-guide", "how-to-write-demand-letter", "what-is-a-complaint"],
   },
   {
     id: "eviction-process-guide",
@@ -388,7 +388,7 @@ export const ARTICLES: Article[] = [
       "The implied warranty of habitability requires landlords to maintain livable conditions (Javins)",
       "Act immediately when you receive an eviction notice — deadlines are short",
     ],
-    relatedGuides: ["how-to-file-a-motion", "security-deposit-guide", "small-claims-court-guide"],
+    relatedGuides: ["tenant-rights-guide", "security-deposit-guide", "noise-complaints-nuisance", "how-to-respond-to-lawsuit"],
   },
   {
     id: "security-deposit-guide",
@@ -426,7 +426,7 @@ export const ARTICLES: Article[] = [
       "Document everything: move-in/move-out photos, inspection checklists, written correspondence",
       "Sue in small claims court if the landlord wrongfully withholds — bring all evidence",
     ],
-    relatedGuides: ["eviction-process-guide", "small-claims-court-guide", "how-to-write-demand-letter"],
+    relatedGuides: ["tenant-rights-guide", "eviction-process-guide", "how-to-write-demand-letter", "small-claims-court-guide"],
   },
   {
     id: "first-amendment-speech",
@@ -447,7 +447,7 @@ export const ARTICLES: Article[] = [
       "Symbolic speech (flag burning, armbands) is protected if it conveys a particularized message",
       "The government cannot engage in viewpoint discrimination in regulating speech",
     ],
-    relatedGuides: ["fourth-amendment-search-seizure", "civil-rights-section-1983", "how-to-write-legal-brief"],
+    relatedGuides: ["right-to-protest", "civil-rights-section-1983", "defamation-libel-slander"],
   },
   {
     id: "civil-rights-section-1983",
@@ -468,7 +468,7 @@ export const ARTICLES: Article[] = [
       "Remedies: compensatory, nominal, and punitive damages; injunctive relief; attorney fees",
       "Statute of limitations: the state's personal injury statute, typically 2-3 years",
     ],
-    relatedGuides: ["first-amendment-speech", "fourth-amendment-search-seizure", "statute-of-limitations-guide"],
+    relatedGuides: ["first-amendment-speech", "fourth-amendment-search-seizure", "right-to-protest", "class-action-lawsuits"],
   },
   {
     id: "wrongful-termination",
@@ -489,7 +489,7 @@ export const ARTICLES: Article[] = [
       "Most federal discrimination claims require filing with the EEOC first (180-300 day deadline)",
       "Retaliation claims (fired for complaining) are now the most common EEOC charges",
     ],
-    relatedGuides: ["statute-of-limitations-guide", "how-to-file-a-motion", "civil-rights-section-1983"],
+    relatedGuides: ["workplace-harassment-laws", "sexual-harassment-rights", "unemployment-benefits-guide", "equal-pay-act"],
   },
   {
     id: "how-to-write-legal-brief",
@@ -510,7 +510,7 @@ export const ARTICLES: Article[] = [
       "Argument: use IRAC (Issue, Rule, Application, Conclusion) and clear point headings",
       "Cite binding precedent first, use parenthetical explanations, and never cite unread cases",
     ],
-    relatedGuides: ["how-to-file-a-motion", "what-is-discovery"],
+    relatedGuides: ["how-to-file-a-motion", "summary-judgment-explained", "what-is-a-complaint", "how-to-respond-to-lawsuit"],
   },
   {
     id: "small-claims-court-guide",
@@ -550,7 +550,7 @@ export const ARTICLES: Article[] = [
       "Send a demand letter first; organize evidence chronologically; bring 3 copies; practice your 3-5 minute summary",
       "Winning is half the battle — collecting may require garnishment, bank levy, or liens; appeal deadlines are short (10-30 days)",
     ],
-    relatedGuides: ["how-to-write-demand-letter", "security-deposit-guide", "debt-collection-defense"],
+    relatedGuides: ["how-to-write-demand-letter", "security-deposit-guide", "debt-collection-defense", "after-car-accident-guide"],
   },
   {
     id: "what-happens-after-filing-lawsuit",
@@ -585,7 +585,7 @@ export const ARTICLES: Article[] = [
       "More than 95% of civil cases settle before trial",
       "Appeals take 12-24 months and focus on legal errors, not factual disagreements",
     ],
-    relatedGuides: ["what-is-discovery", "summary-judgment-explained", "how-to-file-a-motion"],
+    relatedGuides: ["what-is-discovery", "summary-judgment-explained", "how-to-respond-to-lawsuit", "deposition-preparation"],
     },
     {
     id: "restraining-order-guide",
@@ -620,7 +620,7 @@ export const ARTICLES: Article[] = [
     "Final orders typically last 1-5 years and can be renewed before expiration",
     "Violation is a criminal offense — call police immediately and keep a copy of the order with you",
     ],
-    relatedGuides: ["child-custody-guide", "divorce-process-overview", "how-to-file-police-report"],
+    relatedGuides: ["how-to-get-a-restraining-order", "fight-restraining-order", "child-custody-guide", "how-to-file-police-report"],
     },
     {
     id: "after-car-accident-guide",
@@ -641,7 +641,7 @@ export const ARTICLES: Article[] = [
     "Be cautious with insurance adjusters: stick to facts, consider declining recorded statements",
     "Statute of limitations is typically 1-3 years — don't wait to pursue your claim",
     ],
-    relatedGuides: ["statute-of-limitations-guide", "small-claims-court-guide", "how-to-write-demand-letter"],
+    relatedGuides: ["denied-insurance-claim", "how-to-write-demand-letter", "statute-of-limitations-guide", "how-to-file-police-report"],
     },
     {
     id: "power-of-attorney-guide",
@@ -662,7 +662,7 @@ export const ARTICLES: Article[] = [
     "Most states require notarization and/or witnesses; check your state's specific requirements",
     "Choose your agent carefully — POAs are revocable while you're competent, terminate at death",
     ],
-    relatedGuides: ["what-is-probate", "how-to-read-contract", "small-claims-court-guide"],
+    relatedGuides: ["living-will-advance-directives", "what-is-a-trust", "how-to-write-a-will", "what-is-probate"],
     },
     {
     id: "fight-traffic-ticket",
@@ -697,7 +697,7 @@ export const ARTICLES: Article[] = [
     "Ask about traffic school or deferral programs — especially if you have a clean driving record",
     "If you lose, appeals are possible but limited to legal errors; consider a traffic attorney",
     ],
-    relatedGuides: ["understanding-miranda-rights", "how-to-file-a-motion", "small-claims-court-guide"],
+    relatedGuides: ["rights-during-police-stop", "understanding-miranda-rights", "fourth-amendment-search-seizure", "how-to-file-a-motion"],
     },
     {
     id: "tenant-rights-guide",
@@ -734,7 +734,7 @@ export const ARTICLES: Article[] = [
     "Landlords must give 24-48 hours' notice before entering (except emergencies); Fair Housing Act prohibits discrimination",
     "Retaliation for asserting your rights is illegal — document all communications, receipts, and complaints; documentation wins disputes",
     ],
-    relatedGuides: ["eviction-process-guide", "security-deposit-guide", "small-claims-court-guide"],
+    relatedGuides: ["eviction-process-guide", "security-deposit-guide", "noise-complaints-nuisance", "small-claims-court-guide"],
     },
     {
     id: "how-to-read-contract",
@@ -755,7 +755,7 @@ export const ARTICLES: Article[] = [
     "Negotiate terms you disagree with — cross out, initial changes, get other party's initials",
     "For complex contracts: attorney review ($200-500) is cheap compared to litigation costs",
     ],
-    relatedGuides: ["small-claims-court-guide", "debt-collection-defense", "power-of-attorney-guide"],
+    relatedGuides: ["how-to-start-an-llc", "how-to-file-a-trademark", "how-to-write-demand-letter", "debt-collection-defense"],
     },
     {
     id: "what-is-probate",
@@ -776,7 +776,7 @@ export const ARTICLES: Article[] = [
     "Simple estates: 6-12 months; complex/disputed estates: years. Small estate shortcuts exist",
     "Executors can decline the role — it's a fiduciary responsibility with potential personal liability",
     ],
-    relatedGuides: ["power-of-attorney-guide", "how-to-read-contract", "small-claims-court-guide"],
+    relatedGuides: ["how-to-write-a-will", "what-is-a-trust", "power-of-attorney-guide", "living-will-advance-directives"],
     },
     {
     id: "workplace-harassment-laws",
@@ -797,7 +797,7 @@ export const ARTICLES: Article[] = [
     "Document everything: dates, times, what was said, witnesses; save offensive messages",
     "Retaliation for reporting is separately illegal; file with the EEOC within 180-300 days",
     ],
-    relatedGuides: ["wrongful-termination", "civil-rights-section-1983", "how-to-write-demand-letter"],
+    relatedGuides: ["sexual-harassment-rights", "wrongful-termination", "equal-pay-act", "civil-rights-section-1983"],
     },
     {
     id: "how-to-file-police-report",
@@ -832,7 +832,7 @@ export const ARTICLES: Article[] = [
     "Get the report number and request a copy; review for accuracy and request corrections if needed",
     "A police report creates a paper trail critical for insurance claims, restraining orders, and court cases",
     ],
-    relatedGuides: ["understanding-miranda-rights", "fourth-amendment-search-seizure", "restraining-order-guide"],
+    relatedGuides: ["rights-during-police-stop", "after-car-accident-guide", "restraining-order-guide", "understanding-miranda-rights"],
     },
     {
     id: "immigration-court-basics",
@@ -853,7 +853,7 @@ export const ARTICLES: Article[] = [
     "Asylum standard: well-founded fear of persecution based on protected grounds (race, religion, etc.)",
     "Represented immigrants are several times more likely to win — seek nonprofit legal aid if you can't afford counsel",
     ],
-    relatedGuides: ["how-to-file-a-motion", "what-is-a-complaint", "statute-of-limitations-guide"],
+    relatedGuides: ["asylum-law-guide", "how-to-get-green-card", "us-citizenship-naturalization", "how-to-file-a-motion"],
     },
   {
     id: "how-to-write-demand-letter",
@@ -888,7 +888,7 @@ export const ARTICLES: Article[] = [
       "Many courts and agencies require a demand letter before you can file certain claims",
       "Be specific about your demand, attach supporting documents, and don't threaten what you won't do",
     ],
-    relatedGuides: ["small-claims-court-guide", "debt-collection-defense", "security-deposit-guide"],
+    relatedGuides: ["small-claims-court-guide", "debt-collection-defense", "security-deposit-guide", "denied-insurance-claim"],
   },
 
   {
@@ -927,7 +927,7 @@ export const ARTICLES: Article[] = [
       "If denied, appeal within the strict deadline (10-30 days) — many claimants win at the hearing",
       "Comply with weekly certifications and document all work search activities to maintain eligibility",
     ],
-    relatedGuides: ["wrongful-termination", "how-to-write-demand-letter", "small-claims-court-guide"],
+    relatedGuides: ["wrongful-termination", "equal-pay-act", "workplace-harassment-laws", "how-to-write-demand-letter"],
   },
   {
     id: "rights-during-police-stop",
@@ -948,7 +948,7 @@ export const ARTICLES: Article[] = [
       "At your door: no entry without a warrant, exigent circumstances, or valid consent",
       "Never physically resist — your remedy is in court, not at the scene",
     ],
-    relatedGuides: ["understanding-miranda-rights", "fourth-amendment-search-seizure", "how-to-file-police-report"],
+    relatedGuides: ["understanding-miranda-rights", "fourth-amendment-search-seizure", "how-to-file-police-report", "right-to-protest"],
   },
   {
     id: "living-will-advance-directives",
@@ -969,7 +969,7 @@ export const ARTICLES: Article[] = [
       "Takes effect only when you're incapacitated; you can revoke or amend at any time while competent",
       "Distribute copies to your agent, doctors, hospital, and family; review after major life events",
     ],
-    relatedGuides: ["power-of-attorney-guide", "what-is-probate", "how-to-read-contract"],
+    relatedGuides: ["power-of-attorney-guide", "how-to-write-a-will", "what-is-a-trust", "what-is-probate"],
   },
   {
     id: "defamation-libel-slander",
@@ -990,7 +990,7 @@ export const ARTICLES: Article[] = [
       "Public figures must prove 'actual malice' (NYT v. Sullivan) — knowledge of falsity or reckless disregard",
       "Document everything, send a retraction demand, and realistically assess whether litigation is worth it",
     ],
-    relatedGuides: ["first-amendment-speech", "after-car-accident-guide", "small-claims-court-guide"],
+    relatedGuides: ["first-amendment-speech", "how-to-write-demand-letter", "small-claims-court-guide"],
   },
   {
     id: "denied-insurance-claim",
@@ -1025,7 +1025,7 @@ export const ARTICLES: Article[] = [
       "Document every interaction with the insurer; get independent estimates and expert opinions",
       "Meet all appeal deadlines — missing one can permanently waive your right to challenge",
     ],
-    relatedGuides: ["how-to-write-demand-letter", "small-claims-court-guide", "how-to-read-contract"],
+    relatedGuides: ["how-to-write-demand-letter", "after-car-accident-guide", "how-to-read-contract", "small-claims-court-guide"],
   },
   {
     id: "asylum-law-guide",
@@ -1046,7 +1046,7 @@ export const ARTICLES: Article[] = [
       "Particular social group claims are complex and circuit-dependent — strong legal representation is critical",
       "If granted asylum, you can apply for a green card after one year; work authorization after 150+ days pending",
     ],
-    relatedGuides: ["immigration-court-basics", "how-to-file-a-motion", "civil-rights-section-1983"],
+    relatedGuides: ["immigration-court-basics", "how-to-get-green-card", "us-citizenship-naturalization"],
   },
   {
     id: "class-action-lawsuits",
@@ -1067,7 +1067,7 @@ export const ARTICLES: Article[] = [
       "Settlements must be approved by the court as fair, reasonable, and adequate at a fairness hearing",
       "Serving as class representative involves responsibilities and fiduciary duties but may include an incentive award",
     ],
-    relatedGuides: ["civil-rights-section-1983", "small-claims-court-guide", "what-is-a-complaint"],
+    relatedGuides: ["civil-rights-section-1983", "what-is-a-complaint", "small-claims-court-guide"],
   },
   {
     id: "deposition-preparation",
@@ -1088,7 +1088,7 @@ export const ARTICLES: Article[] = [
       "Prepare thoroughly: review documents, mock cross-examination, understand the case themes and your role",
       "When your attorney objects: stop talking immediately. Take breaks when needed. Review transcript afterward.",
     ],
-    relatedGuides: ["what-is-discovery", "how-to-write-legal-brief", "how-to-file-a-motion"],
+    relatedGuides: ["what-is-discovery", "subpoena-phone-records", "organize-case-documents", "summary-judgment-explained"],
   },
 
 
@@ -1111,7 +1111,7 @@ export const ARTICLES: Article[] = [
       "Adjustment of status (I-485) allows U.S.-based processing with work/travel authorization; consular processing is the overseas alternative",
       "Conditional green cards (2-year) require removal of conditions; never use notarios — only licensed attorneys or accredited reps",
     ],
-    relatedGuides: ["immigration-court-basics", "asylum-law-guide", "how-to-read-contract"],
+    relatedGuides: ["us-citizenship-naturalization", "asylum-law-guide", "immigration-court-basics"],
   },
   {
     id: "medical-malpractice-guide",
@@ -1132,7 +1132,7 @@ export const ARTICLES: Article[] = [
       "Most states have special hurdles: pre-suit notice, certificate of merit, and damage caps on pain and suffering",
       "Request medical records immediately, don't contact the provider directly, and consult a malpractice attorney promptly",
     ],
-    relatedGuides: ["statute-of-limitations-guide", "after-car-accident-guide", "defamation-libel-slander"],
+    relatedGuides: ["statute-of-limitations-guide", "wrongful-death-claims", "what-is-discovery", "deposition-preparation"],
   },
   {
     id: "how-to-start-an-llc",
@@ -1153,7 +1153,7 @@ export const ARTICLES: Article[] = [
       "LLC can be taxed as sole prop, partnership, S-corp, or C-corp — S-corp election can save self-employment tax",
       "Post-formation: get EIN, separate bank account, business licenses, FinCEN BOI report, and annual state filings",
     ],
-    relatedGuides: ["how-to-read-contract", "small-claims-court-guide", "power-of-attorney-guide"],
+    relatedGuides: ["how-to-file-a-trademark", "how-to-read-contract", "how-to-write-demand-letter"],
   },
   {
     id: "sexual-harassment-rights",
@@ -1174,7 +1174,7 @@ export const ARTICLES: Article[] = [
       "Document everything: dates, times, exactly what happened, witnesses, and copies of all offensive material",
       "Retaliation for reporting is separately illegal; file with the EEOC within 180-300 days of the last incident",
     ],
-    relatedGuides: ["wrongful-termination", "workplace-harassment-laws", "how-to-write-demand-letter"],
+    relatedGuides: ["workplace-harassment-laws", "wrongful-termination", "equal-pay-act", "civil-rights-section-1983"],
   },
   {
     id: "how-to-respond-to-lawsuit",
@@ -1212,7 +1212,7 @@ export const ARTICLES: Article[] = [
       "Notify your insurance company immediately — they may have a duty to defend and hire an attorney for you",
       "Use court self-help centers for forms; file on time; always send a copy to the other side; get settlements in writing",
     ],
-    relatedGuides: ["how-to-file-a-motion", "motion-to-dismiss-explained", "what-is-a-complaint"],
+    relatedGuides: ["what-is-a-complaint", "motion-to-dismiss-explained", "how-to-file-a-motion", "debt-collection-defense"],
   },
   {
     id: "understanding-alimony",
@@ -1233,7 +1233,7 @@ export const ARTICLES: Article[] = [
       "Post-2018 divorces: alimony is tax-neutral — paying spouse can't deduct, receiving spouse doesn't report as income",
       "Alimony terminates at death, remarriage, or cohabitation; modification requires substantial change in circumstances",
     ],
-    relatedGuides: ["divorce-process-overview", "child-custody-guide"],
+    relatedGuides: ["divorce-process-overview", "child-custody-guide", "divorce-spouse-wont-sign", "prepare-attorney-consultation"],
   },
   {
     id: "fight-restraining-order",
@@ -1268,7 +1268,7 @@ export const ARTICLES: Article[] = [
       "Your demeanor is evidence — stay calm, respectful, and factual; do not argue or appear threatening",
       "If the order is granted: appeal (limited to legal errors), seek modification if circumstances change, or comply fully for the duration",
     ],
-    relatedGuides: ["restraining-order-guide", "child-custody-guide", "how-to-write-demand-letter"],
+    relatedGuides: ["restraining-order-guide", "how-to-get-a-restraining-order", "child-custody-guide", "how-to-respond-to-lawsuit"],
   },
   {
     id: "what-is-a-trust",
@@ -1289,7 +1289,7 @@ export const ARTICLES: Article[] = [
       "Funding the trust (retitling assets) is essential — an unfunded trust doesn't avoid probate",
       "The cost of a properly drafted trust ($1,500-$5,000) is small compared to probate costs (3-7% of the estate)",
     ],
-    relatedGuides: ["what-is-probate", "power-of-attorney-guide", "living-will-advance-directives"],
+    relatedGuides: ["how-to-write-a-will", "what-is-probate", "power-of-attorney-guide", "living-will-advance-directives"],
   },
   {
     id: "complaint-against-judge",
@@ -1331,7 +1331,7 @@ export const ARTICLES: Article[] = [
       "During police encounters: you can record in public, remain silent, and refuse searches — but don't physically resist",
       "Know permit rules, avoid non-public forums (government buildings, private property), and have a legal support plan",
     ],
-    relatedGuides: ["first-amendment-speech", "civil-rights-section-1983", "rights-during-police-stop"],
+    relatedGuides: ["first-amendment-speech", "rights-during-police-stop", "civil-rights-section-1983", "fourth-amendment-search-seizure"],
   },
 
 
@@ -1354,7 +1354,7 @@ export const ARTICLES: Article[] = [
       "The USPTO examination takes 8-12 months; respond to Office Actions within 3 months or risk abandonment",
       "Registration provides nationwide priority, federal court access, and the ® symbol — but requires maintenance filings every 5-10 years",
     ],
-    relatedGuides: ["how-to-start-an-llc", "how-to-read-contract"],
+    relatedGuides: ["how-to-start-an-llc", "how-to-read-contract", "how-to-write-demand-letter"],
   },
   {
     id: "wrongful-death-claims",
@@ -1375,7 +1375,7 @@ export const ARTICLES: Article[] = [
       "A 'survival action' is a separate claim for the decedent's own pre-death losses (pain, medical expenses) — distinct from the family's wrongful death claim",
       "Statute of limitations is 1-3 years typically; claims against government entities have much shorter deadlines with notice requirements",
     ],
-    relatedGuides: ["medical-malpractice-guide", "statute-of-limitations-guide", "after-car-accident-guide"],
+    relatedGuides: ["medical-malpractice-guide", "after-car-accident-guide", "statute-of-limitations-guide", "prepare-attorney-consultation"],
   },
   {
     id: "eminent-domain",
@@ -1396,7 +1396,7 @@ export const ARTICLES: Article[] = [
       "Property owners can challenge the government's valuation and demand a jury trial; the government pays attorney's fees in many states if the award significantly exceeds the offer",
       "Regulatory takings — regulations that go too far — also require compensation under Penn Central and Lucas tests",
     ],
-    relatedGuides: ["right-to-protest", "civil-rights-section-1983", "first-amendment-speech"],
+    relatedGuides: ["civil-rights-section-1983", "right-to-protest", "first-amendment-speech"],
   },
   {
     id: "divorce-spouse-wont-sign",
@@ -1431,7 +1431,7 @@ export const ARTICLES: Article[] = [
       "If no response within 20-30 days, request default judgment — court grants divorce based on your petition",
       "Use temporary orders to handle custody, support, and finances during the divorce; document all obstruction",
     ],
-    relatedGuides: ["understanding-alimony", "child-custody-guide", "fight-restraining-order"],
+    relatedGuides: ["divorce-process-overview", "understanding-alimony", "child-custody-guide", "how-to-file-a-motion"],
   },
   {
     id: "equal-pay-act",
@@ -1452,7 +1452,7 @@ export const ARTICLES: Article[] = [
       "EPA advantage over Title VII: no EEOC charge required, longer statute of limitations, liquidated damages (double back pay)",
       "Many state laws go beyond the EPA: salary history bans, pay transparency requirements, and broader protected categories",
     ],
-    relatedGuides: ["sexual-harassment-rights", "wrongful-termination"],
+    relatedGuides: ["sexual-harassment-rights", "wrongful-termination", "workplace-harassment-laws", "unemployment-benefits-guide"],
   },
   {
     id: "how-to-write-a-will",
@@ -1487,7 +1487,7 @@ export const ARTICLES: Article[] = [
       "Update your will after marriage, divorce, births, and deaths; review beneficiary designations on financial accounts simultaneously",
       "Online will services work for simple estates; hire an estate planning attorney for blended families, businesses, or significant assets",
     ],
-    relatedGuides: ["what-is-a-trust", "what-is-probate", "living-will-advance-directives"],
+    relatedGuides: ["what-is-a-trust", "what-is-probate", "living-will-advance-directives", "power-of-attorney-guide"],
   },
   {
     id: "insider-trading",
@@ -1529,7 +1529,7 @@ export const ARTICLES: Article[] = [
       "Strict rules on continuous residence — trips over 6 months are scrutinized; disclose all arrests, tax issues, and Selective Service status",
       "Naturalization grants full citizenship rights: voting, U.S. passport, protection from deportation, and ability to petition family members",
     ],
-    relatedGuides: ["how-to-get-green-card", "asylum-law-guide"],
+    relatedGuides: ["how-to-get-green-card", "asylum-law-guide", "immigration-court-basics"],
   },
   {
     id: "noise-complaints-nuisance",
@@ -1550,7 +1550,7 @@ export const ARTICLES: Article[] = [
       "Evidence is king: keep a noise log with decibel readings, timestamps, and recordings; courts are skeptical of undocumented complaints",
       "Renters have leverage through the implied covenant of quiet enjoyment — landlords must address chronic noise or face lease-breaking, rent abatement, or lawsuits",
     ],
-    relatedGuides: ["eviction-process-guide", "tenant-rights-guide", "small-claims-court-guide"],
+    relatedGuides: ["tenant-rights-guide", "eviction-process-guide", "security-deposit-guide", "small-claims-court-guide"],
   },
   {
     id: "subpoena-phone-records",
@@ -1571,7 +1571,7 @@ export const ARTICLES: Article[] = [
       "Serve via registered agent or provider legal compliance portal; provide notice to all parties; include the required witness fee",
       "Most electronic evidence is better obtained from the opposing party directly through standard discovery than via third-party subpoenas",
     ],
-    relatedGuides: ["what-is-discovery", "how-to-file-a-motion"],
+    relatedGuides: ["what-is-discovery", "deposition-preparation", "organize-case-documents", "how-to-file-a-motion"],
   },
   {
     id: "how-to-expunge-a-criminal-record",
@@ -1609,7 +1609,7 @@ export const ARTICLES: Article[] = [
       "Federal convictions are very difficult to expunge — there's no general federal expungement statute",
       "If ineligible for expungement, consider alternatives: record sealing, certificate of rehabilitation, or a pardon",
     ],
-    relatedGuides: ["how-to-file-a-motion", "small-claims-court-guide", "rights-during-police-stop"],
+    relatedGuides: ["how-to-file-a-motion", "understanding-miranda-rights", "rights-during-police-stop", "fourth-amendment-search-seizure"],
   },
   {
     id: "how-to-get-a-restraining-order",
@@ -1647,7 +1647,7 @@ export const ARTICLES: Article[] = [
       "The final hearing requires you to attend and present evidence — be specific about dates, incidents, and threats",
       "A protective order is a legal tool, not a physical barrier — combine it with safety planning and community resources",
     ],
-    relatedGuides: ["how-to-file-a-motion", "rights-during-police-stop", "divorce-spouse-wont-sign"],
+    relatedGuides: ["restraining-order-guide", "fight-restraining-order", "child-custody-guide", "how-to-file-police-report"],
   },
   {
     id: "prepare-attorney-consultation",
@@ -1669,7 +1669,7 @@ export const ARTICLES: Article[] = [
       "Prepare questions about experience, general steps, realistic outcomes, and communication",
       "A consultation is not representation — confirm what the meeting covers and what happens next",
     ],
-    relatedGuides: ["deposition-preparation", "how-to-respond-to-lawsuit", "what-is-discovery"],
+    relatedGuides: ["organize-case-documents", "how-to-respond-to-lawsuit", "what-is-discovery", "statute-of-limitations-guide"],
   },
   {
     id: "organize-case-documents",
@@ -1691,7 +1691,7 @@ export const ARTICLES: Article[] = [
       "Handle physical evidence carefully and record when, where, and from whom it came",
       "An organized index helps you respond to discovery requests — confirm deadlines and scope with your court's rules or a licensed attorney",
     ],
-    relatedGuides: ["what-is-discovery", "how-to-respond-to-lawsuit", "how-to-file-a-motion"],
+    relatedGuides: ["what-is-discovery", "deposition-preparation", "prepare-attorney-consultation", "how-to-file-a-motion"],
   }
 ];
 export const ALL_CATEGORIES = Object.keys(CATEGORY_COLORS);
