@@ -9,6 +9,7 @@ const urls: string[] = [
   `${SITE_ORIGIN}/research`,
   `${SITE_ORIGIN}/compare/fair-fight-vs-hiring-an-attorney`,
   `${SITE_ORIGIN}/compare/fair-fight-vs-donotpay`,
+  `${SITE_ORIGIN}/glossary`,
 ];
 for (const a of ARTICLES) {
   urls.push(`${SITE_ORIGIN}/learn/${a.id}`);
