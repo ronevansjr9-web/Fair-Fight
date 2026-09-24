@@ -153,13 +153,152 @@ const PILOT_SEO: Record<string, { seoTitle: string; metaDescription: string; h1?
 };
 const PILOT_SLUGS = Object.keys(PILOT_SEO);
 
+// Wave 3 question-intent SEO overrides (26 of the remaining 52 guides):
+// the question-led phrases (title tags WITHOUT the " | Fair Fight" suffix),
+// metas, and H1s shipped for the 26 highest question-intent guides. Like the
+// pilots, the data in guides.ts must match these exactly; the route helpers
+// must produce the budgeted title/meta/H1. Metas keep the "Not legal advice."
+// honesty posture because every one of these guides is how-to/process content.
+const WAVE3_SEO: Record<string, { seoTitle: string; metaDescription: string; h1?: string }> = {
+  "how-to-write-demand-letter": {
+    seoTitle: "How to Write a Demand Letter",
+    metaDescription: "How do you write a demand letter? What to include, how to send it so you can prove it arrived, and when it is required before you sue. Not legal advice.",
+    h1: "How Do I Write a Demand Letter?",
+  },
+  "motion-to-dismiss-explained": {
+    seoTitle: "What Is a Motion to Dismiss?",
+    metaDescription: "What is a motion to dismiss, and how do you respond to one? The Rule 12(b) grounds, the pleading standard, and what 'with prejudice' means. Not legal advice.",
+    h1: "What Is a Motion to Dismiss and How Do I Respond?",
+  },
+  "what-is-a-complaint": {
+    seoTitle: "How to Write a Complaint to File a Lawsuit",
+    metaDescription: "How do you write a complaint to start a lawsuit? What the rules require, the pleading standard courts apply, and how to file and serve it. Not legal advice.",
+    h1: "How Do I Write a Complaint to File a Lawsuit?",
+  },
+  "tenant-rights-guide": {
+    seoTitle: "Tenant Rights: What a Landlord Can Do",
+    metaDescription: "What are your rights as a tenant? How habitability, deposit, privacy, and eviction rules work, and what a landlord cannot do to push you out. Not legal advice.",
+    h1: "What Are My Rights as a Tenant?",
+  },
+  "fight-traffic-ticket": {
+    seoTitle: "How to Fight a Traffic Ticket",
+    metaDescription: "Should you fight a traffic ticket or pay it? How to plead not guilty, the evidence that helps, defenses that work, and traffic school. Not legal advice.",
+    h1: "How Do I Fight a Traffic Ticket in Court?",
+  },
+  "divorce-spouse-wont-sign": {
+    seoTitle: "Divorce When Your Spouse Won't Sign",
+    metaDescription: "Can you divorce a spouse who won't sign or respond? How filing, service, and a default judgment work, and how temporary orders protect you. Not legal advice.",
+    h1: "How Do I Get a Divorce If My Spouse Won't Sign?",
+  },
+  "denied-insurance-claim": {
+    seoTitle: "How to Appeal a Denied Insurance Claim",
+    metaDescription: "Why was your claim denied, and what can you do? How the internal appeal, external review, and state insurance department complaint work. Not legal advice.",
+    h1: "How Do I Appeal a Denied Insurance Claim?",
+  },
+  "what-happens-after-filing-lawsuit": {
+    seoTitle: "What Happens After You File a Lawsuit",
+    metaDescription: "What happens after you file a civil lawsuit? The pleadings, discovery, motions, pretrial, and trial phases, and why most cases settle. Not legal advice.",
+    h1: "What Happens After You File a Lawsuit?",
+  },
+  "how-to-write-a-will": {
+    seoTitle: "How to Write a Will",
+    metaDescription: "How do you write a valid will? Who can make one, whether witnesses or a notary are needed, what a will can't override, and when to update it. Not legal advice.",
+    h1: "How Do I Write a Will?",
+  },
+  "how-to-file-police-report": {
+    seoTitle: "How to File a Police Report",
+    metaDescription: "How do you file a police report, and when do you need one? What to have ready, what to say in your statement, and how to get a copy afterward. Not legal advice.",
+    h1: "How Do I File a Police Report?",
+  },
+  "fight-restraining-order": {
+    seoTitle: "How to Fight a Restraining Order",
+    metaDescription: "Served with a restraining order? What the temporary order requires, what happens at the hearing, and how the other side must prove their case. Not legal advice.",
+    h1: "How Do I Fight a Restraining Order?",
+  },
+  "restraining-order-guide": {
+    seoTitle: "Restraining Order: How to File One",
+    metaDescription: "Need a restraining order? How to file the petition, the first review, how long a temporary order lasts, and what the hearing decides. Not legal advice.",
+    h1: "How to Get a Restraining Order: Filing and the Hearing",
+  },
+  "after-car-accident-guide": {
+    seoTitle: "What to Do After a Car Accident",
+    metaDescription: "What should you do after a car accident? Gather evidence at the scene, handle insurance adjusters, see a doctor, and track the claim deadline. Not legal advice.",
+    h1: "What Should I Do After a Car Accident?",
+  },
+  "medical-malpractice-guide": {
+    seoTitle: "Do I Have a Medical Malpractice Case?",
+    metaDescription: "Was your bad outcome malpractice? The four elements you must prove, why expert testimony matters, and the special filing requirements. Not legal advice.",
+  },
+  "how-to-start-an-llc": {
+    seoTitle: "How to Start an LLC",
+    metaDescription: "How do you start an LLC? Naming and registered agent rules, filing articles of organization, the operating agreement, and the tax elections. Not legal advice.",
+    h1: "How Do I Start an LLC?",
+  },
+  "deposition-preparation": {
+    seoTitle: "How to Prepare for a Deposition",
+    metaDescription: "How do you prepare for a deposition? The rules that matter most, what to do when you don't know an answer, and how to review the transcript. Not legal advice.",
+    h1: "How Do I Prepare for a Deposition?",
+  },
+  "how-to-get-green-card": {
+    seoTitle: "How to Get a Green Card",
+    metaDescription: "How do you get a green card? The family, employment, and humanitarian paths, plus the adjustment vs. consular processing choice. Not legal advice.",
+    h1: "How Do I Get a Green Card?",
+  },
+  "us-citizenship-naturalization": {
+    seoTitle: "How to Apply for U.S. Citizenship",
+    metaDescription: "How do you apply for U.S. citizenship? The eligibility rules, Form N-400, the English and civics tests, and what can delay or block it. Not legal advice.",
+    h1: "How Do I Apply for U.S. Citizenship?",
+  },
+  "child-custody-guide": {
+    seoTitle: "How Is Child Custody Decided?",
+    metaDescription: "How do courts decide child custody? Legal vs. physical custody, the best interests factors, and how orders can be modified. Not legal advice.",
+  },
+  "divorce-process-overview": {
+    seoTitle: "How Does the Divorce Process Work?",
+    metaDescription: "How does the divorce process work? Filing and service, temporary orders, discovery, settlement or trial, and the final decree. Not legal advice.",
+  },
+  "wrongful-termination": {
+    seoTitle: "Wrongful Termination: Can You Sue?",
+    metaDescription: "Were you fired illegally? How at-will employment works, the exceptions, what discrimination claims require, and the EEOC filing deadline. Not legal advice.",
+    h1: "Was I Wrongfully Terminated?",
+  },
+  "workplace-harassment-laws": {
+    seoTitle: "Is Workplace Harassment Illegal?",
+    metaDescription: "What counts as illegal workplace harassment? The protected characteristics, when conduct is severe or pervasive, and how to report it. Not legal advice.",
+    h1: "What Counts as Illegal Workplace Harassment?",
+  },
+  "sexual-harassment-rights": {
+    seoTitle: "What Is Sexual Harassment?",
+    metaDescription: "What is sexual harassment at work? Quid pro quo vs. hostile environment, what counts as unwelcome conduct, and how to document and report it. Not legal advice.",
+    h1: "What Is Sexual Harassment at Work?",
+  },
+  "equal-pay-act": {
+    seoTitle: "Equal Pay Act: When Pay Differs by Sex",
+    metaDescription: "Paid less than a coworker for the same work? How the Equal Pay Act applies, the employer defenses, and how state pay laws can go further. Not legal advice.",
+    h1: "Can My Employer Pay Me Less for the Same Job?",
+  },
+  "summary-judgment-explained": {
+    seoTitle: "What Is Summary Judgment?",
+    metaDescription: "What is summary judgment and how do you oppose it? When a court can decide without trial, the evidence to put in the record, and deadlines. Not legal advice.",
+    h1: "What Is Summary Judgment and How Do I Oppose It?",
+  },
+  "rights-during-police-stop": {
+    seoTitle: "Your Rights During a Police Stop",
+    metaDescription: "What are your rights during a traffic stop or street encounter? When you can leave, what you must provide, and refusing consent to a search. Not legal advice.",
+    h1: "What Are My Rights During a Police Stop?",
+  },
+};
+const WAVE3_SLUGS = Object.keys(WAVE3_SEO);
+
 describe("Wave 2 question-intent SEO (pilot batch)", () => {
-  test("exactly the 10 pilot guides carry seo fields; the other 52 have none", () => {
+  const SEO_SLUGS = [...PILOT_SLUGS, ...WAVE3_SLUGS];
+
+  test("exactly the 10 pilots + 26 wave-3 guides carry seo fields; the other 26 have none", () => {
     expect(ARTICLES.length).toBe(62);
     const withSeo = ARTICLES.filter((a) => a.seoTitle !== undefined).map((a) => a.id);
-    expect(withSeo.sort()).toEqual([...PILOT_SLUGS].sort());
+    expect(withSeo.sort()).toEqual([...SEO_SLUGS].sort());
     for (const a of ARTICLES) {
-      if (!PILOT_SLUGS.includes(a.id)) {
+      if (!SEO_SLUGS.includes(a.id)) {
         expect(a.seoTitle, `${a.id} seoTitle`).toBeUndefined();
         expect(a.metaDescription, `${a.id} metaDescription`).toBeUndefined();
         expect(a.h1, `${a.id} h1`).toBeUndefined();
@@ -204,20 +343,76 @@ describe("Wave 2 question-intent SEO (pilot batch)", () => {
     }
   });
 
-  test("non-pilot guides keep the legacy rendering (title = article.title, meta = first 160 chars, H1 = title)", () => {
-    const nonPilots = ARTICLES.filter((a) => !PILOT_SLUGS.includes(a.id));
-    expect(nonPilots.length).toBe(52);
-    for (const a of nonPilots) {
+  test("wave-3 seo fields match the shipped wave-3 set exactly (incl. the Not-legal-advice posture)", () => {
+    for (const slug of WAVE3_SLUGS) {
+      const a = getGuideBySlug(slug)!;
+      expect(a.seoTitle, slug).toBe(WAVE3_SEO[slug].seoTitle);
+      expect(a.metaDescription, slug).toBe(WAVE3_SEO[slug].metaDescription);
+      // Every wave-3 guide summarizes how-to/process content, so every meta
+      // keeps the "Not legal advice." honesty posture.
+      expect(a.metaDescription!.endsWith("Not legal advice."), `${slug} meta posture`).toBe(true);
+      // h1 field is optional where it equals the seoTitle phrase; the helpers resolve it.
+      expect(a.h1 ?? a.seoTitle, `${slug} h1`).toBe(WAVE3_SEO[slug].h1 ?? WAVE3_SEO[slug].seoTitle);
+    }
+  });
+
+  test("wave-3 title tags and metas fit the length budgets (<=60 title, <=47 phrase, <=160 meta)", () => {
+    for (const slug of WAVE3_SLUGS) {
+      const a = getGuideBySlug(slug)!;
+      expect(a.seoTitle!.length, `${slug} phrase`).toBeLessThanOrEqual(47);
+      expect(a.metaDescription!.length, `${slug} meta`).toBeLessThanOrEqual(160);
+      expect(guidePageTitle(a).length, `${slug} full title`).toBeLessThanOrEqual(60);
+    }
+  });
+
+  test("no guarantee/outcome language in wave-3 copy", () => {
+    const banned = /\b(win your case|guaranteed|guarantee|best argument|beat the ticket|get your money back|sue successfully)\b/i;
+    for (const slug of WAVE3_SLUGS) {
+      const a = getGuideBySlug(slug)!;
+      const copy = [a.seoTitle, a.metaDescription, a.h1 ?? ""].join(" ");
+      expect(copy.match(banned), `${slug} wave-3 copy`).toBeNull();
+    }
+  });
+
+  test("wave-3 pages render the new title, meta, and H1 via the head helpers", () => {
+    for (const slug of WAVE3_SLUGS) {
+      const a = getGuideBySlug(slug)!;
+      expect(guidePageTitle(a), slug).toBe(`${a.seoTitle} | Fair Fight`);
+      expect(guidePageDescription(a), slug).toBe(a.metaDescription);
+      expect(guidePageH1(a), slug).toBe(WAVE3_SEO[slug].h1 ?? a.seoTitle);
+    }
+  });
+
+  test("field-less guides keep the legacy rendering (title = article.title, meta = first 160 chars, H1 = title)", () => {
+    // The 26 guides not yet carrying Wave-3 seo fields still use the fallback path.
+    const fieldLess = ARTICLES.filter((a) => a.seoTitle === undefined);
+    expect(fieldLess.length).toBe(26);
+    for (const a of fieldLess) {
       expect(guidePageTitle(a), a.id).toBe(`${a.title} | Fair Fight`);
       expect(guidePageDescription(a), a.id).toBe(a.paragraphs[0].substring(0, 160));
       expect(guidePageH1(a), a.id).toBe(a.title);
     }
+    // Keep the fallback coverage against an inline minimal Article too, so it
+    // survives even after every live guide gains seo fields.
+    const noSeoArticle: Article = {
+      id: "sample-legacy-fixture",
+      title: "Sample Legacy Rendering Guide",
+      category: "Evidence & Discovery",
+      readTime: "5 min",
+      paragraphs: ["A plain-English fixture used only to pin the legacy (no-seo-fields) rendering path."],
+      takeaways: ["Test fixture only"],
+      relatedGuides: [],
+    };
+    expect(guidePageTitle(noSeoArticle)).toBe(`${noSeoArticle.title} | Fair Fight`);
+    expect(guidePageDescription(noSeoArticle)).toBe(noSeoArticle.paragraphs[0].substring(0, 160));
+    expect(guidePageH1(noSeoArticle)).toBe(noSeoArticle.title);
   });
 
   test("demand-letter title no longer over-claims Templates", () => {
     const dl = getGuideBySlug("how-to-write-demand-letter")!;
     expect(dl.title).toBe("How to Write a Demand Letter");
-    expect(dl.seoTitle).toBeUndefined();
+    // Wave 3 gave this guide an seoTitle phrase identical to its corrected
+    // title, so the rendered title tag is unchanged from the legacy value.
     expect(guidePageTitle(dl)).toBe("How to Write a Demand Letter | Fair Fight");
   });
 

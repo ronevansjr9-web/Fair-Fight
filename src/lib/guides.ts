@@ -10,11 +10,13 @@ export interface Article {
   paragraphs: string[];
   takeaways: string[];
   relatedGuides: string[];
-  // Wave 2 question-intent SEO overrides (pilot guides only; absent on all others).
+  // Wave 2 + Wave 3 question-intent SEO overrides (10 pilots, then 26 more;
+  // absent on the remaining 26 field-less guides).
   // seoTitle is the question-led phrase WITHOUT the " | Fair Fight" suffix — the
   // /learn/<slug> route appends the suffix. metaDescription replaces the old
   // first-160-chars-of-paragraph-0 fallback. h1 is only set where the map's
-  // recommended H1 differs from the seoTitle phrase.
+  // recommended H1 differs from the seoTitle phrase. Wave-3 metas keep the
+  // "Not legal advice." honesty posture on process content.
   seoTitle?: string;
   metaDescription?: string;
   h1?: string;
@@ -159,6 +161,9 @@ export const ARTICLES: Article[] = [
   {
     id: "motion-to-dismiss-explained",
     title: "Motion to Dismiss: What It Is, When to File, and How to Respond",
+    seoTitle: "What Is a Motion to Dismiss?",
+    metaDescription: "What is a motion to dismiss, and how do you respond to one? The Rule 12(b) grounds, the pleading standard, and what 'with prejudice' means. Not legal advice.",
+    h1: "What Is a Motion to Dismiss and How Do I Respond?",
     faqs: [
       {
         question: "What is a motion to dismiss?",
@@ -194,6 +199,9 @@ export const ARTICLES: Article[] = [
   {
     id: "what-is-a-complaint",
     title: "How to Draft a Complaint: The First Step in Filing a Civil Lawsuit",
+    seoTitle: "How to Write a Complaint to File a Lawsuit",
+    metaDescription: "How do you write a complaint to start a lawsuit? What the rules require, the pleading standard courts apply, and how to file and serve it. Not legal advice.",
+    h1: "How Do I Write a Complaint to File a Lawsuit?",
     faqs: [
       {
         question: "How do I write a complaint?",
@@ -229,6 +237,9 @@ export const ARTICLES: Article[] = [
   {
     id: "summary-judgment-explained",
     title: "Summary Judgment: How It Works and How to Oppose It",
+    seoTitle: "What Is Summary Judgment?",
+    metaDescription: "What is summary judgment and how do you oppose it? When a court can decide without trial, the evidence to put in the record, and deadlines. Not legal advice.",
+    h1: "What Is Summary Judgment and How Do I Oppose It?",
     faqs: [
       {
         question: "What is summary judgment?",
@@ -334,6 +345,8 @@ export const ARTICLES: Article[] = [
   {
     id: "child-custody-guide",
     title: "Child Custody: Understanding Legal vs. Physical Custody and Best Interests Standard",
+    seoTitle: "How Is Child Custody Decided?",
+    metaDescription: "How do courts decide child custody? Legal vs. physical custody, the best interests factors, and how orders can be modified. Not legal advice.",
     faqs: [
       {
         question: "What is the difference between legal and physical custody?",
@@ -369,6 +382,8 @@ export const ARTICLES: Article[] = [
   {
     id: "divorce-process-overview",
     title: "The Divorce Process: A Comprehensive Step-by-Step Guide",
+    seoTitle: "How Does the Divorce Process Work?",
+    metaDescription: "How does the divorce process work? Filing and service, temporary orders, discovery, settlement or trial, and the final decree. Not legal advice.",
     faqs: [
       {
         question: "How do I start a divorce?",
@@ -586,6 +601,9 @@ export const ARTICLES: Article[] = [
   {
     id: "wrongful-termination",
     title: "Wrongful Termination: Understanding At-Will Employment and Its Exceptions",
+    seoTitle: "Wrongful Termination: Can You Sue?",
+    metaDescription: "Were you fired illegally? How at-will employment works, the exceptions, what discrimination claims require, and the EEOC filing deadline. Not legal advice.",
+    h1: "Was I Wrongfully Terminated?",
     faqs: [
       {
         question: "Was I wrongfully terminated?",
@@ -696,6 +714,9 @@ export const ARTICLES: Article[] = [
   {
     id: "what-happens-after-filing-lawsuit",
     title: "What Happens After You File a Complaint: A Timeline of Civil Litigation",
+    seoTitle: "What Happens After You File a Lawsuit",
+    metaDescription: "What happens after you file a civil lawsuit? The pleadings, discovery, motions, pretrial, and trial phases, and why most cases settle. Not legal advice.",
+    h1: "What Happens After You File a Lawsuit?",
     faqs: [
       {
         question: "What happens after you file a lawsuit?",
@@ -731,6 +752,9 @@ export const ARTICLES: Article[] = [
     {
     id: "restraining-order-guide",
     title: "How to Get a Restraining Order: Step-by-Step Guide",
+    seoTitle: "Restraining Order: How to File One",
+    metaDescription: "Need a restraining order? How to file the petition, the first review, how long a temporary order lasts, and what the hearing decides. Not legal advice.",
+    h1: "How to Get a Restraining Order: Filing and the Hearing",
     faqs: [
       {
         question: "How do I file for a restraining order?",
@@ -766,6 +790,9 @@ export const ARTICLES: Article[] = [
     {
     id: "after-car-accident-guide",
     title: "What to Do After a Car Accident: Legal Steps to Protect Your Rights",
+    seoTitle: "What to Do After a Car Accident",
+    metaDescription: "What should you do after a car accident? Gather evidence at the scene, handle insurance adjusters, see a doctor, and track the claim deadline. Not legal advice.",
+    h1: "What Should I Do After a Car Accident?",
     faqs: [
       {
         question: "What should I do immediately after a car accident?",
@@ -836,6 +863,9 @@ export const ARTICLES: Article[] = [
     {
     id: "fight-traffic-ticket",
     title: "How to Fight a Traffic Ticket in Court: A Complete Guide",
+    seoTitle: "How to Fight a Traffic Ticket",
+    metaDescription: "Should you fight a traffic ticket or pay it? How to plead not guilty, the evidence that helps, defenses that work, and traffic school. Not legal advice.",
+    h1: "How Do I Fight a Traffic Ticket in Court?",
     faqs: [
       {
         question: "How do I fight a traffic ticket?",
@@ -871,6 +901,9 @@ export const ARTICLES: Article[] = [
     {
     id: "tenant-rights-guide",
     title: "Tenant Rights: What Your Landlord Can and Cannot Do",
+    seoTitle: "Tenant Rights: What a Landlord Can Do",
+    metaDescription: "What are your rights as a tenant? How habitability, deposit, privacy, and eviction rules work, and what a landlord cannot do to push you out. Not legal advice.",
+    h1: "What Are My Rights as a Tenant?",
     faqs: [
       {
         question: "What are my rights as a tenant?",
@@ -978,6 +1011,9 @@ export const ARTICLES: Article[] = [
     {
     id: "workplace-harassment-laws",
     title: "Understanding Workplace Harassment Laws: Your Legal Rights",
+    seoTitle: "Is Workplace Harassment Illegal?",
+    metaDescription: "What counts as illegal workplace harassment? The protected characteristics, when conduct is severe or pervasive, and how to report it. Not legal advice.",
+    h1: "What Counts as Illegal Workplace Harassment?",
     faqs: [
       {
         question: "What counts as workplace harassment?",
@@ -1013,6 +1049,9 @@ export const ARTICLES: Article[] = [
     {
     id: "how-to-file-police-report",
     title: "How to File a Police Report: When and How to Document an Incident",
+    seoTitle: "How to File a Police Report",
+    metaDescription: "How do you file a police report, and when do you need one? What to have ready, what to say in your statement, and how to get a copy afterward. Not legal advice.",
+    h1: "How Do I File a Police Report?",
     faqs: [
       {
         question: "How do I file a police report?",
@@ -1083,6 +1122,9 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-write-demand-letter",
     title: "How to Write a Demand Letter",
+    seoTitle: "How to Write a Demand Letter",
+    metaDescription: "How do you write a demand letter? What to include, how to send it so you can prove it arrived, and when it is required before you sue. Not legal advice.",
+    h1: "How Do I Write a Demand Letter?",
     faqs: [
       {
         question: "How do I write a demand letter?",
@@ -1157,6 +1199,9 @@ export const ARTICLES: Article[] = [
   {
     id: "rights-during-police-stop",
     title: "Understanding Your Rights During a Police Stop",
+    seoTitle: "Your Rights During a Police Stop",
+    metaDescription: "What are your rights during a traffic stop or street encounter? When you can leave, what you must provide, and refusing consent to a search. Not legal advice.",
+    h1: "What Are My Rights During a Police Stop?",
     faqs: [
       {
         question: "What are my rights during a police stop?",
@@ -1262,6 +1307,9 @@ export const ARTICLES: Article[] = [
   {
     id: "denied-insurance-claim",
     title: "How to Fight a Denied Insurance Claim",
+    seoTitle: "How to Appeal a Denied Insurance Claim",
+    metaDescription: "Why was your claim denied, and what can you do? How the internal appeal, external review, and state insurance department complaint work. Not legal advice.",
+    h1: "How Do I Appeal a Denied Insurance Claim?",
     faqs: [
       {
         question: "How do I appeal a denied insurance claim?",
@@ -1367,6 +1415,9 @@ export const ARTICLES: Article[] = [
   {
     id: "deposition-preparation",
     title: "How to Prepare for a Deposition: Tips for Witnesses and Parties",
+    seoTitle: "How to Prepare for a Deposition",
+    metaDescription: "How do you prepare for a deposition? The rules that matter most, what to do when you don't know an answer, and how to review the transcript. Not legal advice.",
+    h1: "How Do I Prepare for a Deposition?",
     faqs: [
       {
         question: "What is a deposition?",
@@ -1404,6 +1455,9 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-get-green-card",
     title: "How to Get a Green Card: Marriage, Employment, and Family Paths",
+    seoTitle: "How to Get a Green Card",
+    metaDescription: "How do you get a green card? The family, employment, and humanitarian paths, plus the adjustment vs. consular processing choice. Not legal advice.",
+    h1: "How Do I Get a Green Card?",
     faqs: [
       {
         question: "How do I get a green card?",
@@ -1439,6 +1493,8 @@ export const ARTICLES: Article[] = [
   {
     id: "medical-malpractice-guide",
     title: "Understanding Medical Malpractice: When to Sue a Doctor",
+    seoTitle: "Do I Have a Medical Malpractice Case?",
+    metaDescription: "Was your bad outcome malpractice? The four elements you must prove, why expert testimony matters, and the special filing requirements. Not legal advice.",
     faqs: [
       {
         question: "What is medical malpractice?",
@@ -1474,6 +1530,9 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-start-an-llc",
     title: "How to Start an LLC: A Legal Guide for Small Business Owners",
+    seoTitle: "How to Start an LLC",
+    metaDescription: "How do you start an LLC? Naming and registered agent rules, filing articles of organization, the operating agreement, and the tax elections. Not legal advice.",
+    h1: "How Do I Start an LLC?",
     faqs: [
       {
         question: "How do I start an LLC?",
@@ -1509,6 +1568,9 @@ export const ARTICLES: Article[] = [
   {
     id: "sexual-harassment-rights",
     title: "What Is Sexual Harassment? Your Workplace Rights Explained",
+    seoTitle: "What Is Sexual Harassment?",
+    metaDescription: "What is sexual harassment at work? Quid pro quo vs. hostile environment, what counts as unwelcome conduct, and how to document and report it. Not legal advice.",
+    h1: "What Is Sexual Harassment at Work?",
     faqs: [
       {
         question: "What is sexual harassment at work?",
@@ -1617,6 +1679,9 @@ export const ARTICLES: Article[] = [
   {
     id: "fight-restraining-order",
     title: "How to Fight a Restraining Order: Your Legal Rights",
+    seoTitle: "How to Fight a Restraining Order",
+    metaDescription: "Served with a restraining order? What the temporary order requires, what happens at the hearing, and how the other side must prove their case. Not legal advice.",
+    h1: "How Do I Fight a Restraining Order?",
     faqs: [
       {
         question: "How do I fight a restraining order?",
@@ -1864,6 +1929,9 @@ export const ARTICLES: Article[] = [
   {
     id: "divorce-spouse-wont-sign",
     title: "How to Get a Divorce When Your Spouse Won't Sign",
+    seoTitle: "Divorce When Your Spouse Won't Sign",
+    metaDescription: "Can you divorce a spouse who won't sign or respond? How filing, service, and a default judgment work, and how temporary orders protect you. Not legal advice.",
+    h1: "How Do I Get a Divorce If My Spouse Won't Sign?",
     faqs: [
       {
         question: "Can I get a divorce if my spouse won't sign?",
@@ -1899,6 +1967,9 @@ export const ARTICLES: Article[] = [
   {
     id: "equal-pay-act",
     title: "Understanding the Equal Pay Act: Your Right to Fair Wages",
+    seoTitle: "Equal Pay Act: When Pay Differs by Sex",
+    metaDescription: "Paid less than a coworker for the same work? How the Equal Pay Act applies, the employer defenses, and how state pay laws can go further. Not legal advice.",
+    h1: "Can My Employer Pay Me Less for the Same Job?",
     faqs: [
       {
         question: "Can my employer pay me less for the same job?",
@@ -1934,6 +2005,9 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-write-a-will",
     title: "How to Write a Will: A Step-by-Step Guide",
+    seoTitle: "How to Write a Will",
+    metaDescription: "How do you write a valid will? Who can make one, whether witnesses or a notary are needed, what a will can't override, and when to update it. Not legal advice.",
+    h1: "How Do I Write a Will?",
     faqs: [
       {
         question: "How do I write a will?",
@@ -2004,6 +2078,9 @@ export const ARTICLES: Article[] = [
   {
     id: "us-citizenship-naturalization",
     title: "How to Apply for U.S. Citizenship: The Naturalization Process",
+    seoTitle: "How to Apply for U.S. Citizenship",
+    metaDescription: "How do you apply for U.S. citizenship? The eligibility rules, Form N-400, the English and civics tests, and what can delay or block it. Not legal advice.",
+    h1: "How Do I Apply for U.S. Citizenship?",
     faqs: [
       {
         question: "How do I apply for U.S. citizenship?",
@@ -2272,11 +2349,12 @@ export function getGuideBySlug(slug: string): Article | undefined {
   return ARTICLES.find((a) => a.id === slug);
 }
 
-// --- Wave 2 question-intent SEO helpers ------------------------------------
-// Pilot guides carry seoTitle / metaDescription / h1; every other guide falls
-// back to the pre-Wave-2 rendering (title-tag phrase = article.title, meta =
-// first 160 chars of paragraph 0, H1 = article.title) so the other 52 guides
-// are byte-for-byte unchanged in the head block.
+// --- Wave 2 + Wave 3 question-intent SEO helpers ---------------------------
+// Guides carrying seoTitle / metaDescription / h1 render the question-led
+// title, meta, and H1; every other guide falls back to the pre-Wave-2
+// rendering (title-tag phrase = article.title, meta = first 160 chars of
+// paragraph 0, H1 = article.title), so the remaining 26 field-less guides are
+// byte-for-byte unchanged in the head block.
 export const GUIDE_TITLE_SUFFIX = " | Fair Fight";
 
 /** Full <title> for a guide head block, brand suffix always appended. */
