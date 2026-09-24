@@ -153,9 +153,9 @@ const PILOT_SEO: Record<string, { seoTitle: string; metaDescription: string; h1?
 };
 const PILOT_SLUGS = Object.keys(PILOT_SEO);
 
-// Wave 3 question-intent SEO overrides (26 of the remaining 52 guides):
+// Wave 3 question-intent SEO overrides (52 guides, final pass):
 // the question-led phrases (title tags WITHOUT the " | Fair Fight" suffix),
-// metas, and H1s shipped for the 26 highest question-intent guides. Like the
+// metas, and H1s shipped for every guide beyond the 10 wave-2 pilots. Like the
 // pilots, the data in guides.ts must match these exactly; the route helpers
 // must produce the budgeted title/meta/H1. Metas keep the "Not legal advice."
 // honesty posture because every one of these guides is how-to/process content.
@@ -287,22 +287,149 @@ const WAVE3_SEO: Record<string, { seoTitle: string; metaDescription: string; h1?
     metaDescription: "What are your rights during a traffic stop or street encounter? When you can leave, what you must provide, and refusing consent to a search. Not legal advice.",
     h1: "What Are My Rights During a Police Stop?",
   },
+  // Wave 3, part 2 (final pass): the last 26 field-less guides. Copy follows
+  // the question-intent map's title phrases and metas (metas trimmed where the
+  // "Not legal advice." posture would exceed the 160-char budget) plus H1s
+  // where the map's recommended H1 differs from the seoTitle phrase.
+  "what-is-discovery": {
+    seoTitle: "What Is Discovery in a Lawsuit?",
+    metaDescription: "What is discovery in a lawsuit? The main discovery tools, what you're entitled to see, the limits and privileges, and the deadlines. Not legal advice.",
+    h1: "What Is Discovery in a Civil Lawsuit?",
+  },
+  "understanding-miranda-rights": {
+    seoTitle: "Miranda Rights: When They Apply",
+    metaDescription: "When must police read Miranda rights, and what happens if they don't? The custody and interrogation tests, and how to invoke your rights. Not legal advice.",
+    h1: "When Do Police Have to Read Me My Miranda Rights?",
+  },
+  "fourth-amendment-search-seizure": {
+    seoTitle: "Fourth Amendment: Search and Seizure",
+    metaDescription: "What does the Fourth Amendment protect, and when can police search without a warrant? The main exceptions and how to challenge a search. Not legal advice.",
+    h1: "What Does the Fourth Amendment Protect?",
+  },
+  "first-amendment-speech": {
+    seoTitle: "First Amendment: What Speech Is Protected?",
+    metaDescription: "What speech does the First Amendment protect, and what is left out? The unprotected categories and how content-based restrictions are judged. Not legal advice.",
+    h1: "What Speech Is Protected by the First Amendment?",
+  },
+  "civil-rights-section-1983": {
+    seoTitle: "Suing the Government Under Section 1983",
+    metaDescription: "How do you sue a government official for violating your rights? What Section 1983 requires, how qualified immunity works, and the deadline. Not legal advice.",
+    h1: "Can I Sue a Government Official Under Section 1983?",
+  },
+  "how-to-write-legal-brief": {
+    seoTitle: "How to Write a Legal Brief for Court",
+    metaDescription: "How do you write a legal brief a judge can follow? The standard sections, how to organize the argument, and how to cite authority accurately. Not legal advice.",
+    h1: "How Do I Write a Legal Brief?",
+  },
+  "power-of-attorney-guide": {
+    seoTitle: "What Is a Power of Attorney?",
+    metaDescription: "What is a power of attorney, and which type do you need? General, limited, durable, and springing POAs, plus healthcare proxies. Not legal advice.",
+  },
+  "how-to-read-contract": {
+    seoTitle: "How to Read a Contract Before Signing",
+    metaDescription: "What should you check before signing a contract? Payment and termination terms, liability, red-flag clauses like arbitration waivers. Not legal advice.",
+    h1: "How Do I Read a Contract Before I Sign?",
+  },
+  "what-is-probate": {
+    seoTitle: "What Is Probate? A Plain-English Guide",
+    metaDescription: "What is probate, and how long does it take? What the executor does, which assets skip probate, and the small-estate shortcuts. Not legal advice.",
+    h1: "What Is Probate?",
+  },
+  "immigration-court-basics": {
+    seoTitle: "What Happens in Immigration Court?",
+    metaDescription: "What happens in immigration court? The Notice to Appear, master calendar and merits hearings, and why there is no appointed lawyer. Not legal advice.",
+  },
+  "living-will-advance-directives": {
+    seoTitle: "What Is a Living Will? Advance Directives",
+    metaDescription: "What is a living will, and how is it different from a healthcare proxy? What it covers, how to sign one, and when it takes effect. Not legal advice.",
+    h1: "What Is a Living Will and How Do I Make One?",
+  },
+  "defamation-libel-slander": {
+    seoTitle: "Defamation: Libel vs Slander Explained",
+    metaDescription: "What counts as defamation, and is it worth suing? Libel versus slander, the fault standard for private and public figures, and key defenses. Not legal advice.",
+    h1: "What Is Defamation, and Can I Sue?",
+  },
+  "asylum-law-guide": {
+    seoTitle: "Who Qualifies for Asylum?",
+    metaDescription: "Who qualifies for asylum in the U.S.? The five protected grounds, the one-year filing deadline, and affirmative versus defensive asylum. Not legal advice.",
+  },
+  "class-action-lawsuits": {
+    seoTitle: "What Is a Class Action Lawsuit?",
+    metaDescription: "What is a class action, and what should you do with the notice? How certification works, staying in versus opting out, and settlement review. Not legal advice.",
+  },
+  "understanding-alimony": {
+    seoTitle: "How Is Alimony Calculated?",
+    metaDescription: "How is alimony calculated, and how long does it last? The factors judges weigh, the types of support, and how taxes and modification work. Not legal advice.",
+  },
+  "what-is-a-trust": {
+    seoTitle: "What Is a Trust? Revocable vs Irrevocable",
+    metaDescription: "What is a trust, and should you have one? How revocable and irrevocable trusts differ, what funding the trust means, and drafting mistakes. Not legal advice.",
+    h1: "What Is a Trust?",
+  },
+  "complaint-against-judge": {
+    seoTitle: "How to File a Complaint Against a Judge",
+    metaDescription: "How do you complain about a judge's conduct? What counts as misconduct, where to file, and what a complaint can and cannot do. Not legal advice.",
+    h1: "How Do I File a Complaint Against a Judge?",
+  },
+  "right-to-protest": {
+    seoTitle: "Your Right to Protest: Permits and Limits",
+    metaDescription: "Do you need a permit to protest, and what can police restrict? How public forum rules work, what dispersal orders require, and arrest rights. Not legal advice.",
+    h1: "What Are My Rights at a Protest?",
+  },
+  "how-to-file-a-trademark": {
+    seoTitle: "How to File a Trademark Application",
+    metaDescription: "How do you register a trademark? Search before you file, TEAS Plus or Standard, what an examiner checks, and how to answer an office action. Not legal advice.",
+    h1: "How Do I File a Trademark?",
+  },
+  "wrongful-death-claims": {
+    seoTitle: "Who Can File a Wrongful Death Claim?",
+    metaDescription: "Who can sue for wrongful death, and what can they recover? Standing rules, economic and non-economic damages, and the filing deadline. Not legal advice.",
+  },
+  "eminent-domain": {
+    seoTitle: "Eminent Domain: When Government Takes Land",
+    metaDescription: "Can the government take your property, and what must it pay? Public use, just compensation, and how owners challenge a taking. Not legal advice.",
+    h1: "Can the Government Take My Property?",
+  },
+  "insider-trading": {
+    seoTitle: "What Is Insider Trading?",
+    metaDescription: "What is insider trading, and when is it illegal? The two main theories, what makes information material, and the penalties. Not legal advice.",
+  },
+  "noise-complaints-nuisance": {
+    seoTitle: "Noisy Neighbor? Noise Complaints and Rules",
+    metaDescription: "What can you do about a noisy neighbor? How decibel ordinances work, the escalation steps, and the evidence a court expects. Not legal advice.",
+    h1: "What Can I Do About a Noisy Neighbor?",
+  },
+  "subpoena-phone-records": {
+    seoTitle: "How to Subpoena Phone and Social Media Records",
+    metaDescription: "Can you subpoena phone, email, or social media records? What the Stored Communications Act allows in civil cases and how to serve a subpoena. Not legal advice.",
+    h1: "How Do I Subpoena Phone Records, Emails, and Social Media?",
+  },
+  "prepare-attorney-consultation": {
+    seoTitle: "How to Prepare for a Lawyer Meeting",
+    metaDescription: "What should you bring to an attorney consultation, and what should you ask? The documents, a timeline, and useful questions. Not legal advice.",
+    h1: "How Do I Prepare for a First Attorney Consultation?",
+  },
+  "organize-case-documents": {
+    seoTitle: "How to Organize Case Documents and Evidence",
+    metaDescription: "How do you organize case documents and evidence? A simple naming and indexing system, how to keep a chronology, and how to preserve originals. Not legal advice.",
+    h1: "How Do I Organize Case Documents and Evidence?",
+  },
 };
 const WAVE3_SLUGS = Object.keys(WAVE3_SEO);
 
 describe("Wave 2 question-intent SEO (pilot batch)", () => {
   const SEO_SLUGS = [...PILOT_SLUGS, ...WAVE3_SLUGS];
 
-  test("exactly the 10 pilots + 26 wave-3 guides carry seo fields; the other 26 have none", () => {
+  test("all 62 guides carry seo fields (10 pilots + 52 wave-3); none are field-less", () => {
     expect(ARTICLES.length).toBe(62);
-    const withSeo = ARTICLES.filter((a) => a.seoTitle !== undefined).map((a) => a.id);
+    expect(SEO_SLUGS.length).toBe(62);
+    const withSeo = ARTICLES.filter(
+      (a) => a.seoTitle !== undefined && a.metaDescription !== undefined,
+    ).map((a) => a.id);
     expect(withSeo.sort()).toEqual([...SEO_SLUGS].sort());
     for (const a of ARTICLES) {
-      if (!SEO_SLUGS.includes(a.id)) {
-        expect(a.seoTitle, `${a.id} seoTitle`).toBeUndefined();
-        expect(a.metaDescription, `${a.id} metaDescription`).toBeUndefined();
-        expect(a.h1, `${a.id} h1`).toBeUndefined();
-      }
+      expect(a.seoTitle, `${a.id} seoTitle`).toBeDefined();
+      expect(a.metaDescription, `${a.id} metaDescription`).toBeDefined();
     }
   });
 
@@ -383,17 +510,9 @@ describe("Wave 2 question-intent SEO (pilot batch)", () => {
     }
   });
 
-  test("field-less guides keep the legacy rendering (title = article.title, meta = first 160 chars, H1 = title)", () => {
-    // The 26 guides not yet carrying Wave-3 seo fields still use the fallback path.
-    const fieldLess = ARTICLES.filter((a) => a.seoTitle === undefined);
-    expect(fieldLess.length).toBe(26);
-    for (const a of fieldLess) {
-      expect(guidePageTitle(a), a.id).toBe(`${a.title} | Fair Fight`);
-      expect(guidePageDescription(a), a.id).toBe(a.paragraphs[0].substring(0, 160));
-      expect(guidePageH1(a), a.id).toBe(a.title);
-    }
-    // Keep the fallback coverage against an inline minimal Article too, so it
-    // survives even after every live guide gains seo fields.
+  test("articles without seo fields keep the legacy rendering (title = article.title, meta = first 160 chars, H1 = title)", () => {
+    // Every live guide now carries Wave-3 seo fields, so the legacy fallback
+    // path is pinned with an inline minimal Article that has none.
     const noSeoArticle: Article = {
       id: "sample-legacy-fixture",
       title: "Sample Legacy Rendering Guide",
