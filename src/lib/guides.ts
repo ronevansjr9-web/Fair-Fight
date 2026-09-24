@@ -10,8 +10,8 @@ export interface Article {
   paragraphs: string[];
   takeaways: string[];
   relatedGuides: string[];
-  // Wave 2 + Wave 3 question-intent SEO overrides (10 pilots, then 26 more;
-  // absent on the remaining 26 field-less guides).
+  // Wave 2 + Wave 3 question-intent SEO overrides (10 pilots, then 52 more —
+  // every guide in the library now carries the fields).
   // seoTitle is the question-led phrase WITHOUT the " | Fair Fight" suffix — the
   // /learn/<slug> route appends the suffix. metaDescription replaces the old
   // first-160-chars-of-paragraph-0 fallback. h1 is only set where the map's
@@ -126,6 +126,9 @@ export const ARTICLES: Article[] = [
   {
     id: "what-is-discovery",
     title: "What Is Discovery? Understanding the Discovery Process in Civil Litigation",
+    seoTitle: "What Is Discovery in a Lawsuit?",
+    metaDescription: "What is discovery in a lawsuit? The main discovery tools, what you're entitled to see, the limits and privileges, and the deadlines. Not legal advice.",
+    h1: "What Is Discovery in a Civil Lawsuit?",
     faqs: [
       {
         question: "What is discovery in a lawsuit?",
@@ -275,6 +278,9 @@ export const ARTICLES: Article[] = [
   {
     id: "understanding-miranda-rights",
     title: "Miranda Rights: What They Are, When They Apply, and What Happens If Police Don't Read Them",
+    seoTitle: "Miranda Rights: When They Apply",
+    metaDescription: "When must police read Miranda rights, and what happens if they don't? The custody and interrogation tests, and how to invoke your rights. Not legal advice.",
+    h1: "When Do Police Have to Read Me My Miranda Rights?",
     faqs: [
       {
         question: "What are Miranda rights?",
@@ -310,6 +316,9 @@ export const ARTICLES: Article[] = [
   {
     id: "fourth-amendment-search-seizure",
     title: "Fourth Amendment: Search and Seizure — What Police Can and Cannot Do",
+    seoTitle: "Fourth Amendment: Search and Seizure",
+    metaDescription: "What does the Fourth Amendment protect, and when can police search without a warrant? The main exceptions and how to challenge a search. Not legal advice.",
+    h1: "What Does the Fourth Amendment Protect?",
     faqs: [
       {
         question: "What does the Fourth Amendment protect?",
@@ -531,6 +540,9 @@ export const ARTICLES: Article[] = [
   {
     id: "first-amendment-speech",
     title: "First Amendment: Freedom of Speech — What's Protected and What's Not",
+    seoTitle: "First Amendment: What Speech Is Protected?",
+    metaDescription: "What speech does the First Amendment protect, and what is left out? The unprotected categories and how content-based restrictions are judged. Not legal advice.",
+    h1: "What Speech Is Protected by the First Amendment?",
     faqs: [
       {
         question: "What speech is not protected by the First Amendment?",
@@ -566,6 +578,9 @@ export const ARTICLES: Article[] = [
   {
     id: "civil-rights-section-1983",
     title: "Civil Rights Lawsuits Under 42 U.S.C. § 1983: Suing Government Officials",
+    seoTitle: "Suing the Government Under Section 1983",
+    metaDescription: "How do you sue a government official for violating your rights? What Section 1983 requires, how qualified immunity works, and the deadline. Not legal advice.",
+    h1: "Can I Sue a Government Official Under Section 1983?",
     faqs: [
       {
         question: "Can I sue a police officer under Section 1983?",
@@ -639,6 +654,9 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-write-legal-brief",
     title: "How to Write a Legal Brief: Structure, Format, and Best Practices",
+    seoTitle: "How to Write a Legal Brief for Court",
+    metaDescription: "How do you write a legal brief a judge can follow? The standard sections, how to organize the argument, and how to cite authority accurately. Not legal advice.",
+    h1: "How Do I Write a Legal Brief?",
     faqs: [
       {
         question: "What is a legal brief?",
@@ -828,6 +846,8 @@ export const ARTICLES: Article[] = [
     {
     id: "power-of-attorney-guide",
     title: "Understanding Power of Attorney: Types and How to Create One",
+    seoTitle: "What Is a Power of Attorney?",
+    metaDescription: "What is a power of attorney, and which type do you need? General, limited, durable, and springing POAs, plus healthcare proxies. Not legal advice.",
     faqs: [
       {
         question: "What is a power of attorney?",
@@ -941,6 +961,9 @@ export const ARTICLES: Article[] = [
     {
     id: "how-to-read-contract",
     title: "How to Read a Contract Before Signing: Key Clauses to Watch For",
+    seoTitle: "How to Read a Contract Before Signing",
+    metaDescription: "What should you check before signing a contract? Payment and termination terms, liability, red-flag clauses like arbitration waivers. Not legal advice.",
+    h1: "How Do I Read a Contract Before I Sign?",
     faqs: [
       {
         question: "Why is it important to read a contract before signing?",
@@ -976,6 +999,9 @@ export const ARTICLES: Article[] = [
     {
     id: "what-is-probate",
     title: "What Is Probate? A Beginner's Guide to the Probate Process",
+    seoTitle: "What Is Probate? A Plain-English Guide",
+    metaDescription: "What is probate, and how long does it take? What the executor does, which assets skip probate, and the small-estate shortcuts. Not legal advice.",
+    h1: "What Is Probate?",
     faqs: [
       {
         question: "What is probate?",
@@ -1087,6 +1113,8 @@ export const ARTICLES: Article[] = [
     {
     id: "immigration-court-basics",
     title: "Immigration Court Basics: What to Expect and How to Prepare",
+    seoTitle: "What Happens in Immigration Court?",
+    metaDescription: "What happens in immigration court? The Notice to Appear, master calendar and merits hearings, and why there is no appointed lawyer. Not legal advice.",
     faqs: [
       {
         question: "What happens in immigration court?",
@@ -1237,6 +1265,9 @@ export const ARTICLES: Article[] = [
   {
     id: "living-will-advance-directives",
     title: "How to Create a Living Will: Advance Directives Explained",
+    seoTitle: "What Is a Living Will? Advance Directives",
+    metaDescription: "What is a living will, and how is it different from a healthcare proxy? What it covers, how to sign one, and when it takes effect. Not legal advice.",
+    h1: "What Is a Living Will and How Do I Make One?",
     faqs: [
       {
         question: "What is a living will?",
@@ -1272,6 +1303,9 @@ export const ARTICLES: Article[] = [
   {
     id: "defamation-libel-slander",
     title: "What Is Defamation? Libel vs. Slander Explained",
+    seoTitle: "Defamation: Libel vs Slander Explained",
+    metaDescription: "What counts as defamation, and is it worth suing? Libel versus slander, the fault standard for private and public figures, and key defenses. Not legal advice.",
+    h1: "What Is Defamation, and Can I Sue?",
     faqs: [
       {
         question: "Is it defamation if someone lies about me online?",
@@ -1345,6 +1379,8 @@ export const ARTICLES: Article[] = [
   {
     id: "asylum-law-guide",
     title: "Understanding Asylum Law: Who Qualifies and How to Apply",
+    seoTitle: "Who Qualifies for Asylum?",
+    metaDescription: "Who qualifies for asylum in the U.S.? The five protected grounds, the one-year filing deadline, and affirmative versus defensive asylum. Not legal advice.",
     faqs: [
       {
         question: "What is asylum?",
@@ -1380,6 +1416,8 @@ export const ARTICLES: Article[] = [
   {
     id: "class-action-lawsuits",
     title: "What Is a Class Action Lawsuit? How They Work",
+    seoTitle: "What Is a Class Action Lawsuit?",
+    metaDescription: "What is a class action, and what should you do with the notice? How certification works, staying in versus opting out, and settlement review. Not legal advice.",
     faqs: [
       {
         question: "What is a class action lawsuit?",
@@ -1644,6 +1682,8 @@ export const ARTICLES: Article[] = [
   {
     id: "understanding-alimony",
     title: "Understanding Alimony: How Spousal Support Is Calculated",
+    seoTitle: "How Is Alimony Calculated?",
+    metaDescription: "How is alimony calculated, and how long does it last? The factors judges weigh, the types of support, and how taxes and modification work. Not legal advice.",
     faqs: [
       {
         question: "What is alimony?",
@@ -1717,6 +1757,9 @@ export const ARTICLES: Article[] = [
   {
     id: "what-is-a-trust",
     title: "What Is a Trust? Revocable vs. Irrevocable Trusts Explained",
+    seoTitle: "What Is a Trust? Revocable vs Irrevocable",
+    metaDescription: "What is a trust, and should you have one? How revocable and irrevocable trusts differ, what funding the trust means, and drafting mistakes. Not legal advice.",
+    h1: "What Is a Trust?",
     faqs: [
       {
         question: "What is a trust?",
@@ -1752,6 +1795,9 @@ export const ARTICLES: Article[] = [
   {
     id: "complaint-against-judge",
     title: "How to File a Complaint Against a Judge: Judicial Misconduct",
+    seoTitle: "How to File a Complaint Against a Judge",
+    metaDescription: "How do you complain about a judge's conduct? What counts as misconduct, where to file, and what a complaint can and cannot do. Not legal advice.",
+    h1: "How Do I File a Complaint Against a Judge?",
     faqs: [
       {
         question: "How do I file a complaint against a judge?",
@@ -1787,6 +1833,9 @@ export const ARTICLES: Article[] = [
   {
     id: "right-to-protest",
     title: "Your Right to Protest: First Amendment Protections and Limits",
+    seoTitle: "Your Right to Protest: Permits and Limits",
+    metaDescription: "Do you need a permit to protest, and what can police restrict? How public forum rules work, what dispersal orders require, and arrest rights. Not legal advice.",
+    h1: "What Are My Rights at a Protest?",
     faqs: [
       {
         question: "Do I need a permit to protest?",
@@ -1824,6 +1873,9 @@ export const ARTICLES: Article[] = [
   {
     id: "how-to-file-a-trademark",
     title: "How to File a Trademark: Protecting Your Business Name and Logo",
+    seoTitle: "How to File a Trademark Application",
+    metaDescription: "How do you register a trademark? Search before you file, TEAS Plus or Standard, what an examiner checks, and how to answer an office action. Not legal advice.",
+    h1: "How Do I File a Trademark?",
     faqs: [
       {
         question: "How do I file a trademark?",
@@ -1859,6 +1911,8 @@ export const ARTICLES: Article[] = [
   {
     id: "wrongful-death-claims",
     title: "Understanding Wrongful Death Claims: Who Can Sue and for What",
+    seoTitle: "Who Can File a Wrongful Death Claim?",
+    metaDescription: "Who can sue for wrongful death, and what can they recover? Standing rules, economic and non-economic damages, and the filing deadline. Not legal advice.",
     faqs: [
       {
         question: "What is a wrongful death claim?",
@@ -1894,6 +1948,9 @@ export const ARTICLES: Article[] = [
   {
     id: "eminent-domain",
     title: "What Is Eminent Domain? When the Government Takes Your Property",
+    seoTitle: "Eminent Domain: When Government Takes Land",
+    metaDescription: "Can the government take your property, and what must it pay? Public use, just compensation, and how owners challenge a taking. Not legal advice.",
+    h1: "Can the Government Take My Property?",
     faqs: [
       {
         question: "Can the government take my property?",
@@ -2043,6 +2100,8 @@ export const ARTICLES: Article[] = [
   {
     id: "insider-trading",
     title: "What Is Insider Trading? Understanding Securities Fraud",
+    seoTitle: "What Is Insider Trading?",
+    metaDescription: "What is insider trading, and when is it illegal? The two main theories, what makes information material, and the penalties. Not legal advice.",
     faqs: [
       {
         question: "What is insider trading?",
@@ -2116,6 +2175,9 @@ export const ARTICLES: Article[] = [
   {
     id: "noise-complaints-nuisance",
     title: "Understanding Noise Complaints and Nuisance Laws",
+    seoTitle: "Noisy Neighbor? Noise Complaints and Rules",
+    metaDescription: "What can you do about a noisy neighbor? How decibel ordinances work, the escalation steps, and the evidence a court expects. Not legal advice.",
+    h1: "What Can I Do About a Noisy Neighbor?",
     faqs: [
       {
         question: "How do I file a noise complaint?",
@@ -2151,6 +2213,9 @@ export const ARTICLES: Article[] = [
   {
     id: "subpoena-phone-records",
     title: "How to Subpoena Phone Records, Emails, and Social Media",
+    seoTitle: "How to Subpoena Phone and Social Media Records",
+    metaDescription: "Can you subpoena phone, email, or social media records? What the Stored Communications Act allows in civil cases and how to serve a subpoena. Not legal advice.",
+    h1: "How Do I Subpoena Phone Records, Emails, and Social Media?",
     faqs: [
       {
         question: "How do I subpoena phone records?",
@@ -2262,6 +2327,9 @@ export const ARTICLES: Article[] = [
   {
     id: "prepare-attorney-consultation",
     title: "How to Prepare for Your First Attorney Consultation: Documents, Questions, and What to Expect",
+    seoTitle: "How to Prepare for a Lawyer Meeting",
+    metaDescription: "What should you bring to an attorney consultation, and what should you ask? The documents, a timeline, and useful questions. Not legal advice.",
+    h1: "How Do I Prepare for a First Attorney Consultation?",
     faqs: [
       {
         question: "How do I prepare for an attorney consultation?",
@@ -2298,6 +2366,9 @@ export const ARTICLES: Article[] = [
   {
     id: "organize-case-documents",
     title: "How to Organize Case Documents and Evidence for Your Court Case",
+    seoTitle: "How to Organize Case Documents and Evidence",
+    metaDescription: "How do you organize case documents and evidence? A simple naming and indexing system, how to keep a chronology, and how to preserve originals. Not legal advice.",
+    h1: "How Do I Organize Case Documents and Evidence?",
     faqs: [
       {
         question: "How do I organize case documents?",
